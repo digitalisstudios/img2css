@@ -81,6 +81,7 @@
                 
                 // Process with img2css
                 const converter = new img2css({
+                    source: imageData,  // Pass ImageData directly as source
                     selector: '.demo-gradient',
                     processing: {
                         details: 70,
@@ -88,8 +89,6 @@
                         mode: 'auto'
                     }
                 });
-                
-                converter.imageData = imageData;
                 const css = await converter.toCSS();
                 
                 // Create demo visualization
