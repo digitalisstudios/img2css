@@ -449,6 +449,9 @@ Future enhancements planned for img2css:
 - **Conic gradients** - Angular/conical gradient generation
 - **Multi-layer processing** - Combine multiple gradient techniques
 - **Edge-aware sampling** - Intelligent boundary detection
+- **Fixed pixel version** - Pixel-perfect recreation using CSS positioning
+- **Box shadow version** - Single-element approach using multiple box-shadow layers
+- **Alternating diagonal linear gradients** - Diamond/diagonal pattern processing
 
 ### **Performance & Quality**
 - **WebAssembly acceleration** - Faster processing for large images
