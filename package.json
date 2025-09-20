@@ -1,6 +1,6 @@
 {
   "name": "img2css",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Advanced image-to-CSS gradient converter that transforms images into pure CSS gradients with sophisticated processing options including posterization, hybrid processing, and intelligent compression.",
   "main": "src/img2css.js",
   "type": "module",
