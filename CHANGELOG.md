@@ -4,6 +4,25 @@ All notable changes to img2css will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [1.1.0] - 2025-09-20
+
+### 🚀 Major Documentation & UX Improvements
+
+**Enhanced README:**
+- **Added copyright protection use case** - Highlighted key security benefits for protecting images
+- **Added comprehensive v2.0 roadmap** - Future features including plugin architecture, advanced processing modes, and performance improvements
+- **Improved structure & formatting** - Better organization with clear benefit categories
+- **Added visual demonstration** - Educational demo image showing column sampling and color stop density
+
+**New Features:**
+- **Visual demo image** (`demo-visual.png`) - Shows real column sampling with actual color stop data from Camaro example
+- **Educational explanations** - Clear descriptions of X-axis (column spacing) and Y-axis (color stop density)
+- **Row processing clarification** - Explained as 90° rotation of column processing
+
+**API Improvements:**
+- **Enhanced selector flexibility** - Support for any CSS selector (`.class`, `#id`, complex selectors)
+- **Backward compatibility maintained** - `className` parameter still works but deprecated in favor of `selector`
+
 ## [1.0.1] - 2025-09-20
 
 ### 🔧 API Improvement
