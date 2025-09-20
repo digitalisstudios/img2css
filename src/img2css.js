@@ -24,7 +24,7 @@ class img2css {
     }
 
 
-    // Generate CSS and store detailed stats in this.lastResult
+    // Generate CSS and store detailed stats in this.stats
     async toCSS() {
         if (!this.config.source) {
             throw new Error('No source provided. Provide source in constructor: new img2css({ source: "..." })');
@@ -138,7 +138,7 @@ class img2css {
     // Process image data to CSS without UI dependencies
     async processImageToCSS(imageData, config) {
         const { width, height, data } = imageData;
-        const { details, compression, processingMode, useOriginalPalette } = config;
+        const { details, compression, processingMode, posterize, useOriginalPalette } = config;
         
         // Extract color palette if using original palette mode
         let colorPalette = null;

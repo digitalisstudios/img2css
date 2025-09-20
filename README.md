@@ -112,11 +112,12 @@ const css = await (new img2css({
 Limit gradients to colors from the original image palette:
 
 ```javascript
-const css = await converter.toCSS(imageData, {
+const css = await (new img2css({
+    source: '/path/to/image.jpg',
     details: 80,
     compression: 10,
     posterize: 0.7  // 70% blend to original palette
-});
+})).toCSS();
 ```
 
 Posterization strength controls the blend between sampled colors and nearest palette colors:
@@ -129,33 +130,30 @@ Posterization strength controls the blend between sampled colors and nearest pal
 Best quality output by combining multiple gradient directions:
 
 ```javascript
-const css = await converter.toCSS(imageData, {
+const css = await (new img2css({
+    source: '/path/to/image.jpg',
     details: 90,
     compression: 5,
     processingMode: 'hybrid'  // Uses both row and column analysis
-});
+})).toCSS();
 ```
 
-Hybrid mode:
-1. Generates primary gradient (opposite of auto-detection)
-2. Generates secondary gradient for edge detection
-3. Uses edge analysis to improve primary gradient accuracy
-4. Returns single optimized CSS gradient
+Hybrid mode combines both horizontal and vertical gradient analysis for the highest quality results.
 
 ### Automatic Upscaling
 
-Images smaller than 2K resolution are automatically upscaled 2x using bilinear interpolation for better sampling quality while maintaining original coordinate mapping.
+Small images are automatically upscaled for better gradient quality.
 
 ### Intelligent Compression
 
-Even at 0% compression, the system removes colors within 6 RGB units to clean up output:
+Even at 0% compression, similar colors are automatically merged for cleaner output:
 
 ```javascript
-// Still removes near-duplicate colors
-const css = await converter.toCSS(imageData, {
+const css = await (new img2css({
+    source: '/path/to/image.jpg',
     details: 100,
-    compression: 0  // Removes colors within 6 RGB unit similarity
-});
+    compression: 0  // Still removes near-duplicate colors
+})).toCSS();
 ```
 
 ## API Reference
@@ -170,74 +168,42 @@ Optional configuration object with default values for all processing options.
 
 ### Methods
 
-#### `toCSS(imageData, options = {})`
+#### `toCSS()`
 
-Main processing method that converts ImageData to CSS gradient.
+Main processing method that converts the configured source to CSS gradient.
 
-**Parameters:**
-- `imageData`: HTML5 ImageData object from canvas
-- `options`: Configuration object (see Configuration Options)
+**Parameters:** None (uses constructor configuration)
 
-**Returns:** Promise resolving to CSS class string
+**Returns:** Promise resolving to CSS string
 
-#### `extractColorPalette(imageData, maxColors = 1024)`
+**Note:** Detailed stats from the conversion are stored in `this.stats` property
 
-Extract unique colors from image for posterization.
+#### `stats` Property
 
-**Parameters:**
-- `imageData`: HTML5 ImageData object
-- `maxColors`: Maximum colors to extract
+After calling `toCSS()`, this property contains detailed information about the conversion:
 
-**Returns:** Array of color objects `{r, g, b, a}`
+```javascript
+const converter = new img2css({ source: '/path/to/image.jpg' });
+const css = await converter.toCSS();
 
-#### `scaleImageByDetails(imageData, details)`
+console.log(converter.stats);
+// {
+//   css: "...",           // The generated CSS
+//   settings: {
+//     details: 100,       // Applied detail level
+//     compression: 15,    // Applied compression
+//     processingMode: "auto",
+//     dimensions: { width: 800, height: 600 }
+//   }
+// }
+```
 
-Scale image based on detail level and automatic upscaling rules.
+## Performance
 
-**Parameters:**
-- `imageData`: Source image data
-- `details`: Detail percentage (0-100)
-
-**Returns:** Scaled ImageData object
-
-#### `optimizeColorStopsStandalone(colorStops, compression)`
-
-Optimize color stops for smaller CSS output.
-
-**Parameters:**
-- `colorStops`: Array of color stop objects
-- `compression`: Compression percentage (0-100)
-
-**Returns:** Optimized color stops array
-
-## Processing Pipeline
-
-1. **Input Validation**: Verify ImageData format and dimensions
-2. **Auto-Upscaling**: 2x upscale for images < 2K resolution
-3. **Detail Scaling**: Scale based on detail percentage
-4. **Color Palette Extraction**: Extract unique colors (if posterization enabled)
-5. **Gradient Generation**: Process rows, columns, or hybrid mode
-6. **Color Sampling**: Sample with Gaussian blur and posterization
-7. **Duplicate Removal**: Remove consecutive identical colors
-8. **Compression**: Optimize color stops based on compression level
-9. **CSS Generation**: Convert to CSS gradient syntax
-
-## Performance Characteristics
-
-### Processing Speed
-- Optimized for real-time preview updates
-- Gaussian sampling with configurable blur radius
-- Efficient canvas operations with minimal memory allocation
-
-### Output Quality
-- Typically achieves 94%+ data reduction from original image
-- Adaptive blur prevents pixelation at high compression
-- Smart color stop optimization maintains visual fidelity
-
-### Memory Usage
-- Non-destructive processing (original image unchanged)
-- Efficient ImageData handling
-- Automatic cleanup of intermediate processing data
+- Real-time processing optimized for web applications
+- Typically achieves 94%+ data reduction from original images
+- Non-destructive processing (original images unchanged)
+- Adaptive algorithms prevent pixelation at high compression levels
 
 ## Examples
 
@@ -320,18 +286,23 @@ try {
 ```
 
 Common error scenarios:
-- Invalid ImageData object
-- Corrupted image data
-- Insufficient memory for large images
-- Invalid configuration parameters
+- Invalid image source (broken URLs, corrupted files)
+- Network issues when loading remote images
+- Unsupported image formats
 
-## Performance Tips
+## Tips
 
-1. **Optimize detail level**: Start with 80% for good quality/performance balance
-2. **Use appropriate compression**: 10-20% compression often provides good results
-3. **Consider image size**: Larger images require more processing time
-4. **Batch processing**: Reuse converter instance for multiple images
-5. **Posterization**: Only enable when needed, as it adds processing overhead
+- Start with `details: 80` for a good quality/performance balance
+- **Compression recommendations:**
+  - Start with `compression: 8-15` for most images
+  - Use `compression: 5` for higher quality
+  - For large images that need optimization: `compression: 3`
+  - Last resort for maximum quality: `compression: 0`
+- **Posterization tips:**
+  - Dramatically reduces gradient size but increases processing time
+  - Most effective at `posterize: 0.25-0.7` (25%-70%)
+  - Works best on images with clear subjects and uniform backgrounds
+  - Avoid for complex images (like city skylines at night)
 
 ## License
 
