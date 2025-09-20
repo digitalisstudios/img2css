@@ -23,50 +23,47 @@ class img2css {
     }
 
     // Main async method for getting CSS without UI
-    async generateCSS(imageSource, options = {}) {
-        const config = {
-            details: options.details !== undefined ? options.details : this.config.details,
-            compression: options.compression !== undefined ? options.compression : this.config.compression,
-            autoOptimize: options.autoOptimize !== undefined ? options.autoOptimize : this.config.autoOptimize,
-            maxSize: options.maxSize !== undefined ? options.maxSize : this.config.maxSize,
-            processingMode: options.processingMode !== undefined ? options.processingMode : this.config.processingMode,
-            useOriginalPalette: options.useOriginalPalette !== undefined ? options.useOriginalPalette : this.config.useOriginalPalette
-        };
+    async generateCSS() {
+        if (!this.config.source) {
+            throw new Error('No source provided. Provide source in constructor: new img2css({ source: "..." })');
+        }
 
         try {
-            // Load and process the image
-            const imageData = await this.loadImageData(imageSource);
-            
-            // Auto-optimize if requested
-            if (config.autoOptimize) {
-                // Temporarily store the imageData and config for optimization
-                const originalImageData = this.imageData;
-                const originalConfig = { ...this.config };
-                
-                this.imageData = imageData;
-                this.config = { ...this.config, ...config };
-                
-                const optimal = await this.findOptimalSettingsForImage();
-                config.details = optimal.details;
-                config.compression = optimal.compression;
-                
-                // Restore original values
-                this.imageData = originalImageData;
-                this.config = originalConfig;
+            // Load and process the image if not already loaded
+            if (!this.imageData) {
+                await this.loadFromSource(this.config.source);
             }
             
+            // Auto-optimize if requested
+            if (this.config.autoOptimize) {
+                const optimal = await this.findOptimalSettingsForImage();
+                this.config.details = optimal.details;
+                this.config.compression = optimal.compression;
+            }
+            
+            const config = {
+                details: this.config.details,
+                compression: this.config.compression,
+                processingMode: this.config.processingMode,
+                posterize: this.config.posterize || 0,
+                minified: this.config.minified || false,
+                useOriginalPalette: this.config.useOriginalPalette
+            };
+            
             // Generate the CSS
-            const css = await this.processImageToCSS(imageData, config);
+            const css = await this.processImageToCSS(this.imageData, config);
             
             return {
                 css: css,
                 settings: {
                     details: config.details,
                     compression: config.compression,
-                    maxSize: config.maxSize,
+                    processingMode: config.processingMode,
+                    autoOptimize: this.config.autoOptimize,
+                    maxSize: this.config.maxSize,
                     dimensions: {
-                        width: imageData.width,
-                        height: imageData.height
+                        width: this.imageData.width,
+                        height: this.imageData.height
                     }
                 }
             };
@@ -144,8 +141,11 @@ class img2css {
                 } else {
                     img.src = source.src;
                 }
+            } else if (source && source.data && source.width && source.height) {
+                // ImageData object
+                resolve(source);
             } else {
-                reject(new Error('Invalid image source. Must be URL, File, or HTMLImageElement'));
+                reject(new Error('Invalid image source. Must be URL, File, HTMLImageElement, or ImageData'));
             }
         });
     }

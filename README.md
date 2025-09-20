@@ -42,77 +42,42 @@ const converter = new img2css({ source: '/path/to/image.jpg' });
 const css = await converter.toCSS();
 ```
 
-### Alternative: Direct Method
+### Alternative: Using generateCSS()
 
 ```javascript
-// Generate CSS from any source without constructor
-const converter = new img2css();
-const css = await converter.generateCSS('/path/to/image.jpg', {
+// Create converter with all config upfront, then generate
+const converter = new img2css({
+    source: '/path/to/image.jpg',
     details: 80,
     compression: 15
 });
+
+const result = await converter.generateCSS();
+console.log(result.css); // CSS string
+console.log(result.settings); // Applied settings and dimensions
 ```
 
 ### From File Upload
 
 ```javascript
-// Handle file input
-function handleFileUpload(fileInput) {
-    const file = fileInput.files[0];
-    if (!file) return;
-    
-    const reader = new FileReader();
-    reader.onload = async (e) => {
-        const img = new Image();
-        img.onload = async () => {
-            const canvas = document.createElement('canvas');
-            const ctx = canvas.getContext('2d');
-            canvas.width = img.width;
-            canvas.height = img.height;
-            ctx.drawImage(img, 0, 0);
-            
-            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-            const css = await converter.processImageToCSS(imageData, {
-                details: 80,
-                compression: 15
-            });
-            
-            console.log(css);
-        };
-        img.src = e.target.result;
-    };
-    reader.readAsDataURL(file);
-}
+// Simple one-liner
+const css = await (new img2css({ 
+    source: fileInput.files[0],
+    details: 80,
+    compression: 15 
+})).toCSS();
 ```
 
 ### From Data URL String
 
 ```javascript
-// Convert from base64 data URL
-async function convertFromDataUrl(dataUrl) {
-    const img = new Image();
-    
-    return new Promise((resolve, reject) => {
-        img.onload = async () => {
-            const canvas = document.createElement('canvas');
-            const ctx = canvas.getContext('2d');
-            canvas.width = img.width;
-            canvas.height = img.height;
-            ctx.drawImage(img, 0, 0);
-            
-            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-            const css = await converter.processImageToCSS(imageData);
-            
-            resolve(css);
-        };
-        img.onerror = reject;
-        img.src = dataUrl;
-    });
-}
-
-// Usage with base64 string
+// Usage with base64 data URL
 const dataUrl = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAA...';
-const css = await convertFromDataUrl(dataUrl);
+const css = await (new img2css({ 
+    source: dataUrl,
+    details: 80,
+    compression: 15 
+})).toCSS();
 ```
 
 ### From Canvas ImageData
@@ -121,19 +86,15 @@ const css = await convertFromDataUrl(dataUrl);
 // Direct usage with existing canvas ImageData
 const canvas = document.getElementById('myCanvas');
 const ctx = canvas.getContext('2d');
-
-// Get image data from canvas
 const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
 
-// Convert to CSS gradient
-const converter = new img2css();
-const css = await converter.processImageToCSS(imageData, {
+// Simple one-liner
+const css = await (new img2css({ 
+    source: imageData,
     details: 90,
     compression: 10,
     processingMode: 'hybrid'
-});
-
-console.log(css); // CSS class string ready to use
+})).toCSS();
 ```
 
 ## Configuration Options
@@ -163,7 +124,7 @@ console.log(css); // CSS class string ready to use
 Limit gradients to colors from the original image palette:
 
 ```javascript
-const css = await converter.processImageToCSS(imageData, {
+const css = await converter.toCSS(imageData, {
     details: 80,
     compression: 10,
     posterize: 0.7  // 70% blend to original palette
@@ -180,7 +141,7 @@ Posterization strength controls the blend between sampled colors and nearest pal
 Best quality output by combining multiple gradient directions:
 
 ```javascript
-const css = await converter.processImageToCSS(imageData, {
+const css = await converter.toCSS(imageData, {
     details: 90,
     compression: 5,
     processingMode: 'hybrid'  // Uses both row and column analysis
@@ -203,7 +164,7 @@ Even at 0% compression, the system removes colors within 6 RGB units to clean up
 
 ```javascript
 // Still removes near-duplicate colors
-const css = await converter.processImageToCSS(imageData, {
+const css = await converter.toCSS(imageData, {
     details: 100,
     compression: 0  // Removes colors within 6 RGB unit similarity
 });
@@ -221,7 +182,7 @@ Optional configuration object with default values for all processing options.
 
 ### Methods
 
-#### `processImageToCSS(imageData, options = {})`
+#### `toCSS(imageData, options = {})`
 
 Main processing method that converts ImageData to CSS gradient.
 
@@ -295,14 +256,13 @@ Optimize color stops for smaller CSS output.
 ### Basic Gradient Conversion
 
 ```javascript
-const converter = new img2css();
-
 // High quality, minimal compression
-const css = await converter.processImageToCSS(imageData, {
+const css = await (new img2css({
+    source: '/path/to/image.jpg',
     details: 95,
     compression: 5,
     processingMode: 'auto'
-});
+})).toCSS();
 
 // Apply to element
 document.querySelector('.gradient-bg').innerHTML = `<style>${css}</style>`;
@@ -313,39 +273,38 @@ document.querySelector('.gradient-bg').className = 'slick-img-gradient';
 
 ```javascript
 // Create posterized effect limited to original colors
-const css = await converter.processImageToCSS(imageData, {
+const css = await (new img2css({
+    source: '/path/to/image.jpg',
     details: 80,
     compression: 20,
     posterize: 0.8,  // Strong posterization
     processingMode: 'hybrid'
-});
+})).toCSS();
 ```
 
 ### High Compression for Performance
 
 ```javascript
 // Optimized for small file size
-const css = await converter.processImageToCSS(imageData, {
+const css = await (new img2css({
+    source: '/path/to/image.jpg',
     details: 60,
     compression: 40,
     minified: true,
     processingMode: 'auto'
-});
+})).toCSS();
 ```
 
 ### Custom Processing Pipeline
 
 ```javascript
-const converter = new img2css({
-    details: 85,
-    compression: 12
-});
-
 // Process multiple images with same settings
+const sharedConfig = { details: 85, compression: 12 };
+
 const results = await Promise.all([
-    converter.processImageToCSS(imageData1),
-    converter.processImageToCSS(imageData2),
-    converter.processImageToCSS(imageData3)
+    (new img2css({ source: '/path/to/image1.jpg', ...sharedConfig })).toCSS(),
+    (new img2css({ source: '/path/to/image2.jpg', ...sharedConfig })).toCSS(),
+    (new img2css({ source: '/path/to/image3.jpg', ...sharedConfig })).toCSS()
 ]);
 ```
 
@@ -361,7 +320,11 @@ The class includes comprehensive error handling:
 
 ```javascript
 try {
-    const css = await converter.processImageToCSS(imageData, options);
+    const css = await (new img2css({
+        source: '/path/to/image.jpg',
+        details: 80,
+        compression: 15
+    })).toCSS();
 } catch (error) {
     console.error('Gradient conversion failed:', error.message);
     // Handle error appropriately
