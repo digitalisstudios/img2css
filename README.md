@@ -2,6 +2,16 @@
 
 A powerful JavaScript class for converting images into pure CSS gradients with advanced processing options including posterization, hybrid processing modes, and intelligent compression.
 
+## 🔒 **Copyright Protection Use Case**
+
+Perfect for protecting copyrighted images while maintaining visual appeal:
+
+- **No downloadable files** - Images become pure CSS, can't be right-clicked and saved
+- **Server-side processing** - Original images never leave your backend
+- **Reverse-engineering proof** - Impossible to recreate original from CSS gradients  
+- **Better than watermarks** - Maintains clean visual presentation
+- **Ideal for**: Photo galleries, stock photo previews, artist portfolios, premium content
+
 ## 🌟 [**Try Live Demo**](https://codepen.io/digitalisstudios/full/OPMPPaZ)
 
 ## Installation
@@ -425,6 +435,39 @@ Common error scenarios:
   - Works best on images with clear subjects and uniform backgrounds
   - Avoid for complex images (like city skylines at night)
 
+## 🚀 **Version 2.0 Goals**
+
+Future enhancements planned for img2css:
+
+### **Plugin Architecture**
+- Modular filter system for custom processing effects
+- Third-party plugin support for specialized use cases
+- Standard API for filter development
+
+### **Advanced Processing Modes**
+- **Radial gradient support** - For circular/radial image patterns
+- **Conic gradients** - Angular/conical gradient generation
+- **Multi-layer processing** - Combine multiple gradient techniques
+- **Edge-aware sampling** - Intelligent boundary detection
+
+### **Performance & Quality**
+- **WebAssembly acceleration** - Faster processing for large images
+- **Progressive rendering** - Stream gradients as they're generated
+- **Smart caching** - Intelligent gradient reuse and optimization
+- **Quality presets** - One-click optimization for different use cases
+
+### **Developer Experience**
+- **CLI tool** - Command-line batch processing
+- **Framework integrations** - React, Vue, Angular components
+- **Build tool plugins** - Webpack, Vite, Rollup support
+- **REST API package** - Ready-to-deploy backend service
+
+### **Content Protection**
+- **Encryption options** - Additional security layers for sensitive content
+- **Dynamic watermarking** - CSS-based overlay protection
+- **Access control** - Token-based gradient generation
+- **Analytics integration** - Track usage and access patterns
+
 ## License
 
-This class is designed for integration into web applications requiring dynamic image-to-CSS gradient conversion capabilities.
+MIT License - This class is designed for integration into web applications requiring dynamic image-to-CSS gradient conversion capabilities.
