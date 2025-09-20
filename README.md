@@ -32,6 +32,9 @@ const converter = new img2css({
 // Generate CSS - that's it!
 const css = await converter.toCSS();
 console.log(css); // CSS class string ready to use
+
+// Optional: Access detailed stats from last conversion
+console.log(converter.stats.settings); // Applied settings and dimensions
 ```
 
 ### Minimal Usage
@@ -40,21 +43,6 @@ console.log(css); // CSS class string ready to use
 // Use defaults (details: 100, compression: 15, processingMode: 'auto')
 const converter = new img2css({ source: '/path/to/image.jpg' });
 const css = await converter.toCSS();
-```
-
-### Alternative: Using generateCSS()
-
-```javascript
-// Create converter with all config upfront, then generate
-const converter = new img2css({
-    source: '/path/to/image.jpg',
-    details: 80,
-    compression: 15
-});
-
-const result = await converter.generateCSS();
-console.log(result.css); // CSS string
-console.log(result.settings); // Applied settings and dimensions
 ```
 
 ### From File Upload

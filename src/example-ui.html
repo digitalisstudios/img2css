@@ -757,7 +757,13 @@
 
             // Delegate to core for CSS generation
             async generateCSS(imageSource, options = {}) {
-                return await this.core.generateCSS(imageSource, options);
+                // Update core config with options first
+                Object.assign(this.core.config, options);
+                this.core.config.source = imageSource;
+                
+                // Generate CSS and return full result object for UI compatibility
+                const css = await this.core.toCSS();
+                return this.core.stats; // Return the detailed stats the UI expects
             }
 
             // Get imageData property from core

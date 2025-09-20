@@ -15,6 +15,7 @@ class img2css {
         this.canvas = null;
         this.ctx = null;
         this.imageData = null;
+        this.stats = null; // Stores detailed stats from last toCSS() call
         
         // If source is provided, load it automatically
         if (this.config.source) {
@@ -22,8 +23,9 @@ class img2css {
         }
     }
 
-    // Main async method for getting CSS without UI
-    async generateCSS() {
+
+    // Generate CSS and store detailed stats in this.lastResult
+    async toCSS() {
         if (!this.config.source) {
             throw new Error('No source provided. Provide source in constructor: new img2css({ source: "..." })');
         }
@@ -53,7 +55,8 @@ class img2css {
             // Generate the CSS
             const css = await this.processImageToCSS(this.imageData, config);
             
-            return {
+            // Store detailed results for access via this.stats
+            this.stats = {
                 css: css,
                 settings: {
                     details: config.details,
@@ -67,30 +70,12 @@ class img2css {
                     }
                 }
             };
+            
+            // Return just the CSS string
+            return css;
         } catch (error) {
             throw new Error(`Failed to generate CSS: ${error.message}`);
         }
-    }
-
-    // Simple method to get CSS when source is provided in constructor
-    async toCSS() {
-        if (!this.config.source) {
-            throw new Error('No source provided. Use generateCSS(source, options) or provide source in constructor.');
-        }
-        
-        if (!this.imageData) {
-            await this.loadFromSource(this.config.source);
-        }
-        
-        const config = {
-            details: this.config.details,
-            compression: this.config.compression,
-            processingMode: this.config.processingMode,
-            posterize: this.config.posterize || 0,
-            minified: this.config.minified || false
-        };
-        
-        return await this.processImageToCSS(this.imageData, config);
     }
 
     // Load image data from various sources

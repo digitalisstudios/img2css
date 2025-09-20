@@ -14,7 +14,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - .gitignore file excluding AI assistant files (CLAUDE.md, PROJECT_PROGRESS.md)
 - package.json with project metadata and npm scripts (author: Brandon Moore)
 - `toCSS()` method for simple usage when source is provided in constructor (no parameters needed, uses constructor config)
-- Simplified `generateCSS()` method to use only constructor config (no parameters needed)
+- Removed `generateCSS()` method to simplify API - only `toCSS()` method remains
+- `toCSS()` now generates and stores detailed stats in `this.stats` property for optional access
 - Added support for ImageData objects as `source` in constructor
 - Fixed all README examples to use correct API syntax (no parameters to `toCSS()` method)
 
