@@ -124,11 +124,14 @@ img2css analyzes images by sampling colors at regular intervals and converts the
 - Each row sampled at regular intervals
 - Produces vertical CSS gradients positioned horizontally
 - Best for portrait/tall images
+- *Same principle as column processing, rotated 90°*
 
 **Hybrid Processing (Square Images)**
 - Combines both column and row processing
 - Provides the best balance for complex images
 - Automatically selected for square or near-square images
+
+> **Note:** Row processing works identically to column processing, just rotated 90 degrees. Instead of vertical sampling lines creating horizontal gradients, you get horizontal sampling lines creating vertical gradients. The same intelligent color stop density applies - more stops where the image has detail, fewer where it's uniform.
 
 ### Sampling & Quality
 
