@@ -2,12 +2,20 @@
 
 A powerful JavaScript class for converting images into pure CSS gradients with advanced processing options including posterization, hybrid processing modes, and intelligent compression.
 
+## 🌟 [**Try Live Demo**](https://codepen.io/digitalisstudios/full/OPMPPaZ)
+
 ## Installation
 
 Include the standalone JavaScript class in your project:
 
 ```html
 <script src="img2css.js"></script>
+```
+
+Or use the CDN:
+
+```html
+<script src="https://cdn.jsdelivr.net/gh/digitalisstudios/img2css/src/img2css.js"></script>
 ```
 
 Or import as a module:
