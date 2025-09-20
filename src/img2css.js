@@ -7,6 +7,8 @@ class img2css {
             compression: config.compression !== undefined ? config.compression : 15,
             maxSize: config.maxSize || null, // e.g., '500KB', '2MB', '1.5MB'
             processingMode: config.processingMode || 'auto', // 'auto', 'rows', 'columns'
+            posterize: config.posterize || 0, // Posterization strength (0-1)
+            minified: config.minified || false, // Minify CSS output
             useOriginalPalette: config.useOriginalPalette || false // Limit colors to original palette
         };
         
@@ -71,6 +73,27 @@ class img2css {
         } catch (error) {
             throw new Error(`Failed to generate CSS: ${error.message}`);
         }
+    }
+
+    // Simple method to get CSS when source is provided in constructor
+    async toCSS() {
+        if (!this.config.source) {
+            throw new Error('No source provided. Use generateCSS(source, options) or provide source in constructor.');
+        }
+        
+        if (!this.imageData) {
+            await this.loadFromSource(this.config.source);
+        }
+        
+        const config = {
+            details: this.config.details,
+            compression: this.config.compression,
+            processingMode: this.config.processingMode,
+            posterize: this.config.posterize || 0,
+            minified: this.config.minified || false
+        };
+        
+        return await this.processImageToCSS(this.imageData, config);
     }
 
     // Load image data from various sources

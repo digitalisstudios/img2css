@@ -18,46 +18,39 @@ import img2css from './img2css.js';
 
 ## Basic Usage
 
-### From Image URL
+### Simple Usage (Recommended)
 
 ```javascript
-// Create converter instance
-const converter = new img2css();
+// Create converter with image source and options
+const converter = new img2css({ 
+    source: '/path/to/image.jpg',
+    details: 80,
+    compression: 15,
+    processingMode: 'auto'
+});
 
-// Load image from URL
-async function convertImageFromUrl(imageUrl) {
-    const img = new Image();
-    img.crossOrigin = 'anonymous'; // For CORS if needed
-    
-    return new Promise((resolve, reject) => {
-        img.onload = async () => {
-            // Create canvas and draw image
-            const canvas = document.createElement('canvas');
-            const ctx = canvas.getContext('2d');
-            canvas.width = img.width;
-            canvas.height = img.height;
-            ctx.drawImage(img, 0, 0);
-            
-            // Get image data
-            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-            
-            // Convert to CSS gradient
-            const css = await converter.processImageToCSS(imageData, {
-                details: 80,
-                compression: 15,
-                processingMode: 'auto'
-            });
-            
-            resolve(css);
-        };
-        img.onerror = reject;
-        img.src = imageUrl;
-    });
-}
-
-// Usage
-const css = await convertImageFromUrl('path/to/image.jpg');
+// Generate CSS - that's it!
+const css = await converter.toCSS();
 console.log(css); // CSS class string ready to use
+```
+
+### Minimal Usage
+
+```javascript
+// Use defaults (details: 100, compression: 15, processingMode: 'auto')
+const converter = new img2css({ source: '/path/to/image.jpg' });
+const css = await converter.toCSS();
+```
+
+### Alternative: Direct Method
+
+```javascript
+// Generate CSS from any source without constructor
+const converter = new img2css();
+const css = await converter.generateCSS('/path/to/image.jpg', {
+    details: 80,
+    compression: 15
+});
 ```
 
 ### From File Upload

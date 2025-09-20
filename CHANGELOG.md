@@ -13,6 +13,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - CHANGELOG.md for tracking project changes
 - .gitignore file excluding AI assistant files (CLAUDE.md, PROJECT_PROGRESS.md)
 - package.json with project metadata and npm scripts (author: Brandon Moore)
+- `toCSS()` method for simple usage when source is provided in constructor (no parameters needed, uses constructor config)
 
 ### Changed
 - Renamed project from "Slick Gradient Image" to "img2css"
@@ -22,6 +23,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Updated UI class name from `ImageToGradientConverterUI` to `img2cssUI`
 - Moved "Posterization" control to same column as "Details" in UI layout
 - Fixed README.md `maxSize` parameter documentation (now correctly documented as string|number|null for file size limits)
+- Simplified README.md Basic Usage examples to show proper simple API usage with `toCSS()` method
 
 ### Updated
 - All file references and imports updated to new naming convention
