@@ -105,6 +105,39 @@ const css = await (new img2css({
 })).toCSS();
 ```
 
+## 🔍 How It Works
+
+img2css analyzes images by sampling colors at regular intervals and converts them into CSS gradients. The visual below demonstrates the process:
+
+![img2css Visual Demo](demo-visual.png)
+
+### Processing Modes
+
+**Column Processing (Landscape Images)**
+- Image analyzed in vertical strips
+- Each column sampled at regular intervals  
+- Produces horizontal CSS gradients positioned vertically
+- Best for landscape/wide images
+
+**Row Processing (Portrait Images)**
+- Image analyzed in horizontal strips  
+- Each row sampled at regular intervals
+- Produces vertical CSS gradients positioned horizontally
+- Best for portrait/tall images
+
+**Hybrid Processing (Square Images)**
+- Combines both column and row processing
+- Provides the best balance for complex images
+- Automatically selected for square or near-square images
+
+### Sampling & Quality
+
+The red lines in the demo show **sampling points** where colors are extracted:
+
+- **Higher Details** (80-100%): More sampling points = more accurate but larger CSS
+- **Lower Details** (20-60%): Fewer sampling points = smaller CSS but less detail
+- **Compression**: Reduces similar adjacent colors to optimize file size
+
 ## Configuration Options
 
 ### Constructor Parameters
