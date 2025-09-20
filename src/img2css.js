@@ -5,7 +5,7 @@ class img2css {
         
         this.config = {
             source: config.source || null,
-            className: config.className || 'slick-img-gradient',
+            selector: config.selector || config.className || '.slick-img-gradient',
             autoOptimize: config.autoOptimize || false,
             processing: {
                 details: processing.details !== undefined ? processing.details : (config.details !== undefined ? config.details : 100),
@@ -70,7 +70,7 @@ class img2css {
                     processingMode: config.processingMode,
                     autoOptimize: this.config.autoOptimize,
                     maxSize: this.config.maxSize,
-                    className: this.config.className,
+                    selector: this.config.selector,
                     dimensions: {
                         width: this.imageData.width,
                         height: this.imageData.height
@@ -1377,13 +1377,13 @@ class img2css {
         const compressionReduction = compression > 0 ? 
             ` | Column reduction: ${((compression / 100) * 60).toFixed(1)}%` : '';
         
-        const className = this.config.className || 'slick-img-gradient';
+        const selector = this.config.selector || '.slick-img-gradient';
         
         if (minified) {
-            return `.${className}{width:100%;height:auto;aspect-ratio:${width}/${height};background:${backgroundDeclaration}}`;
+            return `${selector}{width:100%;height:auto;aspect-ratio:${width}/${height};background:${backgroundDeclaration}}`;
         }
         
-        return `.${className} {
+        return `${selector} {
     width: 100%;
     height: auto;
     aspect-ratio: ${width} / ${height};
@@ -1437,13 +1437,13 @@ class img2css {
         const compressionReduction = compression > 0 ? 
             ` | Row reduction: ${((compression / 100) * 60).toFixed(1)}%` : '';
         
-        const className = this.config.className || 'slick-img-gradient';
+        const selector = this.config.selector || '.slick-img-gradient';
         
         if (minified) {
-            return `.${className}{width:100%;height:auto;aspect-ratio:${width}/${height};background:${backgroundDeclaration}}`;
+            return `${selector}{width:100%;height:auto;aspect-ratio:${width}/${height};background:${backgroundDeclaration}}`;
         }
         
-        return `.${className} {
+        return `${selector} {
     width: 100%;
     height: auto;
     aspect-ratio: ${width} / ${height};

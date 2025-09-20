@@ -32,7 +32,7 @@ import img2css from './img2css.js';
 // Create converter with image source and options
 const converter = new img2css({ 
     source: '/path/to/image.jpg',
-    className: 'my-gradient',
+    selector: '.my-gradient',
     processing: {
         details: 80,
         compression: 15,
@@ -62,7 +62,7 @@ const css = await converter.toCSS();
 // Simple one-liner
 const css = await (new img2css({ 
     source: fileInput.files[0],
-    className: 'upload-gradient',
+    selector: '.upload-gradient',
     processing: {
         details: 80,
         compression: 15
@@ -77,7 +77,7 @@ const css = await (new img2css({
 const dataUrl = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAA...';
 const css = await (new img2css({ 
     source: dataUrl,
-    className: 'data-gradient',
+    selector: '.data-gradient',
     processing: {
         details: 80,
         compression: 15
@@ -96,7 +96,7 @@ const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
 // Simple one-liner
 const css = await (new img2css({ 
     source: imageData,
-    className: 'canvas-gradient',
+    selector: '.canvas-gradient',
     processing: {
         details: 90,
         compression: 10,
@@ -112,11 +112,28 @@ const css = await (new img2css({
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
 | `source` | string\|File\|ImageData | required | Image source (URL, File object, or Canvas ImageData) |
-| `className` | string | 'slick-img-gradient' | CSS class name for the generated gradient |
+| `selector` | string | '.slick-img-gradient' | CSS selector for the generated gradient (supports any CSS selector: `.class`, `#id`, `div.class > a:hover`) |
 | `processing` | object | {} | Processing configuration (see below) |
 | `autoOptimize` | boolean | false | Automatically find optimal settings |
 | `maxSize` | string\|number\|null | null | Target file size limit (numeric values default to KB, supports "MB" suffix) |
 | `minified` | boolean | false | Minify CSS output |
+
+#### Selector Examples
+
+The `selector` parameter supports any valid CSS selector:
+
+```javascript
+// Class selector (default)
+new img2css({ source: 'image.jpg', selector: '.my-gradient' })
+
+// ID selector  
+new img2css({ source: 'image.jpg', selector: '#hero-background' })
+
+// Complex selectors
+new img2css({ source: 'image.jpg', selector: '.card .background' })
+new img2css({ source: 'image.jpg', selector: 'div.hero > .bg-layer' })
+new img2css({ source: 'image.jpg', selector: '.gallery-item:hover::before' })
+```
 
 ### Processing Configuration (`processing` object)
 
@@ -158,7 +175,7 @@ Limit gradients to colors from the original image palette:
 ```javascript
 const css = await (new img2css({
     source: '/path/to/image.jpg',
-    className: 'posterized-gradient',
+    selector: '.posterized-gradient',
     processing: {
         details: 80,
         compression: 10,
@@ -179,7 +196,7 @@ Best quality output by combining multiple gradient directions:
 ```javascript
 const css = await (new img2css({
     source: '/path/to/image.jpg',
-    className: 'hybrid-gradient',
+    selector: '.hybrid-gradient',
     processing: {
         details: 90,
         compression: 5,
@@ -201,7 +218,7 @@ Even at 0% compression, similar colors are automatically merged for cleaner outp
 ```javascript
 const css = await (new img2css({
     source: '/path/to/image.jpg',
-    className: 'zero-compression-gradient',
+    selector: '.zero-compression-gradient',
     processing: {
         details: 100,
         compression: 0  // Still removes near-duplicate colors
@@ -266,7 +283,7 @@ console.log(converter.stats);
 // High quality, minimal compression
 const css = await (new img2css({
     source: '/path/to/image.jpg',
-    className: 'high-quality-gradient',
+    selector: '.high-quality-gradient',
     processing: {
         details: 95,
         compression: 5,
@@ -285,7 +302,7 @@ document.querySelector('.gradient-bg').className = 'high-quality-gradient';
 // Create posterized effect limited to original colors
 const css = await (new img2css({
     source: '/path/to/image.jpg',
-    className: 'poster-art-gradient',
+    selector: '.poster-art-gradient',
     processing: {
         details: 80,
         compression: 20,
@@ -301,7 +318,7 @@ const css = await (new img2css({
 // Optimized for small file size
 const css = await (new img2css({
     source: '/path/to/image.jpg',
-    className: 'compact-gradient',
+    selector: '.compact-gradient',
     processing: {
         details: 60,
         compression: 40,
@@ -321,9 +338,9 @@ const sharedProcessing = {
 };
 
 const results = await Promise.all([
-    (new img2css({ source: '/path/to/image1.jpg', className: 'batch-gradient-1', processing: sharedProcessing })).toCSS(),
-    (new img2css({ source: '/path/to/image2.jpg', className: 'batch-gradient-2', processing: sharedProcessing })).toCSS(),
-    (new img2css({ source: '/path/to/image3.jpg', className: 'batch-gradient-3', processing: sharedProcessing })).toCSS()
+    (new img2css({ source: '/path/to/image1.jpg', selector: '.batch-gradient-1', processing: sharedProcessing })).toCSS(),
+    (new img2css({ source: '/path/to/image2.jpg', selector: '.batch-gradient-2', processing: sharedProcessing })).toCSS(),
+    (new img2css({ source: '/path/to/image3.jpg', selector: '.batch-gradient-3', processing: sharedProcessing })).toCSS()
 ]);
 ```
 
@@ -341,7 +358,7 @@ The class includes comprehensive error handling:
 try {
     const css = await (new img2css({
         source: '/path/to/image.jpg',
-        className: 'error-test-gradient',
+        selector: '.error-test-gradient',
         processing: {
             details: 80,
             compression: 15

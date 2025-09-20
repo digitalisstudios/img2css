@@ -4,6 +4,29 @@ All notable changes to img2css will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [1.0.1] - 2025-09-20
+
+### 🔧 API Improvement
+
+**Breaking Change (Recommended Migration):**
+- **Replaced `className` with `selector`**: The `className` parameter has been replaced with `selector` for much greater flexibility
+- **Full CSS Selector Support**: Now supports any CSS selector (`.class`, `#id`, `div.class > a:hover::after`)
+- **Backward Compatibility**: `className` parameter still works but is deprecated
+
+**Migration Example:**
+```javascript
+// Old (still works but deprecated)
+new img2css({ className: 'my-gradient' })
+
+// New (recommended)
+new img2css({ selector: '.my-gradient' })
+
+// Now supports any selector
+new img2css({ selector: '#hero-background' })
+new img2css({ selector: '.card .background' })
+new img2css({ selector: '.gallery-item:hover::before' })
+```
+
 ## [1.0.0] - 2025-09-20
 
 ### 🚀 Major Release - Stable API
