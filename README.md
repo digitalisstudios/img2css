@@ -32,9 +32,12 @@ import img2css from './img2css.js';
 // Create converter with image source and options
 const converter = new img2css({ 
     source: '/path/to/image.jpg',
-    details: 80,
-    compression: 15,
-    processingMode: 'auto'
+    className: 'my-gradient',
+    processing: {
+        details: 80,
+        compression: 15,
+        mode: 'auto'
+    }
 });
 
 // Generate CSS - that's it!
@@ -59,8 +62,11 @@ const css = await converter.toCSS();
 // Simple one-liner
 const css = await (new img2css({ 
     source: fileInput.files[0],
-    details: 80,
-    compression: 15 
+    className: 'upload-gradient',
+    processing: {
+        details: 80,
+        compression: 15
+    }
 })).toCSS();
 ```
 
@@ -71,8 +77,11 @@ const css = await (new img2css({
 const dataUrl = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAA...';
 const css = await (new img2css({ 
     source: dataUrl,
-    details: 80,
-    compression: 15 
+    className: 'data-gradient',
+    processing: {
+        details: 80,
+        compression: 15
+    }
 })).toCSS();
 ```
 
@@ -87,26 +96,53 @@ const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
 // Simple one-liner
 const css = await (new img2css({ 
     source: imageData,
-    details: 90,
-    compression: 10,
-    processingMode: 'hybrid'
+    className: 'canvas-gradient',
+    processing: {
+        details: 90,
+        compression: 10,
+        mode: 'hybrid'
+    }
 })).toCSS();
 ```
 
 ## Configuration Options
 
-### Core Parameters
+### Constructor Parameters
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `source` | string\|File\|ImageData | required | Image source (URL, File object, or Canvas ImageData) |
+| `className` | string | 'slick-img-gradient' | CSS class name for the generated gradient |
+| `processing` | object | {} | Processing configuration (see below) |
+| `autoOptimize` | boolean | false | Automatically find optimal settings |
+| `maxSize` | string\|number\|null | null | Target file size limit (numeric values default to KB, supports "MB" suffix) |
+| `minified` | boolean | false | Minify CSS output |
+
+### Processing Configuration (`processing` object)
 
 | Parameter | Type | Default | Range | Description |
 |-----------|------|---------|-------|-------------|
-| `details` | number | 80 | 0-100 | Processing detail level (higher = more detail, larger output) |
+| `details` | number | 100 | 0-100 | Processing detail level (higher = more detail, larger output) |
 | `compression` | number | 15 | 0-100 | Color reduction level (higher = smaller output, less accuracy) |
-| `processingMode` | string | 'auto' | See modes | Gradient direction processing mode |
+| `mode` | string | 'auto' | See modes | Gradient direction processing mode |
 | `posterize` | number | 0 | 0.0-1.0 | Posterization strength (0 = off, 1 = full palette limiting) |
-| `minified` | boolean | false | - | Minify CSS output |
-| `maxSize` | string\|number\|null | null | - | Target file size limit (numeric values default to KB, supports "MB" suffix) |
+| `useOriginalPalette` | boolean | false | - | Limit colors to original image palette |
 
-### Processing Modes
+### Backward Compatibility
+
+The library supports the old flat configuration structure for backward compatibility:
+
+```javascript
+// Still works - old flat structure
+const converter = new img2css({
+    source: '/path/to/image.jpg',
+    details: 80,
+    compression: 15,
+    processingMode: 'auto'
+});
+```
+
+### Processing Modes (`processing.mode`)
 
 - **`'auto'`**: Automatically detects image orientation and chooses optimal gradient direction
 - **`'rows'`**: Generates horizontal gradients (left-to-right)
@@ -122,9 +158,12 @@ Limit gradients to colors from the original image palette:
 ```javascript
 const css = await (new img2css({
     source: '/path/to/image.jpg',
-    details: 80,
-    compression: 10,
-    posterize: 0.7  // 70% blend to original palette
+    className: 'posterized-gradient',
+    processing: {
+        details: 80,
+        compression: 10,
+        posterize: 0.7  // 70% blend to original palette
+    }
 })).toCSS();
 ```
 
@@ -140,9 +179,12 @@ Best quality output by combining multiple gradient directions:
 ```javascript
 const css = await (new img2css({
     source: '/path/to/image.jpg',
-    details: 90,
-    compression: 5,
-    processingMode: 'hybrid'  // Uses both row and column analysis
+    className: 'hybrid-gradient',
+    processing: {
+        details: 90,
+        compression: 5,
+        mode: 'hybrid'  // Uses both row and column analysis
+    }
 })).toCSS();
 ```
 
@@ -159,8 +201,11 @@ Even at 0% compression, similar colors are automatically merged for cleaner outp
 ```javascript
 const css = await (new img2css({
     source: '/path/to/image.jpg',
-    details: 100,
-    compression: 0  // Still removes near-duplicate colors
+    className: 'zero-compression-gradient',
+    processing: {
+        details: 100,
+        compression: 0  // Still removes near-duplicate colors
+    }
 })).toCSS();
 ```
 
@@ -221,14 +266,17 @@ console.log(converter.stats);
 // High quality, minimal compression
 const css = await (new img2css({
     source: '/path/to/image.jpg',
-    details: 95,
-    compression: 5,
-    processingMode: 'auto'
+    className: 'high-quality-gradient',
+    processing: {
+        details: 95,
+        compression: 5,
+        mode: 'auto'
+    }
 })).toCSS();
 
 // Apply to element
 document.querySelector('.gradient-bg').innerHTML = `<style>${css}</style>`;
-document.querySelector('.gradient-bg').className = 'slick-img-gradient';
+document.querySelector('.gradient-bg').className = 'high-quality-gradient';
 ```
 
 ### Posterized Art Style
@@ -237,10 +285,13 @@ document.querySelector('.gradient-bg').className = 'slick-img-gradient';
 // Create posterized effect limited to original colors
 const css = await (new img2css({
     source: '/path/to/image.jpg',
-    details: 80,
-    compression: 20,
-    posterize: 0.8,  // Strong posterization
-    processingMode: 'hybrid'
+    className: 'poster-art-gradient',
+    processing: {
+        details: 80,
+        compression: 20,
+        posterize: 0.8,  // Strong posterization
+        mode: 'hybrid'
+    }
 })).toCSS();
 ```
 
@@ -250,10 +301,13 @@ const css = await (new img2css({
 // Optimized for small file size
 const css = await (new img2css({
     source: '/path/to/image.jpg',
-    details: 60,
-    compression: 40,
-    minified: true,
-    processingMode: 'auto'
+    className: 'compact-gradient',
+    processing: {
+        details: 60,
+        compression: 40,
+        mode: 'auto'
+    },
+    minified: true
 })).toCSS();
 ```
 
@@ -261,12 +315,15 @@ const css = await (new img2css({
 
 ```javascript
 // Process multiple images with same settings
-const sharedConfig = { details: 85, compression: 12 };
+const sharedProcessing = { 
+    details: 85, 
+    compression: 12 
+};
 
 const results = await Promise.all([
-    (new img2css({ source: '/path/to/image1.jpg', ...sharedConfig })).toCSS(),
-    (new img2css({ source: '/path/to/image2.jpg', ...sharedConfig })).toCSS(),
-    (new img2css({ source: '/path/to/image3.jpg', ...sharedConfig })).toCSS()
+    (new img2css({ source: '/path/to/image1.jpg', className: 'batch-gradient-1', processing: sharedProcessing })).toCSS(),
+    (new img2css({ source: '/path/to/image2.jpg', className: 'batch-gradient-2', processing: sharedProcessing })).toCSS(),
+    (new img2css({ source: '/path/to/image3.jpg', className: 'batch-gradient-3', processing: sharedProcessing })).toCSS()
 ]);
 ```
 
@@ -284,8 +341,11 @@ The class includes comprehensive error handling:
 try {
     const css = await (new img2css({
         source: '/path/to/image.jpg',
-        details: 80,
-        compression: 15
+        className: 'error-test-gradient',
+        processing: {
+            details: 80,
+            compression: 15
+        }
     })).toCSS();
 } catch (error) {
     console.error('Gradient conversion failed:', error.message);

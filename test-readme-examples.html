@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test README Examples</title>
+</head>
+<body>
+    <h1>Testing README Examples</h1>
+    
+    <div id="results"></div>
+    
+    <input type="file" id="fileInput" accept="image/*">
+    <canvas id="testCanvas" width="100" height="100" style="border: 1px solid black;"></canvas>
+    
+    <script src="src/img2css.js"></script>
+    <script>
+        const results = document.getElementById('results');
+        
+        function log(message, isError = false) {
+            const div = document.createElement('div');
+            div.textContent = message;
+            div.style.color = isError ? 'red' : 'green';
+            div.style.margin = '5px 0';
+            results.appendChild(div);
+        }
+        
+        // Create a simple test image data URL
+        const testDataUrl = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==';
+        
+        async function runTests() {
+            log('🧪 Starting README Examples Tests...');
+            
+            try {
+                // Test 1: Simple Usage (Recommended)
+                log('\n📝 Test 1: Simple Usage (Recommended)');
+                try {
+                    const converter = new img2css({ 
+                        source: testDataUrl,
+                        className: 'test-gradient',
+                        processing: {
+                            details: 80,
+                            compression: 15,
+                            mode: 'auto'
+                        }
+                    });
+                    
+                    const css = await converter.toCSS();
+                    log('✅ Simple Usage: SUCCESS - CSS generated');
+                    
+                    // Test stats access
+                    if (converter.stats && converter.stats.settings) {
+                        log('✅ Stats access: SUCCESS - Stats available');
+                    } else {
+                        log('❌ Stats access: FAILED - Stats not available', true);
+                    }
+                } catch (error) {
+                    log(`❌ Simple Usage: FAILED - ${error.message}`, true);
+                }
+                
+                // Test 2: Minimal Usage
+                log('\n📝 Test 2: Minimal Usage');
+                try {
+                    const converter = new img2css({ source: testDataUrl });
+                    const css = await converter.toCSS();
+                    log('✅ Minimal Usage: SUCCESS - CSS generated');
+                } catch (error) {
+                    log(`❌ Minimal Usage: FAILED - ${error.message}`, true);
+                }
+                
+                // Test 3: Data URL String
+                log('\n📝 Test 3: Data URL String');
+                try {
+                    const css = await (new img2css({ 
+                        source: testDataUrl,
+                        className: 'data-url-gradient',
+                        processing: {
+                            details: 80,
+                            compression: 15
+                        }
+                    })).toCSS();
+                    log('✅ Data URL: SUCCESS - CSS generated');
+                } catch (error) {
+                    log(`❌ Data URL: FAILED - ${error.message}`, true);
+                }
+                
+                // Test 4: Canvas ImageData
+                log('\n📝 Test 4: Canvas ImageData');
+                try {
+                    const canvas = document.getElementById('testCanvas');
+                    const ctx = canvas.getContext('2d');
+                    
+                    // Draw something on canvas
+                    ctx.fillStyle = 'red';
+                    ctx.fillRect(0, 0, 50, 50);
+                    ctx.fillStyle = 'blue';
+                    ctx.fillRect(50, 0, 50, 50);
+                    ctx.fillStyle = 'green';
+                    ctx.fillRect(0, 50, 50, 50);
+                    ctx.fillStyle = 'yellow';
+                    ctx.fillRect(50, 50, 50, 50);
+                    
+                    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                    
+                    const css = await (new img2css({ 
+                        source: imageData,
+                        className: 'canvas-gradient',
+                        processing: {
+                            details: 90,
+                            compression: 10,
+                            mode: 'hybrid'
+                        }
+                    })).toCSS();
+                    log('✅ Canvas ImageData: SUCCESS - CSS generated');
+                } catch (error) {
+                    log(`❌ Canvas ImageData: FAILED - ${error.message}`, true);
+                }
+                
+                // Test 5: Error Handling Example
+                log('\n📝 Test 5: Error Handling');
+                try {
+                    try {
+                        const css = await (new img2css({
+                            source: 'invalid-url',
+                            className: 'error-test',
+                            processing: {
+                                details: 80,
+                                compression: 15
+                            }
+                        })).toCSS();
+                        log('❌ Error Handling: FAILED - Should have thrown error', true);
+                    } catch (error) {
+                        log('✅ Error Handling: SUCCESS - Error caught properly');
+                    }
+                } catch (error) {
+                    log(`❌ Error Handling Test: FAILED - ${error.message}`, true);
+                }
+                
+                // Test 6: Examples Section - Basic Gradient Conversion
+                log('\n📝 Test 6: Examples Section - Basic Gradient Conversion');
+                try {
+                    const css = await (new img2css({
+                        source: testDataUrl,
+                        className: 'basic-gradient',
+                        processing: {
+                            details: 95,
+                            compression: 5,
+                            mode: 'auto'
+                        }
+                    })).toCSS();
+                    log('✅ Basic Gradient Conversion: SUCCESS - CSS generated');
+                } catch (error) {
+                    log(`❌ Basic Gradient Conversion: FAILED - ${error.message}`, true);
+                }
+                
+                // Test 7: Posterized Art Style
+                log('\n📝 Test 7: Posterized Art Style');
+                try {
+                    const css = await (new img2css({
+                        source: testDataUrl,
+                        className: 'posterized-gradient',
+                        processing: {
+                            details: 80,
+                            compression: 20,
+                            posterize: 0.8,
+                            mode: 'hybrid'
+                        }
+                    })).toCSS();
+                    log('✅ Posterized Art Style: SUCCESS - CSS generated');
+                } catch (error) {
+                    log(`❌ Posterized Art Style: FAILED - ${error.message}`, true);
+                }
+                
+                // Test 8: High Compression for Performance
+                log('\n📝 Test 8: High Compression for Performance');
+                try {
+                    const css = await (new img2css({
+                        source: testDataUrl,
+                        className: 'high-compression-gradient',
+                        processing: {
+                            details: 60,
+                            compression: 40,
+                            mode: 'auto'
+                        },
+                        minified: true
+                    })).toCSS();
+                    log('✅ High Compression: SUCCESS - CSS generated');
+                } catch (error) {
+                    log(`❌ High Compression: FAILED - ${error.message}`, true);
+                }
+                
+                // Test 9: Custom Processing Pipeline
+                log('\n📝 Test 9: Custom Processing Pipeline');
+                try {
+                    const sharedProcessing = { details: 85, compression: 12 };
+                    const results = await Promise.all([
+                        (new img2css({ source: testDataUrl, className: 'batch-1', processing: sharedProcessing })).toCSS(),
+                        (new img2css({ source: testDataUrl, className: 'batch-2', processing: sharedProcessing })).toCSS(),
+                        (new img2css({ source: testDataUrl, className: 'batch-3', processing: sharedProcessing })).toCSS()
+                    ]);
+                    
+                    if (results.length === 3 && results.every(css => typeof css === 'string')) {
+                        log('✅ Custom Processing Pipeline: SUCCESS - All CSS generated');
+                    } else {
+                        log('❌ Custom Processing Pipeline: FAILED - Invalid results', true);
+                    }
+                } catch (error) {
+                    log(`❌ Custom Processing Pipeline: FAILED - ${error.message}`, true);
+                }
+                
+                log('\n🎉 All tests completed!');
+                
+            } catch (error) {
+                log(`❌ Test suite failed: ${error.message}`, true);
+            }
+        }
+        
+        // Test file upload when user selects a file
+        document.getElementById('fileInput').addEventListener('change', async function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            
+            log('\n📝 Testing File Upload Example');
+            try {
+                const css = await (new img2css({ 
+                    source: file,
+                    className: 'file-upload-gradient',
+                    processing: {
+                        details: 80,
+                        compression: 15
+                    }
+                })).toCSS();
+                log('✅ File Upload: SUCCESS - CSS generated from uploaded file');
+            } catch (error) {
+                log(`❌ File Upload: FAILED - ${error.message}`, true);
+            }
+        });
+        
+        // Run tests when page loads
+        runTests();
+    </script>
+</body>
+</html>

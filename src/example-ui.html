@@ -8,16 +8,17 @@
         body {
   font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
   margin: 0;
-  padding: 20px;
+  padding: 15px;
   background: #0d1117;
   color: #e6edf3;
   position: relative;
-  line-height: 1.75;
+  line-height: 1.5;
+  font-size: 14px;
 }
 
 .main-header {
-  font-size: 4rem;
-  line-height: ;
+  font-size: clamp(2rem, 4vw, 3rem);
+  line-height: 1.2;
 }
 
 a,
@@ -57,38 +58,39 @@ a,
 
 .container {
   background: #161b22;
-  padding: 30px;
-  border-radius: 12px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), 0 2px 8px rgba(0, 0, 0, 0.2);
+  padding: clamp(15px, 3vw, 25px);
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3), 0 1px 4px rgba(0, 0, 0, 0.2);
   border: 1px solid #30363d;
-  max-width: clamp(300px, 85%, 1450px);
+  max-width: clamp(300px, 95%, 1200px);
   margin: 0 auto;
 }
 
 h1 {
   color: #f0f6fc;
   text-align: center;
-  margin-bottom: 30px;
+  margin-bottom: clamp(15px, 3vw, 25px);
   font-weight: 300;
-  font-size: 2.2em;
+  font-size: clamp(1.5rem, 3vw, 2.2rem);
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
 }
 
 h1.direction-step {
-  margin-top: 5rem;
+  margin-top: clamp(2rem, 4vw, 3rem);
   text-align: left;
   color: #1f6feb;
   text-transform: uppercase;
-  font-size: 3rem;
+  font-size: clamp(1.5rem, 3vw, 2.5rem);
 }
 
 h1.direction-step small {
   text-align: right;
-  color: #1f6feb;
-  text-transform: none;
   color: rgba(255, 255, 255, 0.5);
+  text-transform: none;
   font-style: italic;
-  font-size: 1.25rem;
+  font-size: clamp(0.9rem, 2vw, 1.1rem);
+  display: block;
+  margin-top: 0.5rem;
 }
 
 h1 small {
@@ -96,15 +98,15 @@ h1 small {
 }
 
 .upload-section {
-  margin-bottom: 30px;
+  margin-bottom: clamp(15px, 3vw, 25px);
 }
 
 .upload-area {
   border: 2px dashed #30363d;
-  border-radius: 10px;
-  padding: 30px;
+  border-radius: 8px;
+  padding: clamp(15px, 3vw, 25px);
   text-align: center;
-  margin-bottom: 20px;
+  margin-bottom: 15px;
   transition: all 0.3s ease;
   background: #0d1117;
   color: #e6edf3;
@@ -122,32 +124,34 @@ h1 small {
 
 .upload-options {
   display: flex;
-  gap: 20px;
+  gap: clamp(10px, 2vw, 20px);
   align-items: center;
   justify-content: center;
   flex-wrap: wrap;
 }
 
 input[type="file"] {
-  padding: 10px;
+  padding: 8px 12px;
   border: 1px solid #30363d;
   border-radius: 6px;
   background: #21262d;
   color: #e6edf3;
+  font-size: 13px;
 }
 
 .url-input {
   display: flex;
-  gap: 10px;
+  gap: 8px;
   align-items: center;
+  flex-wrap: wrap;
 }
 
 #urlInput {
-  padding: 10px;
+  padding: 8px 12px;
   border: 1px solid #30363d;
   border-radius: 6px;
-  width: 300px;
-  font-size: 14px;
+  width: clamp(200px, 30vw, 300px);
+  font-size: 13px;
   background: #21262d;
   color: #e6edf3;
 }
@@ -156,10 +160,10 @@ button {
   background: #1f6feb;
   color: white;
   border: none;
-  padding: 12px 20px;
+  padding: 8px 16px;
   border-radius: 6px;
   cursor: pointer;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 500;
   transition: all 0.2s;
   box-shadow: 0 2px 6px rgba(31, 111, 235, 0.3), 0 1px 2px rgba(0, 0, 0, 0.2);
@@ -178,18 +182,18 @@ button:disabled {
 }
 
 .preview-section {
-  margin: 30px 0;
+  margin: clamp(15px, 3vw, 25px) 0;
   display: none;
 }
 
 .stats {
   background: #21262d;
-  padding: 20px;
+  padding: clamp(12px, 2.5vw, 18px);
   border-radius: 8px;
-  margin: 20px 0;
+  margin: clamp(12px, 2.5vw, 18px) 0;
   border: 1px solid #30363d;
   border-left: 4px solid #1f6feb;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3), 0 1px 3px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2), 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 .stats-content {
@@ -204,12 +208,8 @@ button:disabled {
 }
 
 .toggle-stats {
-  /*color: #1f6feb;
-  
-  
-  text-decoration: underline;*/
-  margin-top: 10px;
-  font-size: 1.4rem;
+  margin-top: 8px;
+  font-size: clamp(1rem, 2vw, 1.2rem);
   display: inline-block;
   cursor: pointer;
 }
@@ -217,8 +217,8 @@ button:disabled {
 .main-row {
   display: grid;
   grid-template-columns: 2fr 1fr;
-  gap: 20px;
-  margin: 20px 0;
+  gap: clamp(12px, 2.5vw, 20px);
+  margin: clamp(15px, 3vw, 20px) 0;
 }
 
 .preview-column {
@@ -229,7 +229,7 @@ button:disabled {
 .side-column {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: clamp(12px, 2.5vw, 18px);
 }
 
 .original-section {
@@ -239,10 +239,10 @@ button:disabled {
 
 .original-section h3,
 .preview-column h3 {
-  margin: 0 0 12px 0;
+  margin: 0 0 10px 0;
   color: #e6edf3;
   font-weight: 500;
-  font-size: 1.4em;
+  font-size: clamp(1rem, 2vw, 1.2rem);
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
 }
 
@@ -273,10 +273,10 @@ button:disabled {
 
 .options-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  gap: 20px;
-  margin: 20px 0;
-  padding: 20px;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: clamp(12px, 2.5vw, 18px);
+  margin: clamp(15px, 3vw, 20px) 0;
+  padding: clamp(15px, 3vw, 20px);
   background: #161b22;
   border-radius: 8px;
 }
@@ -284,12 +284,12 @@ button:disabled {
 .option-column {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: clamp(12px, 2.5vw, 18px);
 }
 
 .option-group {
   background: #21262d;
-  padding: 20px;
+  padding: clamp(12px, 2.5vw, 18px);
   border-radius: 8px;
   border: 1px solid #30363d;
   border-left: 4px solid #1f6feb;
@@ -299,26 +299,28 @@ button:disabled {
 
 .option-group label {
   display: block;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
   font-weight: 600;
   color: #e6edf3;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  font-size: 13px;
 }
 
 .option-group input[type="range"] {
   width: 100%;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
 }
 
 .option-group input[type="text"],
 .option-group select {
-  width: calc(100% - 20px);
-  padding: 10px;
+  width: calc(100% - 16px);
+  padding: 8px;
   border: 1px solid #30363d;
   border-radius: 6px;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
   background: #0d1117;
   color: #e6edf3;
+  font-size: 13px;
 }
 
 .option-group select {
@@ -326,9 +328,9 @@ button:disabled {
 }
 
 .help-text {
-  font-size: 13px;
+  font-size: 11px;
   color: #8b949e;
-  line-height: 1.4;
+  line-height: 1.3;
 }
 
 .checkbox-option {
@@ -451,7 +453,7 @@ input:checked + .slider:before {
 }
 
 .css-output {
-  margin-top: 30px;
+  margin-top: clamp(15px, 3vw, 25px);
 }
 
 .css-code-container {
@@ -462,12 +464,12 @@ input:checked + .slider:before {
   background: #0d1117;
   border: 1px solid #30363d;
   border-radius: 8px;
-  padding: 20px;
+  padding: clamp(12px, 2.5vw, 18px);
   white-space: pre-wrap;
   word-wrap: break-word;
   font-family: "JetBrains Mono", "Fira Code", "Courier New", monospace;
-  font-size: 13px;
-  max-height: 400px;
+  font-size: clamp(11px, 1.5vw, 13px);
+  max-height: clamp(200px, 40vh, 400px);
   overflow-y: auto;
   line-height: 1.4;
   color: #e6edf3;
@@ -622,30 +624,71 @@ input:checked + .slider:before {
   cursor: nw-resize;
 }
 
-@media (max-width: 1024px) {
-  .options-grid {
-    grid-template-columns: 1fr 1fr;
-    gap: 20px;
-  }
-}
-
 @media (max-width: 768px) {
-  .options-grid {
-    grid-template-columns: 1fr;
-    gap: 20px;
+  body {
+    padding: 10px;
+    font-size: 13px;
+  }
+  
+  .container {
+    padding: 15px;
   }
 
   .main-row {
     grid-template-columns: 1fr;
-    gap: 20px;
+    gap: 15px;
   }
 
   .upload-options {
     flex-direction: column;
+    gap: 12px;
   }
 
   #urlInput {
     width: 100%;
+    min-width: 250px;
+  }
+
+  .options-grid {
+    grid-template-columns: 1fr;
+    padding: 12px;
+    gap: 12px;
+  }
+  
+  .option-group {
+    padding: 12px;
+  }
+
+  h1.direction-step {
+    margin-top: 2rem;
+    font-size: 1.5rem;
+  }
+  
+  h1.direction-step small {
+    font-size: 0.9rem;
+  }
+}
+
+@media (max-width: 480px) {
+  body {
+    padding: 8px;
+  }
+  
+  .container {
+    padding: 12px;
+  }
+  
+  .upload-area {
+    padding: 15px;
+  }
+  
+  .css-code {
+    padding: 12px;
+    font-size: 11px;
+  }
+  
+  .main-header {
+    font-size: 2rem;
   }
 }
 
@@ -659,9 +702,8 @@ input:checked + .slider:before {
     </p>
   </h1>
 
-  <p style="padding:20px; text-align:center; font-size:1.3rem">
-    This started out as a tool I needed for a project, then went down a rabbit hole and fleshed it out to a full blown js module.<br>
-    This demo shows some of the capabilities of the package. For full documentation see <a href="https://github.com/digitalisstudios/img2css" target="_blank">The full documentation here</a>
+  <p style="padding: clamp(10px, 2vw, 15px); text-align:center; font-size: clamp(0.9rem, 2vw, 1.1rem); line-height: 1.4;">
+    This demo shows the capabilities of the img2css package. For full documentation see <a href="https://github.com/digitalisstudios/img2css" target="_blank">the documentation here</a>
   </p>
 
   <div class="upload-section">
@@ -945,14 +987,14 @@ input:checked + .slider:before {
                 });
                 
                 // Set initial values from config
-                if (this.core.config.details !== 100) {
-                    elements.detailsSlider.value = this.core.config.details;
-                    elements.detailsValue.textContent = this.core.config.details;
+                if (this.core.config.processing.details !== 100) {
+                    elements.detailsSlider.value = this.core.config.processing.details;
+                    elements.detailsValue.textContent = this.core.config.processing.details;
                 }
                 
-                if (this.core.config.compression !== 15) {
-                    elements.compressionSlider.value = this.core.config.compression;
-                    elements.compressionValue.textContent = this.core.config.compression;
+                if (this.core.config.processing.compression !== 15) {
+                    elements.compressionSlider.value = this.core.config.processing.compression;
+                    elements.compressionValue.textContent = this.core.config.processing.compression;
                 }
                 
                 if (this.core.config.maxSize) {
@@ -1146,10 +1188,20 @@ input:checked + .slider:before {
                 const useOriginalPalette = posterize > 0;
                 
                 try {
-                    const css = await this.core.processImageToCSS(
-                        { width, height, data }, 
-                        { details, compression, minified, processingMode, useOriginalPalette, posterize }
-                    );
+                    // Update the core config with current settings
+                    this.core.config.className = 'slick-img-gradient';
+                    this.core.config.processing.details = details;
+                    this.core.config.processing.compression = compression;
+                    this.core.config.processing.mode = processingMode;
+                    this.core.config.processing.posterize = posterize;
+                    this.core.config.processing.useOriginalPalette = useOriginalPalette;
+                    this.core.config.minified = minified;
+                    
+                    // Set the image data directly
+                    this.core.imageData = { width, height, data };
+                    
+                    // Use the new API
+                    const css = await this.core.toCSS();
                     
                     this.createGradientPreview(css, width, height);
                     this.updateBodyBackground(css, width, height);

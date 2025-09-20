@@ -1,15 +1,21 @@
 class img2css {
     constructor(config = {}) {
+        // Handle both old flat structure and new structured approach
+        const processing = config.processing || {};
+        
         this.config = {
             source: config.source || null,
+            className: config.className || 'slick-img-gradient',
             autoOptimize: config.autoOptimize || false,
-            details: config.details !== undefined ? config.details : 100,
-            compression: config.compression !== undefined ? config.compression : 15,
+            processing: {
+                details: processing.details !== undefined ? processing.details : (config.details !== undefined ? config.details : 100),
+                compression: processing.compression !== undefined ? processing.compression : (config.compression !== undefined ? config.compression : 15),
+                mode: processing.mode || config.processingMode || 'auto',
+                posterize: processing.posterize !== undefined ? processing.posterize : (config.posterize !== undefined ? config.posterize : 0),
+                useOriginalPalette: processing.useOriginalPalette !== undefined ? processing.useOriginalPalette : (config.useOriginalPalette !== undefined ? config.useOriginalPalette : false)
+            },
             maxSize: config.maxSize || null, // e.g., '500KB', '2MB', '1.5MB'
-            processingMode: config.processingMode || 'auto', // 'auto', 'rows', 'columns'
-            posterize: config.posterize || 0, // Posterization strength (0-1)
-            minified: config.minified || false, // Minify CSS output
-            useOriginalPalette: config.useOriginalPalette || false // Limit colors to original palette
+            minified: config.minified || false // Minify CSS output
         };
         
         this.canvas = null;
@@ -39,17 +45,17 @@ class img2css {
             // Auto-optimize if requested
             if (this.config.autoOptimize) {
                 const optimal = await this.findOptimalSettingsForImage();
-                this.config.details = optimal.details;
-                this.config.compression = optimal.compression;
+                this.config.processing.details = optimal.details;
+                this.config.processing.compression = optimal.compression;
             }
             
             const config = {
-                details: this.config.details,
-                compression: this.config.compression,
-                processingMode: this.config.processingMode,
-                posterize: this.config.posterize || 0,
+                details: this.config.processing.details,
+                compression: this.config.processing.compression,
+                processingMode: this.config.processing.mode,
+                posterize: this.config.processing.posterize || 0,
                 minified: this.config.minified || false,
-                useOriginalPalette: this.config.useOriginalPalette
+                useOriginalPalette: this.config.processing.useOriginalPalette
             };
             
             // Generate the CSS
@@ -64,6 +70,7 @@ class img2css {
                     processingMode: config.processingMode,
                     autoOptimize: this.config.autoOptimize,
                     maxSize: this.config.maxSize,
+                    className: this.config.className,
                     dimensions: {
                         width: this.imageData.width,
                         height: this.imageData.height
@@ -1370,11 +1377,13 @@ class img2css {
         const compressionReduction = compression > 0 ? 
             ` | Column reduction: ${((compression / 100) * 60).toFixed(1)}%` : '';
         
+        const className = this.config.className || 'slick-img-gradient';
+        
         if (minified) {
-            return `.slick-img-gradient{width:100%;height:auto;aspect-ratio:${width}/${height};background:${backgroundDeclaration}}`;
+            return `.${className}{width:100%;height:auto;aspect-ratio:${width}/${height};background:${backgroundDeclaration}}`;
         }
         
-        return `.slick-img-gradient {
+        return `.${className} {
     width: 100%;
     height: auto;
     aspect-ratio: ${width} / ${height};
@@ -1428,11 +1437,13 @@ class img2css {
         const compressionReduction = compression > 0 ? 
             ` | Row reduction: ${((compression / 100) * 60).toFixed(1)}%` : '';
         
+        const className = this.config.className || 'slick-img-gradient';
+        
         if (minified) {
-            return `.slick-img-gradient{width:100%;height:auto;aspect-ratio:${width}/${height};background:${backgroundDeclaration}}`;
+            return `.${className}{width:100%;height:auto;aspect-ratio:${width}/${height};background:${backgroundDeclaration}}`;
         }
         
-        return `.slick-img-gradient {
+        return `.${className} {
     width: 100%;
     height: auto;
     aspect-ratio: ${width} / ${height};
@@ -1874,8 +1885,8 @@ class img2css {
             
             if (this.config.autoOptimize) {
                 const optimal = await this.findOptimalSettingsForImage();
-                this.config.details = optimal.details;
-                this.config.compression = optimal.compression;
+                this.config.processing.details = optimal.details;
+                this.config.processing.compression = optimal.compression;
             }
             
             return imageData;
