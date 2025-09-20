@@ -1,0 +1,1399 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Slick Image to CSS Generator</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #0d1117;
+            color: #e6edf3;
+            position: relative;
+        }
+        
+        .gradient-background {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 100vw;
+            height: auto;
+            z-index: -1;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+            pointer-events: none;
+            mask: radial-gradient(ellipse at center, black 0%, black 25%, transparent 60%);
+            -webkit-mask: radial-gradient(ellipse at center, black 0%, black 25%, transparent 60%);
+        }
+        
+        .gradient-background.active {
+            opacity: 0.35;
+        }
+        
+        .container {
+            background: #161b22;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.4), 0 2px 8px rgba(0,0,0,0.2);
+            border: 1px solid #30363d;
+            max-width: clamp(300px, 85%, 1450px);
+            margin: 0 auto;
+        }
+        
+        h1 {
+            color: #f0f6fc;
+            text-align: center;
+            margin-bottom: 30px;
+            font-weight: 300;
+            font-size: 2.2em;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+        }
+        
+        .upload-section {
+            margin-bottom: 30px;
+        }
+        
+        .upload-area {
+            border: 2px dashed #30363d;
+            border-radius: 10px;
+            padding: 30px;
+            text-align: center;
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+            background: #0d1117;
+            color: #e6edf3;
+        }
+        
+        .upload-area:hover {
+            border-color: #1f6feb;
+            background: #161b22;
+        }
+        
+        .upload-area.dragover {
+            border-color: #1f6feb;
+            background: #21262d;
+        }
+        
+        .upload-options {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        
+        input[type="file"] {
+            padding: 10px;
+            border: 1px solid #30363d;
+            border-radius: 6px;
+            background: #21262d;
+            color: #e6edf3;
+        }
+        
+        .url-input {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        
+        #urlInput {
+            padding: 10px;
+            border: 1px solid #30363d;
+            border-radius: 6px;
+            width: 300px;
+            font-size: 14px;
+            background: #21262d;
+            color: #e6edf3;
+        }
+        
+        button {
+            background: #1f6feb;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s;
+            box-shadow: 0 2px 6px rgba(31, 111, 235, 0.3), 0 1px 2px rgba(0,0,0,0.2);
+            text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+        }
+        
+        button:hover {
+            background: #388bfd;
+            box-shadow: 0 4px 12px rgba(31, 111, 235, 0.4), 0 2px 4px rgba(0,0,0,0.3);
+            transform: translateY(-1px);
+        }
+        
+        button:disabled {
+            background: #484f58;
+            cursor: not-allowed;
+        }
+        
+        .preview-section {
+            margin: 30px 0;
+            display: none;
+        }
+        
+        .stats {
+            background: #21262d;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border: 1px solid #30363d;
+            border-left: 4px solid #1f6feb;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3), 0 1px 3px rgba(0,0,0,0.2);
+        }
+        
+        .stats-content {
+            display: block;
+        }
+        
+        .stats-detailed {
+            display: none;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #30363d;
+        }
+        
+        .toggle-stats {
+            color: #1f6feb;
+            cursor: pointer;
+            font-size: 13px;
+            text-decoration: underline;
+            margin-top: 10px;
+            display: inline-block;
+        }
+        
+        .main-row {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 20px;
+            margin: 20px 0;
+        }
+        
+        .preview-column {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .side-column {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        .original-section {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .original-section h3,
+        .preview-column h3 {
+            margin: 0 0 12px 0;
+            color: #e6edf3;
+            font-weight: 500;
+            font-size: 1.1em;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.4);
+        }
+        
+        .image-container {
+            border: 1px solid #30363d;
+            border-radius: 8px;
+            overflow: hidden;
+            background: #21262d;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+        
+        .image-container.clickable {
+            cursor: pointer;
+        }
+        
+        .image-container.clickable:hover {
+            transform: scale(1.02);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.4), 0 4px 12px rgba(0,0,0,0.2);
+        }
+        
+        #originalImage, #gradientPreview {
+            max-width: 100%;
+            height: auto;
+            display: block;
+        }
+        
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 20px;
+            margin: 20px 0;
+            padding: 20px;
+            background: #161b22;
+            border-radius: 8px;
+        }
+        
+        .option-column {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        .option-group {
+            background: #21262d;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #30363d;
+            border-left: 4px solid #1f6feb;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2), inset 0 1px 1px rgba(255,255,255,0.03);
+        }
+        
+        .option-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #e6edf3;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+        }
+        
+        .option-group input[type="range"] {
+            width: 100%;
+            margin-bottom: 8px;
+        }
+        
+        .option-group input[type="text"],
+        .option-group select {
+            width: calc(100% - 20px);
+            padding: 10px;
+            border: 1px solid #30363d;
+            border-radius: 6px;
+            margin-bottom: 8px;
+            background: #0d1117;
+            color: #e6edf3;
+        }
+        
+        .option-group select {
+            width: 100%;
+        }
+        
+        .help-text {
+            font-size: 13px;
+            color: #8b949e;
+            line-height: 1.4;
+        }
+        
+        .checkbox-option {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 10px;
+        }
+        
+        .checkbox-option input[type="checkbox"] {
+            margin: 0;
+        }
+        
+        .optimal-hint {
+            font-size: 12px;
+            color: #3fb950;
+            font-weight: normal;
+            margin-left: 8px;
+        }
+        
+        .css-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .css-header h3 {
+            margin: 0;
+            color: #e6edf3;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.4);
+        }
+        
+        .switch-container {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 24px;
+        }
+        
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #484f58;
+            transition: .4s;
+            border-radius: 24px;
+        }
+        
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        
+        input:checked + .slider {
+            background-color: #1f6feb;
+        }
+        
+        input:checked + .slider:before {
+            transform: translateX(26px);
+        }
+        
+        .switch-label {
+            font-size: 14px;
+            color: #e6edf3;
+            font-weight: 500;
+        }
+        
+        
+        .spinner-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid #30363d;
+            border-top: 4px solid #1f6feb;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .css-output {
+            margin-top: 30px;
+        }
+        
+        .css-code-container {
+            position: relative;
+        }
+        
+        .css-code {
+            background: #0d1117;
+            border: 1px solid #30363d;
+            border-radius: 8px;
+            padding: 20px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            font-family: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
+            font-size: 13px;
+            max-height: 400px;
+            overflow-y: auto;
+            line-height: 1.4;
+            color: #e6edf3;
+            transition: all 0.2s ease;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.3), 0 1px 3px rgba(0,0,0,0.2);
+        }
+        
+        .css-code:hover {
+            background: #21262d;
+        }
+        
+        .copy-button {
+            position: absolute;
+            top: 12px;
+            right: 30px;
+            background: #1f6feb;
+            color: white;
+            border: none;
+            width: 36px;
+            height: 36px;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            transition: all 0.2s ease;
+            z-index: 10;
+            opacity: 0;
+            pointer-events: none;
+        }
+        
+        .css-code-container:hover .copy-button {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        
+        .copy-button:hover {
+            background: #388bfd;
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+        }
+        
+        .copy-button:active {
+            transform: scale(0.95);
+        }
+        
+        .copy-button.copied {
+            background: #3fb950;
+        }
+        
+        .copy-icon {
+            display: block;
+            pointer-events: none;
+            color: white;
+            font-size: 18px;
+            line-height: 1;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+        }
+        
+        .optimization-result {
+            margin: 20px 0;
+            padding: 15px;
+            background: #0c3328;
+            border-radius: 8px;
+            font-size: 14px;
+            border-left: 4px solid #3fb950;
+            color: #e6edf3;
+        }
+        
+        /* Lightbox Modal */
+        .lightbox {
+            display: none;
+            position: fixed;
+            z-index: 2000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.8);
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .lightbox-content {
+            max-width: 90%;
+            max-height: 90%;
+            position: relative;
+        }
+        
+        .lightbox img, .lightbox div {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+        
+        .lightbox-close {
+            position: absolute;
+            top: -40px;
+            right: 0;
+            color: white;
+            font-size: 30px;
+            cursor: pointer;
+            background: none;
+            border: none;
+            padding: 0;
+        }
+        
+        .resizable-preview {
+            position: relative;
+            resize: both;
+            overflow: hidden;
+            min-width: 200px;
+            min-height: 150px;
+        }
+        
+        .resize-handle {
+            position: absolute;
+            background: rgba(225, 237, 243, 0.8);
+            border: 1px solid #30363d;
+        }
+        
+        .resize-handle.corner {
+            width: 12px;
+            height: 12px;
+            border-radius: 2px;
+        }
+        
+        .resize-handle.bottom-right {
+            bottom: 0;
+            right: 0;
+            cursor: nw-resize;
+        }
+        
+        .resize-handle.bottom-left {
+            bottom: 0;
+            left: 0;
+            cursor: ne-resize;
+        }
+        
+        .resize-handle.top-right {
+            top: 0;
+            right: 0;
+            cursor: ne-resize;
+        }
+        
+        .resize-handle.top-left {
+            top: 0;
+            left: 0;
+            cursor: nw-resize;
+        }
+        
+        @media (max-width: 1024px) {
+            .options-grid {
+                grid-template-columns: 1fr 1fr;
+                gap: 20px;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .options-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            
+            .main-row {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            
+            .upload-options {
+                flex-direction: column;
+            }
+            
+            #urlInput {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Slick Image to CSS Generator</h1>
+        
+        <div class="upload-section">
+            <div class="upload-area" id="uploadArea">
+                <p>Drag and drop an image here or use options below</p>
+            </div>
+            
+            <div class="upload-options">
+                <div>
+                    <input type="file" id="imageInput" accept="image/*">
+                </div>
+                <div class="url-input">
+                    <input type="text" id="urlInput" placeholder="Or enter image URL" value="https://i.imgur.com/Qc3TD8h.jpeg">
+                    <button id="loadUrlBtn">Load URL</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="spinner-overlay" id="spinnerOverlay">
+            <div class="spinner"></div>
+        </div>
+        
+        <div class="preview-section" id="previewSection">
+            <div class="main-row">
+                <div class="preview-column">
+                    <h3>Pure CSS Preview</h3>
+                    <div class="image-container">
+                        <div id="gradientPreview"></div>
+                    </div>
+                </div>
+                
+                <div class="side-column">
+                    <div class="original-section">
+                        <h3>Original</h3>
+                        <div class="image-container">
+                            <img id="originalImage" alt="Original">
+                        </div>
+                    </div>
+                    
+                    <div id="stats" class="stats">
+                        <div class="stats-content" id="statsContent"></div>
+                        <div class="stats-detailed" id="statsDetailed"></div>
+                        <span class="toggle-stats" id="toggleStats">Show detailed stats</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="options-grid">
+                <div class="option-column">
+                    <div class="option-group">
+                        <label for="detailsSlider">
+                            Details: <span id="detailsValue">100</span>%<span id="optimalDetails" class="optimal-hint" style="display: none;"></span>
+                        </label>
+                        <input type="range" id="detailsSlider" min="1" max="100" value="100">
+                        <div class="help-text">
+                            Higher values preserve more detail
+                        </div>
+                    </div>
+                    
+                    <div class="option-group">
+                        <label for="posterizationStrengthSlider">Posterization: <span id="posterizationStrengthValue">0%</span></label>
+                        <input type="range" id="posterizationStrengthSlider" min="0" max="100" value="0" step="5">
+                        <div class="help-text">
+                            Limit gradients to colors from original image (0% = off, 100% = full posterization)
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="option-column">
+                    <div class="option-group">
+                        <label for="compressionSlider">
+                            Compression: <span id="compressionValue">0</span>%<span id="optimalCompression" class="optimal-hint" style="display: none;"></span>
+                        </label>
+                        <input type="range" id="compressionSlider" min="0" max="100" value="-">
+                        <div class="help-text">
+                            Higher values reduce file size
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="option-column">
+                    <div class="option-group">
+                        <label for="maxSizeInput">Max CSS file size</label>
+                        <input type="text" id="maxSizeInput" placeholder="e.g., 500KB, 2MB">
+                    </div>
+                    
+                    <div class="option-group">
+                        <label for="processingModeSelect">Processing Mode</label>
+                        <select id="processingModeSelect">
+                            <option value="auto">Auto (detect orientation)</option>
+                            <option value="rows">Rows (horizontal gradients)</option>
+                            <option value="columns">Columns (vertical gradients)</option>
+                            <option value="hybrid">Hybrid (blend both directions)</option>
+                        </select>
+                        <div class="help-text">
+                            Choose gradient direction manually
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="css-output" id="cssOutput" style="display: none;">
+                <div class="css-header">
+                    <h3>Generated CSS:</h3>
+                    <div class="switch-container">
+                        <span class="switch-label">Minify</span>
+                        <label class="switch">
+                            <input type="checkbox" id="minifiedCheckbox">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                </div>
+                <div class="css-code-container">
+                    <div class="css-code" id="cssCode"></div>
+                    <button id="copyBtn" class="copy-button" title="Copy CSS">
+                        <span class="copy-icon">⎘</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Lightbox Modal -->
+    <div id="lightbox" class="lightbox" onclick="closeLightbox()">
+        <div class="lightbox-content" onclick="event.stopPropagation()">
+            <button class="lightbox-close" onclick="closeLightbox()">&times;</button>
+            <div id="lightboxContent"></div>
+        </div>
+    </div>
+
+    <script src="img2css.js"></script>
+    <script>
+        class img2cssUI {
+        	firstLoad = true;
+
+
+            constructor(config = {}) {
+            	console.log("Initializing img2cssUI with config:", config);
+                // Create instance of the core converter
+                this.core = new img2css(config);
+                
+                // Auto-generation timeout
+                this.generationTimeout = null;
+                
+                // Setup UI if DOM elements exist
+                if (typeof document !== 'undefined' && document.getElementById('uploadArea')) {
+                    this.setupEventListeners();
+                }
+                
+                // If source is provided, load it automatically
+                if (this.core.config.source) {
+                    this.loadFromSource(this.core.config.source);
+                }
+            }
+
+            // Delegate to core for CSS generation
+            async generateCSS(imageSource, options = {}) {
+                return await this.core.generateCSS(imageSource, options);
+            }
+
+            // Get imageData property from core
+            get imageData() {
+                return this.core.imageData;
+            }
+
+            // Delegate utility methods to core
+            formatFileSize(sizeKB) {
+                return this.core.formatFileSize(sizeKB);
+            }
+
+            parseMaxSizeToKB(maxSizeStr) {
+                return this.core.parseMaxSizeToKB(maxSizeStr);
+            }
+
+            estimateCSSSize(width, height, details, compression) {
+                return this.core.estimateCSSSize(width, height, details, compression);
+            }
+
+            calculateImageComplexity(data, width, height) {
+                return this.core.calculateImageComplexity(data, width, height);
+            }
+
+            /*
+            async findOptimalSettingsForImage(preserveParameter = null) {
+                return await this.core.core.findOptimalSettingsForImage(preserveParameter);
+            }
+            */
+
+            // === UI-Related Methods (only work when DOM is available) ===
+
+            setupEventListeners() {
+                const elements = {
+                    uploadArea: document.getElementById('uploadArea'),
+                    imageInput: document.getElementById('imageInput'),
+                    urlInput: document.getElementById('urlInput'),
+                    loadUrlBtn: document.getElementById('loadUrlBtn'),
+                    copyBtn: document.getElementById('copyBtn'),
+                    detailsSlider: document.getElementById('detailsSlider'),
+                    detailsValue: document.getElementById('detailsValue'),
+                    compressionSlider: document.getElementById('compressionSlider'),
+                    compressionValue: document.getElementById('compressionValue'),
+                    maxSizeInput: document.getElementById('maxSizeInput'),
+                    minifiedCheckbox: document.getElementById('minifiedCheckbox'),
+                    processingModeSelect: document.getElementById('processingModeSelect'),
+                    originalPaletteCheckbox: document.getElementById('originalPaletteCheckbox'),
+                    toggleStats: document.getElementById('toggleStats')
+                };
+
+                let firstLoad = true;
+
+                
+                elements.uploadArea.addEventListener('click', (e) => {
+                    if (e.target !== elements.imageInput) {
+                        elements.imageInput.click();
+                    }
+                });
+                elements.uploadArea.addEventListener('dragover', (e) => this.handleDragOver(e));
+                elements.uploadArea.addEventListener('dragleave', (e) => this.handleDragLeave(e));
+                elements.uploadArea.addEventListener('drop', (e) => this.handleDrop(e));
+                
+                elements.imageInput.addEventListener('change', (e) => this.handleFileSelect(e));
+                elements.loadUrlBtn.addEventListener('click', () => this.loadFromUrl());
+                elements.copyBtn.addEventListener('click', () => this.copyCSS());
+                elements.toggleStats.addEventListener('click', () => this.toggleDetailedStats());
+                
+                elements.detailsSlider.addEventListener('input', (e) => {
+                    elements.detailsValue.textContent = e.target.value;
+                    this.updateStats();
+                    this.scheduleGeneration();
+                    
+                    setTimeout(async () => {
+                        if (await this.autoAdjustForMaxSize('details')) {
+                            this.updateStats();
+                        }
+                    }, 100);
+                });
+                
+                elements.compressionSlider.addEventListener('input', (e) => {
+                    elements.compressionValue.textContent = e.target.value;
+                    this.updateStats();
+                    this.scheduleGeneration();
+                    
+                    setTimeout(async () => {
+                        if (await this.autoAdjustForMaxSize('compression')) {
+                            this.updateStats();
+                        }
+                    }, 100);
+                });
+                
+                elements.maxSizeInput.addEventListener('input', () => {
+                    this.updateStats();
+                    this.scheduleGeneration();
+                    
+                    if (this.imageData && elements.maxSizeInput.value.trim()) {
+                        setTimeout(() => this.core.findOptimalSettings(), 500);
+                    }
+                });
+                
+                elements.minifiedCheckbox.addEventListener('change', () => {
+                    this.updateStats();
+                    this.scheduleGeneration();
+                });
+                
+                elements.processingModeSelect.addEventListener('change', () => {
+                    this.updateStats();
+                    this.scheduleGeneration();
+                });
+                
+                
+                const posterizationStrengthSlider = document.getElementById('posterizationStrengthSlider');
+                const posterizationStrengthValue = document.getElementById('posterizationStrengthValue');
+                
+                posterizationStrengthSlider.addEventListener('input', () => {
+                    posterizationStrengthValue.textContent = posterizationStrengthSlider.value + '%';
+                    this.updateStats();
+                    this.scheduleGeneration();
+                });
+                
+                // Set initial values from config
+                if (this.core.config.details !== 100) {
+                    elements.detailsSlider.value = this.core.config.details;
+                    elements.detailsValue.textContent = this.core.config.details;
+                }
+                
+                if (this.core.config.compression !== 15) {
+                    elements.compressionSlider.value = this.core.config.compression;
+                    elements.compressionValue.textContent = this.core.config.compression;
+                }
+                
+                if (this.core.config.maxSize) {
+                    elements.maxSizeInput.value = this.core.config.maxSize;
+                }
+            }
+
+            scheduleGeneration() {
+                // Clear existing timeout
+                if (this.generationTimeout) {
+                    clearTimeout(this.generationTimeout);
+                }
+                
+                // Schedule new generation with 1 second delay
+                this.generationTimeout = setTimeout(() => {
+                    if (this.imageData) {
+                        this.generateGradient();
+                        if (this.firstLoad) {
+							//this.firstLoad = false;
+							var that = this;;
+							this.findOptimalSettings().then(() => {
+								that.firstLoad = false;
+							});
+						}
+
+                    }
+                }, 1000);
+            }
+
+            showSpinner() {
+                document.getElementById('spinnerOverlay').style.display = 'flex';
+            }
+
+            hideSpinner() {
+                document.getElementById('spinnerOverlay').style.display = 'none';
+            }
+
+            toggleDetailedStats() {
+                const detailed = document.getElementById('statsDetailed');
+                const toggle = document.getElementById('toggleStats');
+                
+                if (detailed.style.display === 'none' || !detailed.style.display) {
+                    detailed.style.display = 'block';
+                    toggle.textContent = 'Hide detailed stats';
+                } else {
+                    detailed.style.display = 'none';
+                    toggle.textContent = 'Show detailed stats';
+                }
+            }
+
+            loadFromUrl() {
+                const url = document.getElementById('urlInput').value.trim();
+                if (!url) return;
+                
+                this.showSpinner();
+                const img = new Image();
+                img.crossOrigin = 'anonymous';
+                img.onload = () => {
+                    this.hideSpinner();
+                    this.processImage(img);
+                    this.showPreview(url);
+                    this.applyAutoOptimizationIfNeeded();
+                };
+                img.onerror = () => {
+                    this.hideSpinner();
+                    alert('Failed to load image from URL. Please check the URL and try again.');
+                };
+                img.src = url;
+            }
+
+            handleDragOver(e) {
+                e.preventDefault();
+                document.getElementById('uploadArea').classList.add('dragover');
+            }
+            
+            handleDragLeave(e) {
+                e.preventDefault();
+                document.getElementById('uploadArea').classList.remove('dragover');
+            }
+            
+            handleDrop(e) {
+                e.preventDefault();
+                document.getElementById('uploadArea').classList.remove('dragover');
+                const files = e.dataTransfer.files;
+                if (files.length > 0) {
+                    this.loadImage(files[0]);
+                }
+            }
+            
+            handleFileSelect(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    this.loadImage(file);
+                }
+            }
+            
+            loadImage(file) {
+                if (!file.type.startsWith('image/')) {
+                    alert('Please select a valid image file.');
+                    return;
+                }
+                
+                this.showSpinner();
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const img = new Image();
+                    img.onload = () => {
+                        this.hideSpinner();
+                        this.processImage(img);
+                        this.showPreview(e.target.result);
+                        this.applyAutoOptimizationIfNeeded();
+                    };
+                    img.src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+
+            loadFromSource(source) {
+                if (typeof source === 'string') {
+                    const img = new Image();
+                    img.crossOrigin = 'anonymous';
+                    img.onload = () => {
+                        this.processImage(img);
+                        this.showPreview(source);
+                        this.applyAutoOptimizationIfNeeded();
+                    };
+                    img.onerror = () => {
+                        console.error('Failed to load image from URL:', source);
+                    };
+                    img.src = source;
+                } else if (source instanceof File) {
+                    this.loadImage(source);
+                } else {
+                    console.error('Invalid source provided. Must be URL string or File object.');
+                }
+            }
+            
+            applyAutoOptimizationIfNeeded() {
+                // Only run auto-optimization if not skipped in config
+                if (this.core.config.autoOptimize == true) {
+                    this.findOptimalSettings();
+                }
+                // Always trigger initial CSS generation
+                this.scheduleGeneration();
+            }
+            
+            showPreview(imageSrc) {
+                document.getElementById('previewSection').style.display = 'block';
+                document.getElementById('originalImage').src = imageSrc;
+            }
+            
+            processImage(img) {
+                const canvas = document.createElement('canvas');
+                canvas.width = img.width;
+                canvas.height = img.height;
+                const ctx = canvas.getContext('2d');
+                
+                ctx.drawImage(img, 0, 0);
+                const rawImageData = ctx.getImageData(0, 0, img.width, img.height);
+                
+                this.core.imageData = {
+                    width: img.width,
+                    height: img.height,
+                    data: rawImageData.data
+                };
+                
+                this.core.canvas = canvas;
+                this.core.ctx = ctx;
+                
+                this.showStats(img.width, img.height);
+                this.updateStats();
+            }
+
+            generateGradient() {
+                if (!this.imageData) return;
+                
+                const { width, height, data } = this.imageData;
+                this.showSpinner();
+                
+                setTimeout(() => {
+                    this.processGradient(width, height, data);
+                }, 100);
+            }
+            
+            async processGradient(width, height, data) {
+                const details = parseInt(document.getElementById('detailsSlider').value);
+                const compression = parseInt(document.getElementById('compressionSlider').value);
+                const minified = document.getElementById('minifiedCheckbox').checked;
+                const processingMode = document.getElementById('processingModeSelect').value;
+                const posterize = parseFloat(document.getElementById('posterizationStrengthSlider').value) / 100;
+                const useOriginalPalette = posterize > 0;
+                
+                try {
+                    const css = await this.core.processImageToCSS(
+                        { width, height, data }, 
+                        { details, compression, minified, processingMode, useOriginalPalette, posterize }
+                    );
+                    
+                    this.createGradientPreview(css, width, height);
+                    this.updateBodyBackground(css, width, height);
+                    
+                    document.getElementById('cssCode').textContent = css;
+                    document.getElementById('cssOutput').style.display = 'block';
+                    this.hideSpinner();
+                } catch (error) {
+                    console.error('Error generating gradient:', error);
+                    this.hideSpinner();
+                    alert('Error generating gradient: ' + error.message);
+                }
+            }
+
+            createGradientPreview(cssClass, width, height) {
+                const preview = document.getElementById('gradientPreview');
+                
+                // Update the shared CSS class instead of inline styles
+                this.updateSharedGradientClass(cssClass);
+                preview.className = 'slick-img-gradient';
+                
+                // Clear any inline styles
+                preview.style.width = '';
+                preview.style.height = '';
+                preview.style.aspectRatio = '';
+                preview.style.maxWidth = '';
+                preview.style.display = 'block';
+                preview.style.border = 'none';
+                preview.style.borderRadius = '4px';
+                preview.style.maxWidth = '100%';
+                preview.style.background = '';
+                preview.style.backgroundSize = '';
+                preview.style.backgroundRepeat = '';
+                preview.style.backgroundPosition = '';
+            }
+
+            updateSharedGradientClass(cssClass) {
+                // Update or create the shared CSS class for both preview and background
+                let styleElement = document.getElementById('shared-gradient-style');
+                if (!styleElement) {
+                    styleElement = document.createElement('style');
+                    styleElement.id = 'shared-gradient-style';
+                    document.head.appendChild(styleElement);
+                }
+                
+                styleElement.textContent = cssClass;
+            }
+
+            updateBodyBackground(css, width, height) {
+                // The CSS class is already updated by updateSharedGradientClass
+                // We just need to create/activate the background element
+                
+                // Create or get the gradient background element
+                let gradientEl = document.getElementById('gradient-background');
+                if (!gradientEl) {
+                    gradientEl = document.createElement('div');
+                    gradientEl.id = 'gradient-background';
+                    gradientEl.className = 'gradient-background slick-img-gradient';
+                    document.body.appendChild(gradientEl);
+                } else {
+                    // Ensure it has the gradient class
+                    gradientEl.className = 'gradient-background slick-img-gradient';
+                }
+                
+                console.log('Background element updated with shared CSS class');
+                
+                // Activate the background
+                gradientEl.classList.add('active');
+            }
+
+            
+            async findOptimalSettings(preserveParameter = null) {
+                try {
+                    const maxSizeInput = document.getElementById('maxSizeInput');
+                    const maxSizeText = maxSizeInput ? maxSizeInput.value.trim() : '';
+                    
+                    if (maxSizeText) {
+                        this.core.config.maxSize = maxSizeText;
+                    } else {
+                        this.core.config.maxSize = null;
+                    }
+                    
+                    const optimal = await this.core.findOptimalSettingsForImage(preserveParameter);
+                    this.displayOptimizationResults(optimal);
+                } catch (error) {
+                    console.error('Optimization error:', error);
+                }
+            }
+            
+            displayOptimizationResults(optimal) {
+                const detailsSlider = document.getElementById('detailsSlider');
+                const detailsValue = document.getElementById('detailsValue');
+                const compressionSlider = document.getElementById('compressionSlider');
+                const compressionValue = document.getElementById('compressionValue');
+                
+                // Update sliders
+                if(!this.firstLoad){
+					detailsSlider.value = optimal.details;
+	                detailsValue.textContent = optimal.details;
+	                compressionSlider.value = optimal.compression;
+	                compressionValue.textContent = optimal.compression;
+	                this.updateStats();
+				}
+
+                
+                
+                // Show optimal hints inline
+                this.showOptimalHints(optimal.details, optimal.compression);
+            }
+            
+            showOptimalHints(optimalDetails, optimalCompression) {
+                const detailsHint = document.getElementById('optimalDetails');
+                const compressionHint = document.getElementById('optimalCompression');
+                
+                detailsHint.textContent = `(optimal: ${optimalDetails}%)`;
+                detailsHint.style.display = 'inline';
+                
+                compressionHint.textContent = `(optimal: ${optimalCompression}%)`;
+                compressionHint.style.display = 'inline';
+                
+                // Keep hints visible permanently
+            }
+
+            updateStats() {
+                if (!this.imageData) return;
+                const details = parseInt(document.getElementById('detailsSlider').value);
+                const { width, height } = this.imageData;
+                this.showStats(width, height, details);
+            }
+
+            showStats(width, height, details = 100) {
+                const pixels = width * height;
+                const compression = parseInt(document.getElementById('compressionSlider').value);
+                
+                // Calculate scaled dimensions
+                const scaleFactor = details / 100;
+                const scaledWidth = scaleFactor >= 1.0 ? width : Math.max(1, Math.round(width * scaleFactor));
+                const scaledHeight = scaleFactor >= 1.0 ? height : Math.max(1, Math.round(height * scaleFactor));
+                
+                // Determine orientation
+                const isLandscape = width > height;
+                const orientation = isLandscape ? 'Landscape' : 'Portrait';
+                
+                // Calculate total reduction
+                const baseSamplingRate = 100 / details;
+                const baseReduction = (compression / 100) * 0.6;
+                const adjustedSamplingRate = baseSamplingRate * (1 + baseReduction);
+                const sampledPixels = Math.ceil(scaledWidth / adjustedSamplingRate) * Math.ceil(scaledHeight / adjustedSamplingRate);
+                const totalReduction = ((pixels - sampledPixels) / pixels * 100).toFixed(1);
+                
+                // Get CSS size estimate
+                const minified = document.getElementById('minifiedCheckbox').checked;
+                const cssEstimate = this.estimateCSSSize(width, height, details, compression, minified);
+                
+                // Basic stats
+                const scalingInfo = scaleFactor < 1.0 ? 
+                    `${scaledWidth} × ${scaledHeight} pixels` : 'Not scaled';
+                
+                document.getElementById('statsContent').innerHTML = `
+                    <strong>Dimensions:</strong> ${width} × ${height} pixels (${pixels.toLocaleString()} total)<br>
+                    <strong>Scaled for Processing:</strong> ${scalingInfo}<br>
+                    <strong>Orientation:</strong> ${orientation}<br>
+                    <strong>Total Reduction:</strong> ${totalReduction}%<br>
+                    <strong>Estimated Size:</strong> ${this.formatFileSize(cssEstimate.cssSizeKB)}
+                `;
+                
+                // Detailed stats (initially hidden)
+                const useRows = isLandscape;
+                const modeText = useRows ? 'rows' : 'columns';
+                const gradientDirection = useRows ? 'horizontal' : 'vertical';
+                
+                const baseBlur = 2;
+                const exponentialFactor = Math.pow(adjustedSamplingRate, 0.5);
+                const blurRadius = Math.max(1, Math.floor(baseBlur * exponentialFactor));
+                
+                const uniqueStripes = useRows ? 
+                    Math.ceil(scaledHeight / adjustedSamplingRate) : 
+                    Math.ceil(scaledWidth / adjustedSamplingRate);
+                
+                const colorThreshold = (compression / 100) * 30;
+                const baseColorStops = uniqueStripes * (useRows ? 
+                    Math.ceil(scaledWidth / adjustedSamplingRate) : 
+                    Math.ceil(scaledHeight / adjustedSamplingRate));
+                
+                const complexityFactor = Math.min(width, height) > 500 ? 1.2 : 1.0;
+                const colorOptimizationPercent = compression === 0 ? 0 : 
+                    Math.min(60, (compression / 100) * 50 * complexityFactor);
+                const finalColorStops = Math.round(baseColorStops * (1 - colorOptimizationPercent / 100));
+                
+                document.getElementById('statsDetailed').innerHTML = `
+                    <strong>Processing Details:</strong><br>
+                    Base sampling: Every ${baseSamplingRate.toFixed(1)} pixels<br>
+                    2D Gaussian blur: ${blurRadius}px radius<br>
+                    Processing mode: ${modeText} (${gradientDirection} gradients)<br>
+                    Adjusted sampling rate: 1:${adjustedSamplingRate.toFixed(1)}<br><br>
+                    
+                    <strong>Compression Analysis:</strong><br>
+                    ${modeText.charAt(0).toUpperCase() + modeText.slice(1)} reduction: ${(baseReduction * 100).toFixed(1)}%<br>
+                    Color threshold: ${colorThreshold.toFixed(1)} RGB units<br>
+                    Color optimization: ${colorOptimizationPercent.toFixed(1)}%<br><br>
+                    
+                    <strong>Output Estimation:</strong><br>
+                    Estimated ${modeText}: ${uniqueStripes.toLocaleString()}<br>
+                    Before color optimization: ~${baseColorStops.toLocaleString()} color stops<br>
+                    After color optimization: ~${finalColorStops.toLocaleString()} color stops<br>
+                    CSS method: ${useRows ? 'Row-based processing' : 'Column-based processing'}
+                `;
+            }
+
+            copyCSS() {
+                const cssCode = document.getElementById('cssCode').textContent;
+                navigator.clipboard.writeText(cssCode).then(() => {
+                    const btn = document.getElementById('copyBtn');
+                    const icon = btn.querySelector('.copy-icon');
+                    
+                    // Add copied class for visual feedback
+                    btn.classList.add('copied');
+                    btn.title = 'Copied!';
+                    
+                    // Change to checkmark
+                    icon.textContent = '✓';
+                    
+                    setTimeout(() => {
+                        btn.classList.remove('copied');
+                        btn.title = 'Copy CSS';
+                        // Change back to copy icon
+                        icon.textContent = '⎘';
+                    }, 2000);
+                }).catch(() => {
+                    alert('Failed to copy to clipboard. Please select and copy manually.');
+                });
+            }
+            
+            async autoAdjustForMaxSize(preserveSlider = null) {
+                if (!this.imageData) return false;
+                
+                const maxSizeInput = document.getElementById('maxSizeInput');
+                const maxSizeText = maxSizeInput ? maxSizeInput.value.trim() : '';
+                
+                if (!maxSizeText) return false;
+                
+                this.core.config.maxSize = maxSizeText;
+                const maxSizeKB = this.parseMaxSizeToKB(maxSizeText);
+                
+                if (!maxSizeKB || maxSizeKB <= 0) return false;
+                
+                const { width, height } = this.imageData;
+                const currentDetails = parseInt(document.getElementById('detailsSlider').value);
+                const currentCompression = parseInt(document.getElementById('compressionSlider').value);
+                
+                const currentSize = this.estimateCSSSize(width, height, currentDetails, currentCompression).cssSizeKB;
+                
+                if (currentSize <= maxSizeKB) return false;
+                
+                if (preserveSlider === 'details') {
+                    for (let compression = currentCompression; compression <= 100; compression += 1) {
+                        const testSize = this.estimateCSSSize(width, height, currentDetails, compression).cssSizeKB;
+                        if (testSize <= maxSizeKB) {
+                            if (compression !== currentCompression) {
+                                document.getElementById('compressionSlider').value = compression;
+                                document.getElementById('compressionValue').textContent = compression;
+                                return true;
+                            }
+                            return false;
+                        }
+                    }
+                    return false;
+                }
+                
+                if (preserveSlider === 'compression') {
+                    for (let details = currentDetails; details >= 1; details -= 1) {
+                        const testSize = this.estimateCSSSize(width, height, details, currentCompression).cssSizeKB;
+                        if (testSize <= maxSizeKB) {
+                            if (details !== currentDetails) {
+                                document.getElementById('detailsSlider').value = details;
+                                document.getElementById('detailsValue').textContent = details;
+                                return true;
+                            }
+                            return false;
+                        }
+                    }
+                    return false;
+                }
+                
+                return false;
+            }
+        }
+        
+       
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            window.converter = new img2cssUI({
+
+            	/* DO NOT DELETE COMMENTED OUT OPTIONS - USED FOR TESTING */
+                
+                /*
+                source: 'https://i.imgur.com/Qc3TD8h.jpeg',
+				compression: 0,
+                details: 80
+                */
+
+
+                source: 'https://i.imgur.com/QFnqULE.png',
+                //autoOptimize: false,
+                compression: 0,
+                details: 48
+            });
+        });
+        
+        
+    </script>
+</body>
+</html>

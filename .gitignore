@@ -1,0 +1,27 @@
+# AI Assistant files
+CLAUDE.md
+PROJECT_PROGRESS.md
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Node modules (if any)
+node_modules/
+npm-debug.log*
+
+# Temporary files
+*.tmp
+*.temp

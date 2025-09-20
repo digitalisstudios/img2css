@@ -1,0 +1,43 @@
+{
+  "name": "img2css",
+  "version": "0.1.0",
+  "description": "Advanced image-to-CSS gradient converter that transforms images into pure CSS gradients with sophisticated processing options including posterization, hybrid processing, and intelligent compression.",
+  "main": "src/img2css.js",
+  "type": "module",
+  "scripts": {
+    "start": "python -m http.server 8000",
+    "dev": "python -m http.server 8000",
+    "test": "echo \"No tests specified\" && exit 0"
+  },
+  "keywords": [
+    "css",
+    "gradient",
+    "image",
+    "converter",
+    "javascript",
+    "canvas",
+    "image-processing",
+    "css-generator"
+  ],
+  "author": "Brandon Moore",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": ""
+  },
+  "bugs": {
+    "url": ""
+  },
+  "homepage": "",
+  "files": [
+    "src/",
+    "README.md",
+    "CHANGELOG.md"
+  ],
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "browser": {
+    "./src/img2css.js": "./src/img2css.js"
+  }
+}
