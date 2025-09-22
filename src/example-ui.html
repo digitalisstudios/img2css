@@ -139,6 +139,31 @@ input[type="file"] {
   font-size: 13px;
 }
 
+/* CSS-only lighting overlay using generated gradient masks */
+.css-lighting { position: relative; }
+.css-lighting::before,
+.css-lighting::after { content: ''; position: absolute; inset: 0; pointer-events: none; }
+.css-lighting::before {
+  /* Highlights */
+  background: #fff;
+  mix-blend-mode: screen;
+  opacity: var(--highlight-alpha, 0.55);
+  /* Use generated specularity mask (via Roughness) */
+  mask-image: var(--spec-mask);
+  -webkit-mask-image: var(--spec-mask);
+  mask-mode: luminance;
+}
+.css-lighting::after {
+  /* Shadows */
+  background: #000;
+  mix-blend-mode: multiply;
+  opacity: var(--shadow-alpha, 0.35);
+  /* Use generated shadow mask; by default reuse spec mask */
+  mask-image: var(--shadow-mask, var(--spec-mask));
+  -webkit-mask-image: var(--shadow-mask, var(--spec-mask));
+  mask-mode: luminance;
+}
+
 .url-input {
   display: flex;
   gap: 8px;
@@ -831,6 +856,14 @@ input:checked + .slider:before {
             Limit gradients to colors from original image (0% = off, 100% = full posterization)
           </div>
         </div>
+
+        <div class="option-group">
+          <label>
+            <input type="checkbox" id="lightingOverlayCheckbox" checked>
+            Enable CSS lighting overlay (highlights/shadows)
+          </label>
+          <div class="help-text">Pure CSS: mix-blend-mode + masks from generated gradients.</div>
+        </div>
       </div>
 
       <div class="option-column">
@@ -1006,12 +1039,25 @@ input:checked + .slider:before {
                                         const outR = document.getElementById('roughCssCode'); if (outR) outR.textContent = css;
                                         // Also use roughness as specularity CSS
                                         const outSpec = document.getElementById('specCssCode'); if (outSpec) outSpec.textContent = css;
+                                        // Update CSS-lighting masks
+                                        const bg = self.extractBackgroundFromCSS(css);
+                                        const gp = document.getElementById('gradientPreview');
+                                        if (bg && gp) {
+                                            gp.style.setProperty('--spec-mask', bg);
+                                            gp.style.setProperty('--shadow-mask', bg);
+                                        }
                                     } else if (type === 'subjectnormal') {
                                         self.updateSubjectNormalGradientClass(css);
                                         const subjectnormalEl = document.getElementById('subjectnormalGradientPreview');
                                         if (subjectnormalEl) subjectnormalEl.className = 'subjectnormal-gradient-preview';
                                         const outS = document.getElementById('subjectnormalCssCode'); if (outS) outS.textContent = css;
                                         const outReflS = document.getElementById('reflFromSubjectnormalCssCode'); if (outReflS) outReflS.textContent = css;
+                                        // Optionally use subject normal as an alternative highlight mask
+                                        const bg = self.extractBackgroundFromCSS(css);
+                                        const gp = document.getElementById('gradientPreview');
+                                        if (bg && gp) {
+                                            gp.style.setProperty('--refl-mask', bg);
+                                        }
                                     }
                                 },
                                 onMap({ type, dataURL }) {
@@ -1443,7 +1489,8 @@ input:checked + .slider:before {
                 
                 // Update the shared CSS class instead of inline styles
                 this.updateSharedGradientClass(cssClass);
-                preview.className = 'slick-img-gradient';
+                const enableLighting = document.getElementById('lightingOverlayCheckbox')?.checked;
+                preview.className = enableLighting ? 'slick-img-gradient css-lighting' : 'slick-img-gradient';
                 
                 // Clear any inline styles
                 preview.style.width = '';
@@ -1458,6 +1505,18 @@ input:checked + .slider:before {
                 preview.style.backgroundSize = '';
                 preview.style.backgroundRepeat = '';
                 preview.style.backgroundPosition = '';
+            }
+
+            applyCSSLightingOverlay(enabled) {
+                const preview = document.getElementById('gradientPreview');
+                if (!preview) return;
+                preview.classList.toggle('css-lighting', !!enabled);
+            }
+
+            extractBackgroundFromCSS(cssText) {
+                if (!cssText) return null;
+                const m = cssText.match(/background:\s*([^;]+);/);
+                return m ? m[1] : null;
             }
 
             updateSharedGradientClass(cssClass) {
