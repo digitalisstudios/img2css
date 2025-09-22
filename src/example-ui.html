@@ -769,6 +769,13 @@ input:checked + .slider:before {
           </div>
         </div>
 
+        <div id="subjectnormalPreviewSection">
+          <h3 style="margin-top:12px;">Subject Normal Map Preview</h3>
+          <div class="image-container">
+            <div id="subjectnormalGradientPreview"></div>
+          </div>
+        </div>
+
         <div id="irradiancePreviewSection" style="display: none;">
           <h3 style="margin-top:12px;">Irradiance Map Preview</h3>
           <div class="image-container">
@@ -984,6 +991,10 @@ input:checked + .slider:before {
                                         self.updateRoughnessGradientClass(css);
                                         const roughnessEl = document.getElementById('roughnessGradientPreview');
                                         if (roughnessEl) roughnessEl.className = 'roughness-gradient-preview';
+                                    } else if (type === 'subjectnormal') {
+                                        self.updateSubjectNormalGradientClass(css);
+                                        const subjectnormalEl = document.getElementById('subjectnormalGradientPreview');
+                                        if (subjectnormalEl) subjectnormalEl.className = 'subjectnormal-gradient-preview';
                                     }
                                 },
                                 onMap({ type, dataURL }) {
@@ -1506,6 +1517,28 @@ input:checked + .slider:before {
                 styleElement.textContent = cssClass;
             }
 
+            updateSubjectNormalGradientClass(cssClass) {
+                // Update or create the subject normal map CSS class
+                let styleElement = document.getElementById('subjectnormal-map-style');
+                if (!styleElement) {
+                    styleElement = document.createElement('style');
+                    styleElement.id = 'subjectnormal-map-style';
+                    document.head.appendChild(styleElement);
+                }
+                
+                // Extract aspect ratio from the CSS and apply it to the preview div
+                const aspectRatioMatch = cssClass.match(/aspect-ratio:\s*(\d+)\s*\/\s*(\d+)/);
+                if (aspectRatioMatch) {
+                    const ratio = `${aspectRatioMatch[1]} / ${aspectRatioMatch[2]}`;
+                    const subjectnormalDiv = document.getElementById('subjectnormalGradientPreview');
+                    if (subjectnormalDiv) {
+                        subjectnormalDiv.style.aspectRatio = ratio;
+                    }
+                }
+                
+                styleElement.textContent = cssClass;
+            }
+
             updateMapPreviewVisibility() {
                 // Update visibility of map preview sections based on plugin control states
                 if (!this.pluginUI) return;
@@ -1518,7 +1551,8 @@ input:checked + .slider:before {
                     // Map of control keys to preview section IDs (only for visible controls)
                     const previewSections = {
                         'normalOn': 'normalPreviewSection', 
-                        'roughnessOn': 'roughnessPreviewSection'
+                        'roughnessOn': 'roughnessPreviewSection',
+                        'subjectnormalOn': 'subjectnormalPreviewSection'
                     };
                     
                     // Update visibility for each section

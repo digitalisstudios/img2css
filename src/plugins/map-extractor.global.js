@@ -36,6 +36,7 @@
         albedo: '.albedo-gradient-preview',
         normal: '.normal-gradient-preview',
         roughness: '.roughness-gradient-preview',
+        subjectnormal: '.subjectnormal-gradient-preview',
         irradiance: '.irradiance-gradient-preview',
         depth: '.depth-gradient-preview',
         object: '.object-mask-preview'
@@ -218,6 +219,35 @@
     }
 
     function extractNormal(imageData) {
+      var width=imageData.width, height=imageData.height, data=imageData.data;
+      var out=new Uint8ClampedArray(width*height*4);
+      function idx(x,y){return (y*width+x)*4;}
+      function lumAt(x,y){var i=idx(x,y); return 0.2126*(data[i]/255)+0.7152*(data[i+1]/255)+0.0722*(data[i+2]/255);}
+      // Pre-smooth based on quality
+      var rad = qualityRadius(2);
+      var L=new Float32Array(width*height);
+      for (var y=0;y<height;y++) for (var x=0;x<width;x++) L[y*width+x]=lumAt(x,y);
+      if (rad>1) L=blurGray(width,height,L,rad);
+      var s=Math.max(0.001,cfg.normalStrength);
+      var sobelX=[[ -1,0,1],[-2,0,2],[-1,0,1]]; var sobelY=[[ -1,-2,-1],[0,0,0],[1,2,1]];
+      for (var y=0;y<height;y++){
+        for (var x=0;x<width;x++){
+          var gx=0, gy=0;
+          for (var ky=-1;ky<=1;ky++){
+            var yy=Math.min(height-1,Math.max(0,y+ky));
+            for (var kx=-1;kx<=1;kx++){
+              var xx=Math.min(width-1,Math.max(0,x+kx));
+              var v=L[yy*width+xx]; gx+=v*sobelX[ky+1][kx+1]; gy+=v*sobelY[ky+1][kx+1];
+            }
+          }
+          var nx=-gx*s, ny=-gy*s, nz=1.0; var len=Math.sqrt(nx*nx+ny*ny+nz*nz); nx/=len; ny/=len; nz/=len;
+          var i=idx(x,y); out[i]=Math.round((nx*0.5+0.5)*255); out[i+1]=Math.round((ny*0.5+0.5)*255); out[i+2]=Math.round((nz*0.5+0.5)*255); out[i+3]=255;
+        }
+      }
+      return { width: width, height: height, data: out };
+    }
+
+    function extractSubjectNormal(imageData) {
       var width=imageData.width, height=imageData.height, data=imageData.data;
       var out=new Uint8ClampedArray(width*height*4);
       function idx(x,y){return (y*width+x)*4;}
@@ -579,6 +609,7 @@
         else if (t === 'albedo') out.push(emitMap('albedo', extractAlbedo(imageData), stage));
         else if (t === 'normal') out.push(emitMap('normal', extractNormal(imageData), stage));
         else if (t === 'roughness') out.push(emitMap('roughness', extractRoughness(imageData), stage));
+        else if (t === 'subjectnormal') out.push(emitMap('subjectnormal', extractSubjectNormal(imageData), stage));
         else if (t === 'irradiance') out.push(emitMap('irradiance', extractIrradiance(imageData), stage));
         else if (t === 'depth') out.push(emitMap('depth', extractDepth(imageData, objectMask), stage));
         // object is handled in first pass above
@@ -587,7 +618,7 @@
     }
 
     // Secondary CSS via core per-line stops (no re-analysis)
-    var lineLayersByType = { specular: [], reflection: [], albedo: [], normal: [], roughness: [], irradiance: [], depth: [], object: [] };
+    var lineLayersByType = { specular: [], reflection: [], albedo: [], normal: [], roughness: [], subjectnormal: [], irradiance: [], depth: [], object: [] };
     var lastDimensions = null;
     function colorToSpecGray(c) {
       var r = c.r / 255, g = c.g / 255, b = c.b / 255;
@@ -619,6 +650,30 @@
     
     function colorToNormalMap(c) {
       // Convert original color to normal map representation
+      // Normal maps show surface details as XY gradients encoded in RG channels
+      var r = c.r / 255, g = c.g / 255, b = c.b / 255;
+      var Y = 0.2126*r + 0.7152*g + 0.0722*b; // luminance
+      
+      // Simulate normal mapping by using luminance gradients
+      // Higher contrast areas become more pronounced normals
+      var normalX = (r - Y) * cfg.normalStrength + 0.5; // X component in red channel
+      var normalY = (g - Y) * cfg.normalStrength + 0.5; // Y component in green channel
+      var normalZ = 0.5 + 0.5; // Z component in blue channel (pointing up)
+      
+      normalX = Math.max(0, Math.min(1, normalX));
+      normalY = Math.max(0, Math.min(1, normalY));
+      normalZ = Math.max(0, Math.min(1, normalZ));
+      
+      return { 
+        r: Math.round(normalX * 255), 
+        g: Math.round(normalY * 255), 
+        b: Math.round(normalZ * 255), 
+        a: 255 
+      };
+    }
+    
+    function colorToSubjectNormalMap(c) {
+      // Convert original color to subject normal map representation (identical to normal map)
       // Normal maps show surface details as XY gradients encoded in RG channels
       var r = c.r / 255, g = c.g / 255, b = c.b / 255;
       var Y = 0.2126*r + 0.7152*g + 0.0722*b; // luminance
@@ -682,6 +737,12 @@
             } else if (t === 'normal') {
               cssStops = (ctx.stops || []).map(function(s){
                 var g = colorToNormalMap(s);
+                var hex = '#' + g.r.toString(16).padStart(2,'0') + g.g.toString(16).padStart(2,'0') + g.b.toString(16).padStart(2,'0');
+                return hex + ' ' + s.position.toFixed(2) + '%';
+              });
+            } else if (t === 'subjectnormal') {
+              cssStops = (ctx.stops || []).map(function(s){
+                var g = colorToSubjectNormalMap(s);
                 var hex = '#' + g.r.toString(16).padStart(2,'0') + g.g.toString(16).padStart(2,'0') + g.b.toString(16).padStart(2,'0');
                 return hex + ' ' + s.position.toFixed(2) + '%';
               });
@@ -755,6 +816,7 @@
     controls: [
       { type: 'switch', key: 'normalOn', label: 'Normal', default: true },
       { type: 'switch', key: 'roughnessOn', label: 'Roughness', default: true },
+      { type: 'switch', key: 'subjectnormalOn', label: 'Subject Normal', default: true },
       { type: 'switch', key: 'enabled', label: 'Enable', default: true },
       { type: 'select', key: 'computeAt', label: 'Compute At', default: 'scaled', options: [
         { label: 'Scaled', value: 'scaled' },
@@ -774,6 +836,7 @@
       // Only include maps that are explicitly enabled and visible
       if (values.normalOn) types.push('normal');
       if (values.roughnessOn) types.push('roughness');
+      if (values.subjectnormalOn) types.push('subjectnormal');
       // Albedo, depth, object isolation, specular, reflection, and irradiance are disabled and hidden
       // if (!types.length) types = ['normal']; // Fallback to normal map if nothing selected
       return MapExtractor({
@@ -799,7 +862,7 @@
         objectRadius: 2,
         objectThreshold: 0.6,
         objectDepthPercentile: 0.7,
-        selectors: { specular: '.specular-gradient-preview', reflection: '.reflection-gradient-preview', albedo: '.albedo-gradient-preview', normal: '.normal-gradient-preview', roughness: '.roughness-gradient-preview', irradiance: '.irradiance-gradient-preview', depth: '.depth-gradient-preview', object: '.object-mask-preview' },
+        selectors: { specular: '.specular-gradient-preview', reflection: '.reflection-gradient-preview', albedo: '.albedo-gradient-preview', normal: '.normal-gradient-preview', roughness: '.roughness-gradient-preview', subjectnormal: '.subjectnormal-gradient-preview', irradiance: '.irradiance-gradient-preview', depth: '.depth-gradient-preview', object: '.object-mask-preview' },
         on: (ctx && ctx.hooks) ? ctx.hooks : undefined
       });
     }
