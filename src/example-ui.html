@@ -187,7 +187,8 @@ input[type="file"] {
   mask: none !important;
   mix-blend-mode: normal;
   opacity: 1;
-  background: var(--spec-mask);
+  /* Prefer exact pixel map (dataURL) if available; fallback to CSS gradient */
+  background: var(--mask-visual, var(--spec-mask));
   background-attachment: scroll;
 }
 .css-lighting.show-mask::after { background: none; }
@@ -1131,8 +1132,14 @@ input:checked + .slider:before {
                                             img.src = dataURL;
                                         }
                                     }
-                                    // Keep image data handy; CSS mask will be set from onMapCSS (converted CSS)
-                                    // If needed, we could fallback to dataURL masking when CSS is unavailable.
+                                    // Provide dataURL for mask-only visualization (roughness)
+                                    if (type === 'roughness' && dataURL) {
+                                        const gp = document.getElementById('gradientPreview');
+                                        if (gp) {
+                                            const urlDecl = 'url("' + dataURL + '") left top / 100% 100% no-repeat';
+                                            gp.style.setProperty('--mask-visual', urlDecl);
+                                        }
+                                    }
                                 }
                             }
                         },
