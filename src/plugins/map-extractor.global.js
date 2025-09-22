@@ -545,9 +545,9 @@
     function emitMap(type, map, stage) {
       var payload = { type: type, map: map, stage: stage, dataURL: cfg.dataUrl ? toDataURL(map) : null };
       
-      // For roughness maps only, convert the analyzed map to CSS using img2css
-      // Normal maps use the CSS generated from gradient stops in buildLayer hook
-      if (type === 'roughness' && payload.dataURL) {
+      // For normal and roughness maps, convert the analyzed map to CSS using img2css
+      // Subject normal maps use the CSS generated from gradient stops in buildLayer hook
+      if ((type === 'normal' || type === 'roughness') && payload.dataURL) {
         convertMapToCSS(payload.dataURL, type);
       }
       
@@ -731,12 +731,6 @@
             } else if (t === 'reflection') {
               cssStops = (ctx.stops || []).map(function(s){
                 var g = colorToReflectionGray(s);
-                var hex = '#' + g.r.toString(16).padStart(2,'0') + g.g.toString(16).padStart(2,'0') + g.b.toString(16).padStart(2,'0');
-                return hex + ' ' + s.position.toFixed(2) + '%';
-              });
-            } else if (t === 'normal') {
-              cssStops = (ctx.stops || []).map(function(s){
-                var g = colorToNormalMap(s);
                 var hex = '#' + g.r.toString(16).padStart(2,'0') + g.g.toString(16).padStart(2,'0') + g.b.toString(16).padStart(2,'0');
                 return hex + ' ' + s.position.toFixed(2) + '%';
               });
