@@ -15,7 +15,11 @@ class img2css {
                 useOriginalPalette: processing.useOriginalPalette !== undefined ? processing.useOriginalPalette : (config.useOriginalPalette !== undefined ? config.useOriginalPalette : false)
             },
             maxSize: config.maxSize || null, // e.g., '500KB', '2MB', '1.5MB'
-            minified: config.minified || false // Minify CSS output
+            minified: config.minified || false, // Minify CSS output
+            // Plugin system callbacks
+            onPixelProcess: config.onPixelProcess || null, // Callback for pixel-level processing
+            onColumnProcess: config.onColumnProcess || null, // Callback for column-level processing  
+            onRowProcess: config.onRowProcess || null // Callback for row-level processing
         };
         
         this.canvas = null;
@@ -968,6 +972,20 @@ class img2css {
                 a = Math.round(a * (1 - strength) + nearestColor.a * strength);
             }
             
+            // Plugin system callback: Fire pixel-level processing callback
+            if (this.config.onPixelProcess) {
+                this.config.onPixelProcess({
+                    x: x,
+                    y: actualY,
+                    r, g, b, a,
+                    position: parseFloat(position),
+                    isRow: false,
+                    width,
+                    height,
+                    data: data
+                });
+            }
+            
             rawColorStops.push({
                 r, g, b, a,
                 position: parseFloat(position)
@@ -994,6 +1012,20 @@ class img2css {
             }
             return `${color} ${stop.position.toFixed(2)}%`;
         });
+        
+        // Plugin system callback: Fire column-level processing callback
+        if (this.config.onColumnProcess) {
+            this.config.onColumnProcess({
+                x: x,
+                width,
+                height,
+                stops: rawColorStops,
+                optimizedStops: optimizedStops,
+                dramaticColorChanges: dramaticColorChanges,
+                data: data,
+                gradient: `linear-gradient(to bottom, ${cssStops.join(', ')})`
+            });
+        }
         
         return {
             gradient: `linear-gradient(to bottom, ${cssStops.join(', ')})`,
@@ -1093,6 +1125,20 @@ class img2css {
                 a = Math.round(a * (1 - strength) + nearestColor.a * strength);
             }
             
+            // Plugin system callback: Fire pixel-level processing callback
+            if (this.config.onPixelProcess) {
+                this.config.onPixelProcess({
+                    x: actualX,
+                    y: y,
+                    r, g, b, a,
+                    position: parseFloat(position),
+                    isRow: true,
+                    width,
+                    height,
+                    data: data
+                });
+            }
+            
             rawColorStops.push({
                 r, g, b, a,
                 position: parseFloat(position)
@@ -1119,6 +1165,20 @@ class img2css {
             }
             return `${color} ${stop.position.toFixed(2)}%`;
         });
+        
+        // Plugin system callback: Fire row-level processing callback
+        if (this.config.onRowProcess) {
+            this.config.onRowProcess({
+                y: y,
+                width,
+                height,
+                stops: rawColorStops,
+                optimizedStops: optimizedStops,
+                dramaticColorChanges: dramaticColorChanges,
+                data: data,
+                gradient: `linear-gradient(to right, ${cssStops.join(', ')})`
+            });
+        }
         
         return {
             gradient: `linear-gradient(to right, ${cssStops.join(', ')})`,

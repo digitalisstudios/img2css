@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Lighting Detection Prototype - img2css v2.0</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #222;
+            color: white;
+            margin: 0;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        h1 {
+            color: #4CAF50;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .analysis-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .canvas-container {
+            background: #333;
+            padding: 20px;
+            border-radius: 8px;
+            border: 2px solid #555;
+        }
+        
+        .canvas-container h3 {
+            color: #4CAF50;
+            margin-top: 0;
+            text-align: center;
+        }
+        
+        canvas {
+            max-width: 100%;
+            border: 1px solid #666;
+            display: block;
+            margin: 0 auto;
+        }
+        
+        .controls {
+            background: #333;
+            padding: 20px;
+            border-radius: 8px;
+            border: 2px solid #555;
+            margin-bottom: 20px;
+        }
+        
+        .control-group {
+            margin-bottom: 15px;
+        }
+        
+        .control-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #ccc;
+            font-size: 14px;
+        }
+        
+        .control-group input[type="range"] {
+            width: 100%;
+            margin-bottom: 5px;
+        }
+        
+        .control-group span {
+            color: #4CAF50;
+            font-weight: bold;
+        }
+        
+        .analysis-button {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            width: 100%;
+            margin-top: 10px;
+        }
+        
+        .analysis-button:hover {
+            background: #45a049;
+        }
+        
+        .results {
+            background: #333;
+            padding: 20px;
+            border-radius: 8px;
+            border: 2px solid #555;
+        }
+        
+        .results h3 {
+            color: #4CAF50;
+            margin-top: 0;
+        }
+        
+        .result-item {
+            background: #444;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        
+        .file-input {
+            background: #444;
+            color: white;
+            border: 1px solid #666;
+            padding: 10px;
+            border-radius: 4px;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔬 Lighting Detection Prototype</h1>
+        <p style="text-align: center; color: #ccc; margin-bottom: 30px;">
+            HSV-based specular highlight and shadow detection for img2css v2.0
+        </p>
+        
+        <div class="controls">
+            <h3>📁 Load Image</h3>
+            <input type="file" id="imageInput" class="file-input" accept="image/*">
+            <p style="color: #999; font-size: 12px;">Or use the default Camaro image for testing</p>
+            
+            <h3>🎛️ Detection Parameters</h3>
+            
+            <div class="control-group">
+                <label>Specular Highlight Brightness Threshold: <span id="brightnessValue">0.8</span></label>
+                <input type="range" id="brightnessThreshold" min="0.5" max="1.0" step="0.01" value="0.8">
+            </div>
+            
+            <div class="control-group">
+                <label>Specular Highlight Saturation Threshold: <span id="saturationValue">0.3</span></label>
+                <input type="range" id="saturationThreshold" min="0.1" max="0.5" step="0.01" value="0.3">
+            </div>
+            
+            <div class="control-group">
+                <label>Shadow Brightness Threshold: <span id="shadowBrightnessValue">0.3</span></label>
+                <input type="range" id="shadowBrightnessThreshold" min="0.1" max="0.5" step="0.01" value="0.3">
+            </div>
+            
+            <div class="control-group">
+                <label>Ambient Light Brightness Range: <span id="ambientValue">0.3 - 0.8</span></label>
+                <input type="range" id="ambientMinThreshold" min="0.2" max="0.6" step="0.01" value="0.3">
+                <input type="range" id="ambientMaxThreshold" min="0.6" max="0.9" step="0.01" value="0.8">
+            </div>
+            
+            <button class="analysis-button" onclick="analyzeImage()">🔍 Analyze Lighting</button>
+        </div>
+        
+        <div class="analysis-grid">
+            <div class="canvas-container">
+                <h3>📷 Original Image</h3>
+                <canvas id="originalCanvas"></canvas>
+            </div>
+            
+            <div class="canvas-container">
+                <h3>✨ Specular Highlights</h3>
+                <canvas id="specularCanvas"></canvas>
+            </div>
+            
+            <div class="canvas-container">
+                <h3>🌑 Shadow Regions</h3>
+                <canvas id="shadowCanvas"></canvas>
+            </div>
+            
+            <div class="canvas-container">
+                <h3>🌅 Ambient Light Areas</h3>
+                <canvas id="ambientCanvas"></canvas>
+            </div>
+        </div>
+        
+        <div class="results">
+            <h3>📊 Analysis Results</h3>
+            <div id="analysisResults">
+                Load an image and click "Analyze Lighting" to see detection results.
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let originalImage = null;
+        let originalImageData = null;
+        
+        // Update slider values in real-time
+        document.getElementById('brightnessThreshold').addEventListener('input', function() {
+            document.getElementById('brightnessValue').textContent = this.value;
+        });
+        
+        document.getElementById('saturationThreshold').addEventListener('input', function() {
+            document.getElementById('saturationValue').textContent = this.value;
+        });
+        
+        document.getElementById('shadowBrightnessThreshold').addEventListener('input', function() {
+            document.getElementById('shadowBrightnessValue').textContent = this.value;
+        });
+        
+        document.getElementById('ambientMinThreshold').addEventListener('input', function() {
+            updateAmbientRange();
+        });
+        
+        document.getElementById('ambientMaxThreshold').addEventListener('input', function() {
+            updateAmbientRange();
+        });
+        
+        function updateAmbientRange() {
+            const min = document.getElementById('ambientMinThreshold').value;
+            const max = document.getElementById('ambientMaxThreshold').value;
+            document.getElementById('ambientValue').textContent = `${min} - ${max}`;
+        }
+        
+        // Handle file input
+        document.getElementById('imageInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                loadImageFile(file);
+            }
+        });
+        
+        // Load default Camaro image on page load
+        window.addEventListener('load', function() {
+            loadDefaultImage();
+        });
+        
+        function loadDefaultImage() {
+            // Create a simple test pattern if no Camaro image is available
+            const canvas = document.getElementById('originalCanvas');
+            const ctx = canvas.getContext('2d');
+            
+            // Try to load the Camaro image from the existing CSS demo
+            const img = new Image();
+            img.crossOrigin = 'anonymous';
+            
+            img.onload = function() {
+                originalImage = img;
+                drawOriginalImage();
+            };
+            
+            img.onerror = function() {
+                // Create a test pattern if image doesn't load
+                createTestPattern();
+            };
+            
+            // Try to load from the blend demo (this might not work due to CORS)
+            img.src = 'data:image/svg+xml;base64,' + btoa(`
+                <svg width="400" height="300" xmlns="http://www.w3.org/2000/svg">
+                    <!-- Background -->
+                    <rect width="400" height="300" fill="#d0d0d0"/>
+                    
+                    <!-- Car body simulation -->
+                    <ellipse cx="200" cy="180" rx="120" ry="60" fill="#8B0000"/>
+                    
+                    <!-- Specular highlights -->
+                    <ellipse cx="160" cy="160" rx="15" ry="8" fill="#ffffff" opacity="0.9"/>
+                    <ellipse cx="240" cy="160" rx="20" ry="10" fill="#ffffff" opacity="0.8"/>
+                    
+                    <!-- Chrome details -->
+                    <rect x="180" y="200" width="40" height="8" fill="#c0c0c0"/>
+                    
+                    <!-- Racing stripe -->
+                    <rect x="195" y="140" width="10" height="80" fill="#000000"/>
+                    
+                    <!-- Shadow areas -->
+                    <ellipse cx="200" cy="240" rx="140" ry="20" fill="#404040" opacity="0.6"/>
+                    
+                    <!-- Windshield reflection -->
+                    <polygon points="150,140 250,140 230,120 170,120" fill="#87CEEB" opacity="0.7"/>
+                </svg>
+            `);
+        }
+        
+        function createTestPattern() {
+            const canvas = document.getElementById('originalCanvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = 400;
+            canvas.height = 300;
+            
+            // Create a simple test pattern with known lighting characteristics
+            const gradient = ctx.createLinearGradient(0, 0, 400, 300);
+            gradient.addColorStop(0, '#f0f0f0');
+            gradient.addColorStop(0.3, '#8B0000');
+            gradient.addColorStop(0.7, '#4B0000');
+            gradient.addColorStop(1, '#202020');
+            
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, 400, 300);
+            
+            // Add some bright highlights
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+            ctx.beginPath();
+            ctx.arc(120, 100, 15, 0, 2 * Math.PI);
+            ctx.fill();
+            
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+            ctx.beginPath();
+            ctx.arc(280, 120, 20, 0, 2 * Math.PI);
+            ctx.fill();
+            
+            // Capture the image data
+            originalImageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        }
+        
+        function loadImageFile(file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = new Image();
+                img.onload = function() {
+                    originalImage = img;
+                    drawOriginalImage();
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+        
+        function drawOriginalImage() {
+            const canvas = document.getElementById('originalCanvas');
+            const ctx = canvas.getContext('2d');
+            
+            // Resize canvas to fit image while maintaining aspect ratio
+            const maxWidth = 500;
+            const maxHeight = 400;
+            let { width, height } = originalImage;
+            
+            if (width > maxWidth) {
+                height = (height * maxWidth) / width;
+                width = maxWidth;
+            }
+            if (height > maxHeight) {
+                width = (width * maxHeight) / height;
+                height = maxHeight;
+            }
+            
+            canvas.width = width;
+            canvas.height = height;
+            
+            ctx.drawImage(originalImage, 0, 0, width, height);
+            
+            // Capture the image data for analysis
+            originalImageData = ctx.getImageData(0, 0, width, height);
+        }
+        
+        function rgbToHsv(r, g, b) {
+            r /= 255;
+            g /= 255;
+            b /= 255;
+            
+            const max = Math.max(r, g, b);
+            const min = Math.min(r, g, b);
+            const diff = max - min;
+            
+            let h = 0;
+            if (diff !== 0) {
+                switch (max) {
+                    case r:
+                        h = ((g - b) / diff) % 6;
+                        break;
+                    case g:
+                        h = (b - r) / diff + 2;
+                        break;
+                    case b:
+                        h = (r - g) / diff + 4;
+                        break;
+                }
+            }
+            h = Math.round(h * 60);
+            if (h < 0) h += 360;
+            
+            const s = max === 0 ? 0 : diff / max;
+            const v = max;
+            
+            return { h, s, v };
+        }
+        
+        function analyzeImage() {
+            if (!originalImageData) {
+                alert('Please load an image first!');
+                return;
+            }
+            
+            const data = originalImageData.data;
+            const width = originalImageData.width;
+            const height = originalImageData.height;
+            
+            // Get threshold values
+            const brightnessThreshold = parseFloat(document.getElementById('brightnessThreshold').value);
+            const saturationThreshold = parseFloat(document.getElementById('saturationThreshold').value);
+            const shadowBrightnessThreshold = parseFloat(document.getElementById('shadowBrightnessThreshold').value);
+            const ambientMin = parseFloat(document.getElementById('ambientMinThreshold').value);
+            const ambientMax = parseFloat(document.getElementById('ambientMaxThreshold').value);
+            
+            // Create analysis canvases
+            const specularCanvas = document.getElementById('specularCanvas');
+            const shadowCanvas = document.getElementById('shadowCanvas');
+            const ambientCanvas = document.getElementById('ambientCanvas');
+            
+            [specularCanvas, shadowCanvas, ambientCanvas].forEach(canvas => {
+                canvas.width = width;
+                canvas.height = height;
+            });
+            
+            const specularCtx = specularCanvas.getContext('2d');
+            const shadowCtx = shadowCanvas.getContext('2d');
+            const ambientCtx = ambientCanvas.getContext('2d');
+            
+            // Create new image data for each analysis
+            const specularData = specularCtx.createImageData(width, height);
+            const shadowData = shadowCtx.createImageData(width, height);
+            const ambientData = ambientCtx.createImageData(width, height);
+            
+            let specularPixels = 0;
+            let shadowPixels = 0;
+            let ambientPixels = 0;
+            let totalPixels = 0;
+            
+            // Analyze each pixel
+            for (let i = 0; i < data.length; i += 4) {
+                const r = data[i];
+                const g = data[i + 1];
+                const b = data[i + 2];
+                const a = data[i + 3];
+                
+                if (a === 0) continue; // Skip transparent pixels
+                
+                const { h, s, v } = rgbToHsv(r, g, b);
+                totalPixels++;
+                
+                // Reset all analysis pixels to transparent
+                specularData.data[i] = 0;
+                specularData.data[i + 1] = 0;
+                specularData.data[i + 2] = 0;
+                specularData.data[i + 3] = 0;
+                
+                shadowData.data[i] = 0;
+                shadowData.data[i + 1] = 0;
+                shadowData.data[i + 2] = 0;
+                shadowData.data[i + 3] = 0;
+                
+                ambientData.data[i] = 0;
+                ambientData.data[i + 1] = 0;
+                ambientData.data[i + 2] = 0;
+                ambientData.data[i + 3] = 0;
+                
+                // Detect specular highlights (high brightness, low saturation)
+                if (v >= brightnessThreshold && s <= saturationThreshold) {
+                    specularData.data[i] = 255;     // Red channel
+                    specularData.data[i + 1] = 255; // Green channel  
+                    specularData.data[i + 2] = 255; // Blue channel
+                    specularData.data[i + 3] = 255; // Alpha
+                    specularPixels++;
+                }
+                
+                // Detect shadows (low brightness)
+                else if (v <= shadowBrightnessThreshold) {
+                    shadowData.data[i] = 0;       // Red channel
+                    shadowData.data[i + 1] = 0;   // Green channel
+                    shadowData.data[i + 2] = 255; // Blue channel (blue tint)
+                    shadowData.data[i + 3] = 180; // Semi-transparent
+                    shadowPixels++;
+                }
+                
+                // Detect ambient lighting (mid-range brightness)
+                else if (v >= ambientMin && v <= ambientMax) {
+                    ambientData.data[i] = 255;     // Red channel
+                    ambientData.data[i + 1] = 255; // Green channel
+                    ambientData.data[i + 2] = 0;   // Blue channel (yellow tint)
+                    ambientData.data[i + 3] = 120; // Semi-transparent
+                    ambientPixels++;
+                }
+            }
+            
+            // Draw the analysis results
+            specularCtx.putImageData(specularData, 0, 0);
+            shadowCtx.putImageData(shadowData, 0, 0);
+            ambientCtx.putImageData(ambientData, 0, 0);
+            
+            // Display results
+            displayResults({
+                totalPixels,
+                specularPixels,
+                shadowPixels,
+                ambientPixels,
+                specularPercentage: ((specularPixels / totalPixels) * 100).toFixed(2),
+                shadowPercentage: ((shadowPixels / totalPixels) * 100).toFixed(2),
+                ambientPercentage: ((ambientPixels / totalPixels) * 100).toFixed(2)
+            });
+        }
+        
+        function displayResults(results) {
+            const resultsDiv = document.getElementById('analysisResults');
+            resultsDiv.innerHTML = `
+                <div class="result-item">
+                    <strong>Total Pixels Analyzed:</strong> ${results.totalPixels.toLocaleString()}
+                </div>
+                <div class="result-item">
+                    <strong>Specular Highlights:</strong> ${results.specularPixels.toLocaleString()} pixels (${results.specularPercentage}%)
+                    <br><small>High brightness + low saturation = likely reflective highlights</small>
+                </div>
+                <div class="result-item">
+                    <strong>Shadow Regions:</strong> ${results.shadowPixels.toLocaleString()} pixels (${results.shadowPercentage}%)
+                    <br><small>Low brightness areas = potential shadow zones</small>
+                </div>
+                <div class="result-item">
+                    <strong>Ambient Light Areas:</strong> ${results.ambientPixels.toLocaleString()} pixels (${results.ambientPercentage}%)
+                    <br><small>Mid-range brightness = general lighting zones</small>
+                </div>
+                <div class="result-item">
+                    <strong>💡 Analysis Notes:</strong>
+                    <br>• White areas in "Specular Highlights" = detected reflection points
+                    <br>• Blue areas in "Shadow Regions" = detected shadow zones  
+                    <br>• Yellow areas in "Ambient Light" = general lighting areas
+                    <br>• Adjust thresholds above to fine-tune detection sensitivity
+                </div>
+            `;
+        }
+    </script>
+</body>
+</html>

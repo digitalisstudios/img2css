@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Tone-Based Mask Generator - Simple img2css v2.0</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #222;
+            color: white;
+            margin: 0;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        h1 {
+            color: #4CAF50;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .approach-explanation {
+            background: #333;
+            padding: 20px;
+            border-radius: 8px;
+            border: 2px solid #4CAF50;
+            margin-bottom: 30px;
+        }
+        
+        .approach-explanation h3 {
+            color: #4CAF50;
+            margin-top: 0;
+        }
+        
+        .controls {
+            background: #333;
+            padding: 20px;
+            border-radius: 8px;
+            border: 2px solid #555;
+            margin-bottom: 20px;
+        }
+        
+        .control-group {
+            margin-bottom: 15px;
+        }
+        
+        .control-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #ccc;
+            font-size: 14px;
+        }
+        
+        .control-group input[type="range"] {
+            width: 100%;
+            margin-bottom: 5px;
+        }
+        
+        .control-group span {
+            color: #4CAF50;
+            font-weight: bold;
+        }
+        
+        .file-input {
+            background: #444;
+            color: white;
+            border: 1px solid #666;
+            padding: 10px;
+            border-radius: 4px;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+        
+        .generate-btn {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+        
+        .generate-btn:hover {
+            background: #45a049;
+        }
+        
+        .masks-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .mask-container {
+            background: #333;
+            padding: 20px;
+            border-radius: 8px;
+            border: 2px solid #555;
+        }
+        
+        .mask-container h3 {
+            color: #4CAF50;
+            margin-top: 0;
+            text-align: center;
+        }
+        
+        canvas {
+            max-width: 100%;
+            border: 1px solid #666;
+            display: block;
+            margin: 0 auto;
+        }
+        
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .preview-container {
+            background: #333;
+            padding: 20px;
+            border-radius: 8px;
+            border: 2px solid #555;
+        }
+        
+        .preview-container h3 {
+            color: #4CAF50;
+            margin-top: 0;
+            text-align: center;
+        }
+        
+        .blend-demo {
+            width: 100%;
+            max-width: 500px;
+            height: 300px;
+            position: relative;
+            border: 2px solid #666;
+            border-radius: 8px;
+            overflow: hidden;
+            margin: 0 auto;
+            background: #000;
+        }
+        
+        .layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+        
+        .layer-base {
+            background: var(--base-gradient, #999);
+        }
+        
+        .layer-specular-masked {
+            background: var(--specular-gradient, transparent);
+            mix-blend-mode: color-dodge;
+            -webkit-mask: var(--specular-mask, none);
+            mask: var(--specular-mask, none);
+            pointer-events: none;
+        }
+        
+        .layer-reflection-masked {
+            background: var(--reflection-gradient, transparent);
+            mix-blend-mode: soft-light;
+            -webkit-mask: var(--reflection-mask, none);
+            mask: var(--reflection-mask, none);
+            pointer-events: none;
+        }
+        
+        .layer-shadow-masked {
+            background: var(--shadow-gradient, transparent);
+            mix-blend-mode: multiply;
+            -webkit-mask: var(--shadow-mask, none);
+            mask: var(--shadow-mask, none);
+            pointer-events: none;
+        }
+        
+        .layer-controls {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        .layer-toggle {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        
+        .layer-toggle.disabled {
+            background: #666;
+        }
+        
+        .layer-toggle:hover:not(.disabled) {
+            background: #45a049;
+        }
+        
+        .css-output {
+            background: #333;
+            padding: 20px;
+            border-radius: 8px;
+            border: 2px solid #555;
+        }
+        
+        .css-output h3 {
+            color: #4CAF50;
+            margin-top: 0;
+        }
+        
+        .css-code {
+            background: #1e1e1e;
+            color: #f8f8f2;
+            padding: 20px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            line-height: 1.4;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            max-height: 400px;
+            overflow-y: auto;
+            border: 1px solid #444;
+        }
+        
+        .copy-btn {
+            background: #2196F3;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        
+        .copy-btn:hover {
+            background: #1976D2;
+        }
+    </style>
+    
+    <!-- Load the actual Camaro CSS -->
+    <link rel="stylesheet" href="slick-img-gradient.css">
+</head>
+<body>
+    <div class="container">
+        <h1>🎭 Tone-Based Mask Generator</h1>
+        <p style="text-align: center; color: #ccc; margin-bottom: 30px;">
+            Simple approach: B&W + contrast → tone masks → lighting effects
+        </p>
+        
+        <div class="approach-explanation">
+            <h3>💡 Simplified Approach</h3>
+            <ol>
+                <li><strong>Convert to B&W + increase contrast</strong> → Clear tone separation</li>
+                <li><strong>Bright areas</strong> = Specular mask (chrome, highlights)</li>
+                <li><strong>Mid-tones</strong> = Reflection mask (paint surfaces)</li>
+                <li><strong>Dark areas</strong> = Shadow mask (depth, shadows)</li>
+                <li><strong>Apply different gradients</strong> through each mask using blend modes</li>
+            </ol>
+            <p><em>Much simpler than complex HSV analysis - just like real lighting/shader workflows!</em></p>
+        </div>
+        
+        <div class="controls">
+            <h3>🎛️ Tone Separation Controls</h3>
+            
+            <div class="control-group">
+                <label>Contrast Boost: <span id="contrastValue">2.0</span></label>
+                <input type="range" id="contrastBoost" min="1.0" max="4.0" step="0.1" value="2.0" onchange="updateMasks()">
+            </div>
+            
+            <div class="control-group">
+                <label>Specular Threshold (Bright): <span id="specularThresholdValue">200</span></label>
+                <input type="range" id="specularThreshold" min="150" max="255" step="5" value="200" onchange="updateMasks()">
+            </div>
+            
+            <div class="control-group">
+                <label>Shadow Threshold (Dark): <span id="shadowThresholdValue">80</span></label>
+                <input type="range" id="shadowThreshold" min="20" max="120" step="5" value="80" onchange="updateMasks()">
+            </div>
+            
+            <input type="file" id="imageInput" class="file-input" accept="image/*">
+            <button id="generateBtn" class="generate-btn" onclick="generateToneMasks()">
+                🎭 Generate Tone Masks
+            </button>
+        </div>
+        
+        <div class="masks-grid">
+            <div class="mask-container">
+                <h3>📷 Original Image</h3>
+                <canvas id="originalCanvas"></canvas>
+            </div>
+            
+            <div class="mask-container">
+                <h3>⚫ B&W + Contrast</h3>
+                <canvas id="contrastCanvas"></canvas>
+            </div>
+            
+            <div class="mask-container">
+                <h3>✨ Specular Mask</h3>
+                <canvas id="specularMaskCanvas"></canvas>
+            </div>
+            
+            <div class="mask-container">
+                <h3>🪞 Reflection Mask</h3>
+                <canvas id="reflectionMaskCanvas"></canvas>
+            </div>
+            
+            <div class="mask-container">
+                <h3>🌑 Shadow Mask</h3>
+                <canvas id="shadowMaskCanvas"></canvas>
+            </div>
+        </div>
+        
+        <div class="comparison-grid">
+            <div class="preview-container">
+                <h3>🎨 img2css v1.0 (Base)</h3>
+                <div class="blend-demo">
+                    <div class="layer slick-img-gradient"></div>
+                </div>
+            </div>
+            
+            <div class="preview-container">
+                <h3>🚀 img2css v2.0 (Tone-Enhanced)</h3>
+                <div class="blend-demo" id="enhancedDemo">
+                    <div class="layer layer-base slick-img-gradient" id="layerBase"></div>
+                    <div class="layer layer-specular-masked" id="layerSpecularMasked"></div>
+                    <div class="layer layer-reflection-masked" id="layerReflectionMasked"></div>
+                    <div class="layer layer-shadow-masked" id="layerShadowMasked"></div>
+                </div>
+                
+                <div class="layer-controls">
+                    <button class="layer-toggle" onclick="toggleLayer('layerBase')">Base</button>
+                    <button class="layer-toggle" onclick="toggleLayer('layerSpecularMasked')">Specular</button>
+                    <button class="layer-toggle" onclick="toggleLayer('layerReflectionMasked')">Reflection</button>
+                    <button class="layer-toggle" onclick="toggleLayer('layerShadowMasked')">Shadow</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="css-output">
+            <h3>📄 Generated CSS Code</h3>
+            <div id="cssCode" class="css-code">
+                /* Load an image and generate tone masks to see the CSS output */
+            </div>
+            <button class="copy-btn" onclick="copyCSSCode()">📋 Copy CSS Code</button>
+        </div>
+    </div>
+
+    <script>
+        let originalImageData = null;
+        let toneMasks = null;
+        
+        // Update slider values in real-time
+        document.getElementById('contrastBoost').addEventListener('input', function() {
+            document.getElementById('contrastValue').textContent = this.value;
+        });
+        
+        document.getElementById('specularThreshold').addEventListener('input', function() {
+            document.getElementById('specularThresholdValue').textContent = this.value;
+        });
+        
+        document.getElementById('shadowThreshold').addEventListener('input', function() {
+            document.getElementById('shadowThresholdValue').textContent = this.value;
+        });
+        
+        // Handle file input
+        document.getElementById('imageInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                loadImageFile(file);
+            }
+        });
+        
+        function loadImageFile(file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = new Image();
+                img.onload = function() {
+                    drawOriginalImage(img);
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+        
+        function drawOriginalImage(img) {
+            const canvas = document.getElementById('originalCanvas');
+            const ctx = canvas.getContext('2d');
+            
+            // Resize canvas to fit image while maintaining aspect ratio
+            const maxWidth = 300;
+            const maxHeight = 200;
+            let { width, height } = img;
+            
+            if (width > maxWidth) {
+                height = (height * maxWidth) / width;
+                width = maxWidth;
+            }
+            if (height > maxHeight) {
+                width = (width * maxHeight) / height;
+                height = maxHeight;
+            }
+            
+            canvas.width = width;
+            canvas.height = height;
+            
+            ctx.drawImage(img, 0, 0, width, height);
+            
+            // Capture the image data for analysis
+            originalImageData = ctx.getImageData(0, 0, width, height);
+            
+            document.getElementById('generateBtn').disabled = false;
+        }
+        
+        function generateToneMasks() {
+            if (!originalImageData) {
+                alert('Please load an image first!');
+                return;
+            }
+            
+            console.log('Generating tone-based masks...');
+            
+            // Step 1: Convert to B&W with contrast boost
+            const contrastData = applyContrastBoost(originalImageData);
+            displayContrastImage(contrastData);
+            
+            // Step 2: Generate tone masks
+            const masks = generateMasksFromTones(contrastData);
+            displayToneMasks(masks);
+            
+            // Step 3: Apply masks to gradients
+            applyMaskedGradients(masks);
+            
+            // Step 4: Generate CSS
+            const cssCode = generateMaskedCSSCode(masks);
+            displayCSSCode(cssCode);
+            
+            toneMasks = masks;
+            console.log('Tone masks generated successfully!');
+        }
+        
+        function applyContrastBoost(imageData) {
+            const data = imageData.data;
+            const newData = new Uint8ClampedArray(data.length);
+            const contrast = parseFloat(document.getElementById('contrastBoost').value);
+            
+            for (let i = 0; i < data.length; i += 4) {
+                const r = data[i];
+                const g = data[i + 1];
+                const b = data[i + 2];
+                const a = data[i + 3];
+                
+                // Convert to grayscale
+                const gray = 0.299 * r + 0.587 * g + 0.114 * b;
+                
+                // Apply contrast boost
+                const contrasted = ((gray / 255 - 0.5) * contrast + 0.5) * 255;
+                const clampedGray = Math.max(0, Math.min(255, contrasted));
+                
+                newData[i] = clampedGray;     // R
+                newData[i + 1] = clampedGray; // G
+                newData[i + 2] = clampedGray; // B
+                newData[i + 3] = a;           // A
+            }
+            
+            return new ImageData(newData, imageData.width, imageData.height);
+        }
+        
+        function displayContrastImage(contrastData) {
+            const canvas = document.getElementById('contrastCanvas');
+            const ctx = canvas.getContext('2d');
+            
+            canvas.width = contrastData.width;
+            canvas.height = contrastData.height;
+            
+            ctx.putImageData(contrastData, 0, 0);
+        }
+        
+        function generateMasksFromTones(contrastData) {
+            const data = contrastData.data;
+            const width = contrastData.width;
+            const height = contrastData.height;
+            
+            const specularThreshold = parseInt(document.getElementById('specularThreshold').value);
+            const shadowThreshold = parseInt(document.getElementById('shadowThreshold').value);
+            
+            // Create mask data
+            const specularMask = new Uint8ClampedArray(data.length);
+            const reflectionMask = new Uint8ClampedArray(data.length);
+            const shadowMask = new Uint8ClampedArray(data.length);
+            
+            for (let i = 0; i < data.length; i += 4) {
+                const gray = data[i]; // Already grayscale
+                const alpha = data[i + 3];
+                
+                // Reset all masks
+                specularMask[i] = 0;
+                specularMask[i + 1] = 0;
+                specularMask[i + 2] = 0;
+                specularMask[i + 3] = 0;
+                
+                reflectionMask[i] = 0;
+                reflectionMask[i + 1] = 0;
+                reflectionMask[i + 2] = 0;
+                reflectionMask[i + 3] = 0;
+                
+                shadowMask[i] = 0;
+                shadowMask[i + 1] = 0;
+                shadowMask[i + 2] = 0;
+                shadowMask[i + 3] = 0;
+                
+                if (alpha === 0) continue;
+                
+                // Classify by tone
+                if (gray >= specularThreshold) {
+                    // Bright areas = Specular highlights
+                    specularMask[i] = 255;
+                    specularMask[i + 1] = 255;
+                    specularMask[i + 2] = 255;
+                    specularMask[i + 3] = 255;
+                } else if (gray <= shadowThreshold) {
+                    // Dark areas = Shadows
+                    shadowMask[i] = 255;
+                    shadowMask[i + 1] = 255;
+                    shadowMask[i + 2] = 255;
+                    shadowMask[i + 3] = 255;
+                } else {
+                    // Mid-tones = Reflections
+                    reflectionMask[i] = 255;
+                    reflectionMask[i + 1] = 255;
+                    reflectionMask[i + 2] = 255;
+                    reflectionMask[i + 3] = 255;
+                }
+            }
+            
+            return {
+                specular: new ImageData(specularMask, width, height),
+                reflection: new ImageData(reflectionMask, width, height),
+                shadow: new ImageData(shadowMask, width, height)
+            };
+        }
+        
+        function displayToneMasks(masks) {
+            // Display specular mask
+            const specularCanvas = document.getElementById('specularMaskCanvas');
+            const specularCtx = specularCanvas.getContext('2d');
+            specularCanvas.width = masks.specular.width;
+            specularCanvas.height = masks.specular.height;
+            specularCtx.putImageData(masks.specular, 0, 0);
+            
+            // Display reflection mask
+            const reflectionCanvas = document.getElementById('reflectionMaskCanvas');
+            const reflectionCtx = reflectionCanvas.getContext('2d');
+            reflectionCanvas.width = masks.reflection.width;
+            reflectionCanvas.height = masks.reflection.height;
+            reflectionCtx.putImageData(masks.reflection, 0, 0);
+            
+            // Display shadow mask
+            const shadowCanvas = document.getElementById('shadowMaskCanvas');
+            const shadowCtx = shadowCanvas.getContext('2d');
+            shadowCanvas.width = masks.shadow.width;
+            shadowCanvas.height = masks.shadow.height;
+            shadowCtx.putImageData(masks.shadow, 0, 0);
+        }
+        
+        function applyMaskedGradients(masks) {
+            const demo = document.getElementById('enhancedDemo');
+            
+            // Convert masks to data URLs for CSS
+            const specularMaskUrl = canvasToDataURL(masks.specular);
+            const reflectionMaskUrl = canvasToDataURL(masks.reflection);
+            const shadowMaskUrl = canvasToDataURL(masks.shadow);
+            
+            // Define gradients for each effect
+            const specularGradient = 'radial-gradient(circle, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.3) 50%, transparent 100%)';
+            const reflectionGradient = 'linear-gradient(135deg, rgba(200,220,255,0.4) 0%, rgba(255,255,255,0.2) 50%, rgba(180,200,255,0.3) 100%)';
+            const shadowGradient = 'linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.6) 100%)';
+            
+            // Apply to CSS
+            demo.style.setProperty('--specular-gradient', specularGradient);
+            demo.style.setProperty('--specular-mask', `url("${specularMaskUrl}")`);
+            
+            demo.style.setProperty('--reflection-gradient', reflectionGradient);
+            demo.style.setProperty('--reflection-mask', `url("${reflectionMaskUrl}")`);
+            
+            demo.style.setProperty('--shadow-gradient', shadowGradient);
+            demo.style.setProperty('--shadow-mask', `url("${shadowMaskUrl}")`);
+        }
+        
+        function canvasToDataURL(imageData) {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = imageData.width;
+            canvas.height = imageData.height;
+            ctx.putImageData(imageData, 0, 0);
+            return canvas.toDataURL();
+        }
+        
+        function updateMasks() {
+            if (originalImageData && toneMasks) {
+                generateToneMasks();
+            }
+        }
+        
+        function generateMaskedCSSCode(masks) {
+            const specularMaskUrl = canvasToDataURL(masks.specular);
+            const reflectionMaskUrl = canvasToDataURL(masks.reflection);
+            const shadowMaskUrl = canvasToDataURL(masks.shadow);
+            
+            return `/* img2css v2.0 - Tone-Based Mask Enhancement */
+
+.img2css-v2-container {
+    position: relative;
+    width: 100%;
+    height: auto;
+    aspect-ratio: ${originalImageData.width} / ${originalImageData.height};
+}
+
+/* Base Layer: Original img2css gradient */
+.img2css-v2-base {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    /* Include your img2css gradient here */
+}
+
+/* Specular Layer: Bright spots with chrome/highlight effect */
+.img2css-v2-specular {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.3) 50%, transparent 100%);
+    mix-blend-mode: color-dodge;
+    mask: url("${specularMaskUrl}");
+    -webkit-mask: url("${specularMaskUrl}");
+    pointer-events: none;
+}
+
+/* Reflection Layer: Mid-tones with ambient lighting */
+.img2css-v2-reflection {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, rgba(200,220,255,0.4) 0%, rgba(255,255,255,0.2) 50%, rgba(180,200,255,0.3) 100%);
+    mix-blend-mode: soft-light;
+    mask: url("${reflectionMaskUrl}");
+    -webkit-mask: url("${reflectionMaskUrl}");
+    pointer-events: none;
+}
+
+/* Shadow Layer: Dark areas with enhanced depth */
+.img2css-v2-shadow {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.6) 100%);
+    mix-blend-mode: multiply;
+    mask: url("${shadowMaskUrl}");
+    -webkit-mask: url("${shadowMaskUrl}");
+    pointer-events: none;
+}
+
+/* HTML Structure:
+<div class="img2css-v2-container">
+    <div class="img2css-v2-base slick-img-gradient"></div>
+    <div class="img2css-v2-specular"></div>
+    <div class="img2css-v2-reflection"></div>
+    <div class="img2css-v2-shadow"></div>
+</div>
+*/`;
+        }
+        
+        function displayCSSCode(cssCode) {
+            document.getElementById('cssCode').textContent = cssCode;
+        }
+        
+        function copyCSSCode() {
+            const cssCode = document.getElementById('cssCode').textContent;
+            navigator.clipboard.writeText(cssCode).then(() => {
+                console.log('CSS code copied to clipboard!');
+            });
+        }
+        
+        function toggleLayer(layerId) {
+            const layer = document.getElementById(layerId);
+            const button = event.target;
+            
+            if (layer.style.display === 'none') {
+                layer.style.display = 'block';
+                button.classList.remove('disabled');
+            } else {
+                layer.style.display = 'none';
+                button.classList.add('disabled');
+            }
+        }
+    </script>
+</body>
+</html>
