@@ -161,9 +161,9 @@ input[type="file"] {
   background-attachment: fixed;
   /* Lighten the content beneath */
   mix-blend-mode: screen;
-  /* Use generated specularity mask (via Roughness) */
-  mask-image: var(--spec-mask);
-  -webkit-mask-image: var(--spec-mask);
+  /* Use generated specularity mask (via Roughness). Accept full shorthand (image pos/size/repeat). */
+  -webkit-mask: var(--spec-mask);
+  mask: var(--spec-mask);
   mask-mode: luminance;
 }
 .css-lighting::after {
@@ -175,8 +175,8 @@ input[type="file"] {
   );
   background-attachment: fixed;
   mix-blend-mode: multiply;
-  mask-image: var(--shadow-mask, var(--spec-mask));
-  -webkit-mask-image: var(--shadow-mask, var(--spec-mask));
+  -webkit-mask: var(--shadow-mask, var(--spec-mask));
+  mask: var(--shadow-mask, var(--spec-mask));
   mask-mode: luminance;
 }
 
