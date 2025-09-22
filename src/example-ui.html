@@ -139,6 +139,14 @@ input[type="file"] {
   font-size: 13px;
 }
 
+.lighting-controls {
+  margin-top: 8px;
+  padding: 10px;
+  border: 1px solid #30363d;
+  border-radius: 6px;
+  background: #0d1117;
+}
+
 /* CSS-only lighting overlay using generated gradient masks */
 .css-lighting { position: relative; }
 .css-lighting::before { content: ''; position: absolute; inset: 0; pointer-events: none; }
@@ -756,6 +764,21 @@ input:checked + .slider:before {
           <div id="gradientPreview"></div>
         </div>
 
+        <div class="lighting-controls">
+          <label style="display:block; margin-bottom:6px;">
+            <input type="checkbox" id="lightingOverlayCheckbox" checked>
+            Enable CSS lighting overlay (highlights)
+          </label>
+          <div class="control-row" style="margin-bottom:6px;">
+            <label for="lightAngleSlider">Light angle: <span id="lightAngleValue">35°</span></label>
+            <input type="range" id="lightAngleSlider" min="0" max="360" value="35" style="width:100%;">
+          </div>
+          <div class="control-row">
+            <label for="highlightIntensitySlider">Highlight intensity: <span id="highlightIntensityValue">75%</span></label>
+            <input type="range" id="highlightIntensitySlider" min="0" max="100" value="75" step="1" style="width:100%;">
+          </div>
+        </div>
+
         <h3 style="margin-top:12px; display: none;">Specular Map Preview</h3>
         <div class="image-container" style="display: none;">
           <div id="specGradientPreview"></div>
@@ -850,25 +873,7 @@ input:checked + .slider:before {
           </div>
         </div>
 
-        <div class="option-group">
-          <label>
-            <input type="checkbox" id="lightingOverlayCheckbox" checked>
-            Enable CSS lighting overlay (highlights/shadows)
-          </label>
-          <div class="help-text">Pure CSS: mix-blend-mode + masks from generated gradients.</div>
-        </div>
-
-        <div class="option-group">
-          <label for="lightAngleSlider">Light angle: <span id="lightAngleValue">35°</span></label>
-          <input type="range" id="lightAngleSlider" min="0" max="360" value="35">
-          <div class="help-text">Direction of the highlight gradient.</div>
-        </div>
-
-        <div class="option-group">
-          <label for="highlightIntensitySlider">Highlight intensity: <span id="highlightIntensityValue">75%</span></label>
-          <input type="range" id="highlightIntensitySlider" min="0" max="100" value="75" step="1">
-          <div class="help-text">Controls overlay alpha (0–100%).</div>
-        </div>
+        
       </div>
 
       <div class="option-column">
