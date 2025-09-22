@@ -149,7 +149,7 @@ input[type="file"] {
 
 /* CSS-only lighting overlay using generated gradient masks */
 .css-lighting { position: relative; }
-.css-lighting::before { content: ''; position: absolute; inset: 0; pointer-events: none; }
+.css-lighting::before, .css-lighting::after { content: ''; position: absolute; inset: 0; pointer-events: none; }
 .css-lighting::before {
   /* Fixed highlight gradient, masked by roughness-derived spec mask */
   background: linear-gradient(
@@ -164,6 +164,21 @@ input[type="file"] {
   -webkit-mask-image: var(--spec-mask);
   mask-mode: luminance;
 }
+.css-lighting::after {
+  /* Fixed shadow gradient masked by same mask; angle opposite the light */
+  background: linear-gradient(
+    var(--shadow-angle, 215deg),
+    rgba(0,0,0, var(--shadow-alpha, 0.35)) 0%,
+    rgba(0,0,0, 0.0) 60%
+  );
+  mix-blend-mode: multiply;
+  mask-image: var(--shadow-mask, var(--spec-mask));
+  -webkit-mask-image: var(--shadow-mask, var(--spec-mask));
+  mask-mode: luminance;
+}
+
+.light-badges { position:absolute; top:6px; left:6px; z-index:3; display:flex; gap:6px; pointer-events:none; }
+.light-badges .badge { background: rgba(0,0,0,0.5); color:#e6edf3; padding:2px 6px; border-radius:4px; font-size:12px; line-height:1.2; }
 
 .url-input {
   display: flex;
@@ -762,6 +777,11 @@ input:checked + .slider:before {
         <h3>Pure CSS Preview</h3>
         <div class="image-container">
           <div id="gradientPreview"></div>
+          <div class="light-badges" id="lightBadges">
+            <span class="badge" id="badgeAngle">Angle: 35°</span>
+            <span class="badge" id="badgeHighlight">H: 75%</span>
+            <span class="badge" id="badgeShadow">S: 35%</span>
+          </div>
         </div>
 
         <div class="lighting-controls">
@@ -776,6 +796,11 @@ input:checked + .slider:before {
           <div class="control-row">
             <label for="highlightIntensitySlider">Highlight intensity: <span id="highlightIntensityValue">75%</span></label>
             <input type="range" id="highlightIntensitySlider" min="0" max="100" value="75" step="1" style="width:100%;">
+          </div>
+
+          <div class="control-row" style="margin-top:6px;">
+            <label for="shadowIntensitySlider">Shadow intensity: <span id="shadowIntensityValue">35%</span></label>
+            <input type="range" id="shadowIntensitySlider" min="0" max="100" value="35" step="1" style="width:100%;">
           </div>
         </div>
 
@@ -1181,12 +1206,21 @@ input:checked + .slider:before {
                 const angleValue = document.getElementById('lightAngleValue');
                 const intensitySlider = document.getElementById('highlightIntensitySlider');
                 const intensityValue = document.getElementById('highlightIntensityValue');
+                const shadowSlider = document.getElementById('shadowIntensitySlider');
+                const shadowValue = document.getElementById('shadowIntensityValue');
                 const previewEl = document.getElementById('gradientPreview');
+                const badgeAngle = document.getElementById('badgeAngle');
+                const badgeHighlight = document.getElementById('badgeHighlight');
+                const badgeShadow = document.getElementById('badgeShadow');
                 if (angleSlider && angleValue && previewEl) {
                     const updateAngle = () => {
                         const deg = parseInt(angleSlider.value, 10) || 0;
                         angleValue.textContent = deg + '°';
                         previewEl.style.setProperty('--light-angle', deg + 'deg');
+                        // Mirror for shadow
+                        const sdeg = (deg + 180) % 360;
+                        previewEl.style.setProperty('--shadow-angle', sdeg + 'deg');
+                        if (badgeAngle) badgeAngle.textContent = 'Angle: ' + deg + '°';
                     };
                     angleSlider.addEventListener('input', updateAngle);
                     updateAngle();
@@ -1197,9 +1231,21 @@ input:checked + .slider:before {
                         intensityValue.textContent = pct + '%';
                         const alpha = Math.max(0, Math.min(1, pct / 100));
                         previewEl.style.setProperty('--highlight-alpha', String(alpha));
+                        if (badgeHighlight) badgeHighlight.textContent = 'H: ' + pct + '%';
                     };
                     intensitySlider.addEventListener('input', updateIntensity);
                     updateIntensity();
+                }
+                if (shadowSlider && shadowValue && previewEl) {
+                    const updateShadow = () => {
+                        const pct = parseInt(shadowSlider.value, 10) || 0;
+                        shadowValue.textContent = pct + '%';
+                        const alpha = Math.max(0, Math.min(1, pct / 100));
+                        previewEl.style.setProperty('--shadow-alpha', String(alpha));
+                        if (badgeShadow) badgeShadow.textContent = 'S: ' + pct + '%';
+                    };
+                    shadowSlider.addEventListener('input', updateShadow);
+                    updateShadow();
                 }
                 const specDl = document.getElementById('specDownloadBtn');
                 if (specDl) specDl.addEventListener('click', () => this.downloadMapCSS('specular'));
