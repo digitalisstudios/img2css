@@ -857,6 +857,18 @@ input:checked + .slider:before {
           </label>
           <div class="help-text">Pure CSS: mix-blend-mode + masks from generated gradients.</div>
         </div>
+
+        <div class="option-group">
+          <label for="lightAngleSlider">Light angle: <span id="lightAngleValue">35°</span></label>
+          <input type="range" id="lightAngleSlider" min="0" max="360" value="35">
+          <div class="help-text">Direction of the highlight gradient.</div>
+        </div>
+
+        <div class="option-group">
+          <label for="highlightIntensitySlider">Highlight intensity: <span id="highlightIntensityValue">75%</span></label>
+          <input type="range" id="highlightIntensitySlider" min="0" max="100" value="75" step="1">
+          <div class="help-text">Controls overlay alpha (0–100%).</div>
+        </div>
       </div>
 
       <div class="option-column">
@@ -1156,6 +1168,34 @@ input:checked + .slider:before {
                 elements.imageInput.addEventListener('change', (e) => this.handleFileSelect(e));
                 elements.loadUrlBtn.addEventListener('click', () => this.loadFromUrl());
                 elements.copyBtn.addEventListener('click', () => this.copyCSS());
+                // Lighting overlay toggle
+                const lightingCb = document.getElementById('lightingOverlayCheckbox');
+                if (lightingCb) lightingCb.addEventListener('change', (e) => this.applyCSSLightingOverlay(e.target.checked));
+                // Lighting controls (angle and intensity)
+                const angleSlider = document.getElementById('lightAngleSlider');
+                const angleValue = document.getElementById('lightAngleValue');
+                const intensitySlider = document.getElementById('highlightIntensitySlider');
+                const intensityValue = document.getElementById('highlightIntensityValue');
+                const previewEl = document.getElementById('gradientPreview');
+                if (angleSlider && angleValue && previewEl) {
+                    const updateAngle = () => {
+                        const deg = parseInt(angleSlider.value, 10) || 0;
+                        angleValue.textContent = deg + '°';
+                        previewEl.style.setProperty('--light-angle', deg + 'deg');
+                    };
+                    angleSlider.addEventListener('input', updateAngle);
+                    updateAngle();
+                }
+                if (intensitySlider && intensityValue && previewEl) {
+                    const updateIntensity = () => {
+                        const pct = parseInt(intensitySlider.value, 10) || 0;
+                        intensityValue.textContent = pct + '%';
+                        const alpha = Math.max(0, Math.min(1, pct / 100));
+                        previewEl.style.setProperty('--highlight-alpha', String(alpha));
+                    };
+                    intensitySlider.addEventListener('input', updateIntensity);
+                    updateIntensity();
+                }
                 const specDl = document.getElementById('specDownloadBtn');
                 if (specDl) specDl.addEventListener('click', () => this.downloadMapCSS('specular'));
                 const normalDl = document.getElementById('normalDownloadBtn');
