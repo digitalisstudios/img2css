@@ -515,8 +515,9 @@
     function emitMap(type, map, stage) {
       var payload = { type: type, map: map, stage: stage, dataURL: cfg.dataUrl ? toDataURL(map) : null };
       
-      // For normal and roughness maps, convert the analyzed map to CSS using img2css
-      if ((type === 'normal' || type === 'roughness') && payload.dataURL) {
+      // For roughness maps only, convert the analyzed map to CSS using img2css
+      // Normal maps use the CSS generated from gradient stops in buildLayer hook
+      if (type === 'roughness' && payload.dataURL) {
         convertMapToCSS(payload.dataURL, type);
       }
       
