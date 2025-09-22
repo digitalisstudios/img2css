@@ -1132,11 +1132,15 @@ input:checked + .slider:before {
                                             img.src = dataURL;
                                         }
                                     }
-                                    // Provide dataURL for mask-only visualization (roughness)
+                                    // Roughness: prefer exact base64 image for masking and visualization
                                     if (type === 'roughness' && dataURL) {
                                         const gp = document.getElementById('gradientPreview');
                                         if (gp) {
                                             const urlDecl = 'url("' + dataURL + '") left top / 100% 100% no-repeat';
+                                            // For overlay masking
+                                            gp.style.setProperty('--spec-mask', urlDecl);
+                                            gp.style.setProperty('--shadow-mask', urlDecl);
+                                            // For mask-only visualization
                                             gp.style.setProperty('--mask-visual', urlDecl);
                                         }
                                     }
