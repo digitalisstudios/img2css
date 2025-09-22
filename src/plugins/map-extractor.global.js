@@ -540,7 +540,8 @@
               // Replace the default selector with our map-specific selector
               var selector = (cfg.selectors && cfg.selectors[type]) || ('.' + type + '-gradient-preview');
               var finalCSS = css.replace(/\.slick-img-gradient/g, selector);
-              emit('onMapCSS', { type: type, css: finalCSS });
+              // Mark that this CSS was generated from the plugin's pixel map (dataURL)
+              emit('onMapCSS', { type: type, css: finalCSS, fromImage: true });
             }
           }).catch(function(err) {
             console.warn('Failed to convert ' + type + ' map to CSS:', err);

@@ -1082,7 +1082,7 @@ input:checked + .slider:before {
                         plugins: defs,
                         hooks: {
                             mapExtractor: {
-                                onMapCSS({ type, css }) {
+                                onMapCSS({ type, css, fromImage }) {
                                     // Route CSS based previews for normal, roughness, and subject normal maps
                                     if (type === 'normal') {
                                         self.updateNormalGradientClass(css);
@@ -1096,12 +1096,14 @@ input:checked + .slider:before {
                                         const outR = document.getElementById('roughCssCode'); if (outR) outR.textContent = css;
                                         // Also use roughness as specularity CSS
                                         const outSpec = document.getElementById('specCssCode'); if (outSpec) outSpec.textContent = css;
-                                        // Update CSS-lighting mask from converted CSS background (preferred)
-                                        const bg = self.extractBackgroundFromCSS(css);
-                                        const gp = document.getElementById('gradientPreview');
-                                        if (bg && gp) {
-                                            gp.style.setProperty('--spec-mask', bg);
-                                            gp.style.setProperty('--shadow-mask', bg);
+                                        // Update CSS-lighting mask only when CSS came from the pixel map conversion
+                                        if (fromImage) {
+                                            const bg = self.extractBackgroundFromCSS(css);
+                                            const gp = document.getElementById('gradientPreview');
+                                            if (bg && gp) {
+                                                gp.style.setProperty('--spec-mask', bg);
+                                                gp.style.setProperty('--shadow-mask', bg);
+                                            }
                                         }
                                     } else if (type === 'subjectnormal') {
                                         self.updateSubjectNormalGradientClass(css);
