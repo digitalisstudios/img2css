@@ -141,26 +141,19 @@ input[type="file"] {
 
 /* CSS-only lighting overlay using generated gradient masks */
 .css-lighting { position: relative; }
-.css-lighting::before,
-.css-lighting::after { content: ''; position: absolute; inset: 0; pointer-events: none; }
+.css-lighting::before { content: ''; position: absolute; inset: 0; pointer-events: none; }
 .css-lighting::before {
-  /* Highlights */
-  background: #fff;
+  /* Fixed highlight gradient, masked by roughness-derived spec mask */
+  background: linear-gradient(
+    var(--light-angle, 35deg),
+    rgba(255,255,255, var(--highlight-alpha, 0.75)) 0%,
+    rgba(255,255,255, 0.0) 60%
+  );
+  /* Lighten the content beneath */
   mix-blend-mode: screen;
-  opacity: var(--highlight-alpha, 0.55);
   /* Use generated specularity mask (via Roughness) */
   mask-image: var(--spec-mask);
   -webkit-mask-image: var(--spec-mask);
-  mask-mode: luminance;
-}
-.css-lighting::after {
-  /* Shadows */
-  background: #000;
-  mix-blend-mode: multiply;
-  opacity: var(--shadow-alpha, 0.35);
-  /* Use generated shadow mask; by default reuse spec mask */
-  mask-image: var(--shadow-mask, var(--spec-mask));
-  -webkit-mask-image: var(--shadow-mask, var(--spec-mask));
   mask-mode: luminance;
 }
 
