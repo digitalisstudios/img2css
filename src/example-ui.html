@@ -737,6 +737,36 @@ input:checked + .slider:before {
         <div class="image-container">
           <div id="gradientPreview"></div>
         </div>
+
+        <h3 style="margin-top:12px;">Specular Map Preview</h3>
+        <div class="image-container">
+          <div id="specGradientPreview"></div>
+        </div>
+
+        <h3 style="margin-top:12px;">Reflection Map Preview</h3>
+        <div class="image-container">
+          <div id="reflGradientPreview"></div>
+        </div>
+
+        <h3 style="margin-top:12px;">Albedo Map Preview</h3>
+        <div class="image-container">
+          <img id="albedoImage" alt="Albedo Map" style="max-width:100%; display:block;" />
+        </div>
+
+        <h3 style="margin-top:12px;">Normal Map Preview</h3>
+        <div class="image-container">
+          <img id="normalImage" alt="Normal Map" style="max-width:100%; display:block;" />
+        </div>
+
+        <h3 style="margin-top:12px;">Roughness Map Preview</h3>
+        <div class="image-container">
+          <img id="roughnessImage" alt="Roughness Map" style="max-width:100%; display:block;" />
+        </div>
+
+        <h3 style="margin-top:12px;">Irradiance Map Preview</h3>
+        <div class="image-container">
+          <img id="irradianceImage" alt="Irradiance Map" style="max-width:100%; display:block;" />
+        </div>
       </div>
 
       <div class="side-column">
@@ -807,6 +837,12 @@ input:checked + .slider:before {
             Choose gradient direction manually
           </div>
         </div>
+
+        <div class="option-group">
+          <label>Plugins</label>
+          <div id="pluginControlsMount"></div>
+          <div class="help-text">Enable and configure installed plugins.</div>
+        </div>
       </div>
     </div>
 
@@ -828,10 +864,33 @@ input:checked + .slider:before {
           <span class="copy-icon">⎘</span>
         </button>
       </div>
+
+      <h3 style="margin-top:16px;">Map CSS (Specular)</h3>
+      <div class="css-code-container">
+        <div class="css-code" id="specCssCode"></div>
+        <button id="specDownloadBtn" class="copy-button" title="Download Specular CSS">
+          <span class="copy-icon">⤓</span>
+        </button>
+      </div>
+
+      <h3 style="margin-top:16px;">Map CSS (Reflection)</h3>
+      <div class="css-code-container">
+        <div class="css-code" id="reflCssCode"></div>
+        <button id="reflDownloadBtn" class="copy-button" title="Download Reflection CSS">
+          <span class="copy-icon">⤓</span>
+        </button>
+      </div>
+
+      <div style="margin-top:12px; text-align:right;">
+        <button id="downloadAllBtn" title="Download all generated maps">Download All Maps</button>
+      </div>
     </div>
   </div>
 </div>
 
+    <script src="plugins/soft-posterize.global.js"></script>
+    <script src="plugins/map-extractor.global.js"></script>
+    <script src="plugin-ui.js"></script>
     <script src="img2css.js"></script>
     <script>
         class img2cssUI {
@@ -855,6 +914,68 @@ input:checked + .slider:before {
                 if (this.core.config.source) {
                     this.loadFromSource(this.core.config.source);
                 }
+            }
+
+            initPluginUI(pluginMount) {
+                if (!pluginMount) return;
+                // Defer to ensure all plugin globals are available
+                const setup = () => {
+                    const defs = [];
+                    if (window.SoftPosterize && window.SoftPosterize.ui) defs.push({ factory: window.SoftPosterize, ui: window.SoftPosterize.ui });
+                    if (window.MapExtractor && window.MapExtractor.ui) {
+                        defs.push({ factory: window.MapExtractor, ui: window.MapExtractor.ui });
+                    }
+
+                    if (!window.PluginUI) {
+                        console.warn('[Plugins] plugin-ui.js not loaded.');
+                        pluginMount.innerHTML = '<div class="help-text">No plugins UI available (plugin-ui.js not loaded).</div>';
+                        return;
+                    }
+                    if (!defs.length) {
+                        console.warn('[Plugins] No compatible plugins detected.');
+                        pluginMount.innerHTML = '<div class="help-text">No compatible plugins detected. Ensure plugin scripts are loaded before this script.</div>';
+                        return;
+                    }
+                    const self = this;
+                    this.pluginUI = new window.PluginUI({
+                        mount: pluginMount,
+                        plugins: defs,
+                        hooks: {
+                            mapExtractor: {
+                                onMapCSS({ type, css }) {
+                                    // Only route CSS based previews for specular and reflection.
+                                    // Other map types are displayed via data URLs in onMap.
+                                    if (type === 'reflection') {
+                                        self.updateReflectionGradientClass(css);
+                                        const el = document.getElementById('reflGradientPreview');
+                                        if (el) el.className = 'reflection-gradient-preview';
+                                        const out2 = document.getElementById('reflCssCode'); if (out2) out2.textContent = css;
+                                    } else if (type === 'specular') {
+                                        self.updateSpecGradientClass(css);
+                                        const specEl = document.getElementById('specGradientPreview');
+                                        if (specEl) specEl.className = 'specular-gradient-preview';
+                                        const out = document.getElementById('specCssCode'); if (out) out.textContent = css;
+                                    }
+                                },
+                                onMap({ type, dataURL }) {
+                                    self.lastMapData = self.lastMapData || {};
+                                    self.lastMapData[type] = dataURL || null;
+                                    const mapToImg = { albedo: 'albedoImage', normal: 'normalImage', roughness: 'roughnessImage', irradiance: 'irradianceImage' };
+                                    const imgId = mapToImg[type];
+                                    if (imgId) {
+                                        const img = document.getElementById(imgId);
+                                        if (img && dataURL) {
+                                            img.src = dataURL;
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        onChange: () => { this.updateStats(); this.scheduleGeneration(); }
+                    });
+                };
+                if (document.readyState === 'complete') setTimeout(setup, 0);
+                else setTimeout(setup, 0);
             }
 
             // Delegate to core for CSS generation
@@ -931,6 +1052,12 @@ input:checked + .slider:before {
                 elements.imageInput.addEventListener('change', (e) => this.handleFileSelect(e));
                 elements.loadUrlBtn.addEventListener('click', () => this.loadFromUrl());
                 elements.copyBtn.addEventListener('click', () => this.copyCSS());
+                const specDl = document.getElementById('specDownloadBtn');
+                if (specDl) specDl.addEventListener('click', () => this.downloadMapCSS('specular'));
+                const reflDl = document.getElementById('reflDownloadBtn');
+                if (reflDl) reflDl.addEventListener('click', () => this.downloadMapCSS('reflection'));;
+                const allBtn = document.getElementById('downloadAllBtn');
+                if (allBtn) allBtn.addEventListener('click', () => this.downloadAllMaps());
                 elements.toggleStats.addEventListener('click', () => this.toggleDetailedStats());
                 
                 elements.detailsSlider.addEventListener('input', (e) => {
@@ -1000,6 +1127,23 @@ input:checked + .slider:before {
                 if (this.core.config.maxSize) {
                     elements.maxSizeInput.value = this.core.config.maxSize;
                 }
+
+                // Auto-render plugin controls if available
+                const pluginMount = document.getElementById('pluginControlsMount') || (function(){
+                  const grids = document.getElementsByClassName('options-grid');
+                  if (grids.length) {
+                    const mountWrap = document.createElement('div');
+                    mountWrap.className = 'option-column';
+                    const hdr = document.createElement('h3'); hdr.textContent = 'Plugins'; hdr.style.margin = '0 0 10px';
+                    mountWrap.appendChild(hdr);
+                    const mount = document.createElement('div'); mount.id = 'pluginControlsMount';
+                    mountWrap.appendChild(mount);
+                    grids[0].appendChild(mountWrap);
+                    return mount;
+                  }
+                  return null;
+                })();
+                this.initPluginUI(pluginMount);
             }
 
             scheduleGeneration() {
@@ -1200,6 +1344,13 @@ input:checked + .slider:before {
                     // Set the image data directly
                     this.core.imageData = { width, height, data };
                     
+                    // Configure plugins from PluginUI if available
+                    if (this.pluginUI) {
+                        this.core.config.plugins = this.pluginUI.build();
+                    } else {
+                        this.core.config.plugins = [];
+                    }
+                    
                     // Use the new API
                     const css = await this.core.toCSS();
                     
@@ -1244,6 +1395,30 @@ input:checked + .slider:before {
                 if (!styleElement) {
                     styleElement = document.createElement('style');
                     styleElement.id = 'shared-gradient-style';
+                    document.head.appendChild(styleElement);
+                }
+                
+                styleElement.textContent = cssClass;
+            }
+
+            updateSpecGradientClass(cssClass) {
+                // Update or create the specular map CSS class
+                let styleElement = document.getElementById('spec-map-style');
+                if (!styleElement) {
+                    styleElement = document.createElement('style');
+                    styleElement.id = 'spec-map-style';
+                    document.head.appendChild(styleElement);
+                }
+                
+                styleElement.textContent = cssClass;
+            }
+
+            updateReflectionGradientClass(cssClass) {
+                // Update or create the reflection map CSS class
+                let styleElement = document.getElementById('reflection-map-style');
+                if (!styleElement) {
+                    styleElement = document.createElement('style');
+                    styleElement.id = 'reflection-map-style';
                     document.head.appendChild(styleElement);
                 }
                 
@@ -1487,6 +1662,95 @@ input:checked + .slider:before {
                 }
                 
                 return false;
+            }
+
+            copyCSS() {
+                const cssCode = document.getElementById('cssCode').textContent;
+                if (!cssCode) {
+                    alert('No CSS to copy. Please generate a gradient first.');
+                    return;
+                }
+                
+                navigator.clipboard.writeText(cssCode).then(() => {
+                    // Temporarily change button text
+                    const btn = document.getElementById('copyBtn');
+                    const originalText = btn.textContent;
+                    btn.textContent = 'Copied!';
+                    setTimeout(() => {
+                        btn.textContent = originalText;
+                    }, 2000);
+                }).catch(err => {
+                    console.error('Failed to copy CSS: ', err);
+                    // Fallback - select the text
+                    const cssElement = document.getElementById('cssCode');
+                    const range = document.createRange();
+                    range.selectNode(cssElement);
+                    window.getSelection().removeAllRanges();
+                    window.getSelection().addRange(range);
+                    alert('CSS selected. Please copy manually with Ctrl+C or Cmd+C');
+                });
+            }
+
+            downloadMapCSS(mapType) {
+                let cssCode, filename;
+                
+                if (mapType === 'specular') {
+                    cssCode = document.getElementById('specCssCode').textContent;
+                    filename = 'specular-map.css';
+                } else if (mapType === 'reflection') {
+                    cssCode = document.getElementById('reflCssCode').textContent;
+                    filename = 'reflection-map.css';
+                } else {
+                    alert('Unknown map type: ' + mapType);
+                    return;
+                }
+                
+                if (!cssCode) {
+                    alert(`No ${mapType} CSS to download. Please generate a gradient first and ensure the ${mapType} map is enabled.`);
+                    return;
+                }
+                
+                const blob = new Blob([cssCode], { type: 'text/css' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            }
+
+            downloadAllMaps() {
+                // Collect all available map CSS
+                const maps = [];
+                
+                const specCSS = document.getElementById('specCssCode').textContent;
+                if (specCSS) maps.push({ name: 'specular-map.css', content: specCSS });
+                
+                const reflCSS = document.getElementById('reflCssCode').textContent;
+                if (reflCSS) maps.push({ name: 'reflection-map.css', content: reflCSS });
+                
+                const mainCSS = document.getElementById('cssCode').textContent;
+                if (mainCSS) maps.push({ name: 'main-gradient.css', content: mainCSS });
+                
+                if (maps.length === 0) {
+                    alert('No CSS maps to download. Please generate gradients first.');
+                    return;
+                }
+                
+                // Download each map
+                maps.forEach(map => {
+                    const blob = new Blob([map.content], { type: 'text/css' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = map.name;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                });
             }
         }
         
