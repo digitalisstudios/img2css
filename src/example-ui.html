@@ -1699,38 +1699,15 @@ input:checked + .slider:before {
             }
 
             updateMapPreviewVisibility() {
-                // Update visibility of map preview sections based on plugin control states
-                if (!this.pluginUI) return;
-                
+                // Always hide all extractor map previews, regardless of enabled state
                 try {
-                    // Get current plugin values
-                    const pluginValues = this.pluginUI.getValues();
-                    const mapExtractorValues = pluginValues.mapExtractor || {};
-                    
-                    // Map of control keys to preview section IDs (only for visible controls)
-                    const previewSections = {
-                        'normalOn': 'normalPreviewSection', 
-                        'roughnessOn': 'roughnessPreviewSection',
-                        'subjectnormalOn': 'subjectnormalPreviewSection'
-                    };
-                    
-                    // Update visibility for each section
-                    Object.keys(previewSections).forEach(controlKey => {
-                        const sectionId = previewSections[controlKey];
-                        const section = document.getElementById(sectionId);
-                        if (section) {
-                            const isEnabled = mapExtractorValues[controlKey] === true;
-                            section.style.display = isEnabled ? 'block' : 'none';
-                        }
-                    });
-                    
-                    // Hide disabled preview sections permanently
-                    const disabledSections = ['albedoPreviewSection', 'depthPreviewSection', 'objectPreviewSection', 'irradiancePreviewSection'];
-                    disabledSections.forEach(sectionId => {
-                        const section = document.getElementById(sectionId);
-                        if (section) {
-                            section.style.display = 'none';
-                        }
+                    const allSections = [
+                      'normalPreviewSection', 'roughnessPreviewSection', 'subjectnormalPreviewSection',
+                      'albedoPreviewSection', 'depthPreviewSection', 'objectPreviewSection', 'irradiancePreviewSection'
+                    ];
+                    allSections.forEach(id => {
+                        const el = document.getElementById(id);
+                        if (el) el.style.display = 'none';
                     });
                 } catch (e) {
                     console.warn('Error updating map preview visibility:', e);
