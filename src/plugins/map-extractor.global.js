@@ -27,12 +27,10 @@
       dataUrl: (options.dataUrl == null ? true : options.dataUrl),
       selector: options.selector || '.specular-gradient',
       emitCSS: options.emitCSS === true,
-      edgeBoost: (options.edgeBoost == null ? 0.8 : options.edgeBoost), // reflection enhancer 0..3
       // Multi-map support
       types: Array.isArray(options.types) ? options.types.slice() : (options.type ? [options.type] : ['specular']),
       selectors: options.selectors || {
         specular: '.specular-gradient-preview',
-        reflection: '.reflection-gradient-preview',
         albedo: '.albedo-gradient-preview',
         normal: '.normal-gradient-preview',
         roughness: '.roughness-gradient-preview',
@@ -155,42 +153,7 @@
       return { width: width, height: height, data: out };
     }
 
-    function extractReflection(imageData) {
-      var width = imageData.width, height = imageData.height, data = imageData.data;
-      var out = new Uint8ClampedArray(width * height * 4);
-      // Simple luminance + desaturation emphasis + edge boost
-      function idx(x,y){ return (y*width + x)*4; }
-      for (var y=0; y<height; y++) {
-        for (var x=0; x<width; x++) {
-          var i = idx(x,y);
-          var r = data[i]/255, g=data[i+1]/255, b=data[i+2]/255, a=data[i+3]/255;
-          var maxCh = Math.max(r,g,b), minCh = Math.min(r,g,b);
-          var V = maxCh;
-          var S = maxCh === 0 ? 0 : (maxCh - minCh)/maxCh;
-          var Y = 0.2126*r + 0.7152*g + 0.0722*b; // luminance
-          var whiteness = 1 - Math.sqrt(((1-r)*(1-r) + (1-g)*(1-g) + (1-b)*(1-b))/3);
-
-          // Edge: compare to right and bottom neighbors
-          var xr = Math.min(width-1, x+1); var yb = Math.min(height-1, y+1);
-          var ir = idx(xr,y); var ib = idx(x,yb);
-          var Yr = 0.2126*(data[ir]/255) + 0.7152*(data[ir+1]/255) + 0.0722*(data[ir+2]/255);
-          var Yb = 0.2126*(data[ib]/255) + 0.7152*(data[ib+1]/255) + 0.0722*(data[ib+2]/255);
-          var edge = Math.min(1, Math.abs(Y-Yr) + Math.abs(Y-Yb));
-
-          // Reflection base: bright + slightly desaturated + white bias
-          var base = (Y * (1 - S) * 0.7) + (whiteness * 0.3);
-          var refl = base * (1 + cfg.edgeBoost * edge);
-          // Threshold/strength/gamma
-          if (refl < cfg.threshold) refl = 0; else refl = (refl - cfg.threshold) / (1 - cfg.threshold);
-          refl = Math.max(0, Math.min(1, refl * cfg.strength));
-          if (cfg.gamma && cfg.gamma !== 1.0) refl = Math.pow(refl, cfg.gamma);
-
-          var gray = Math.round(refl * 255);
-          out[i] = gray; out[i+1] = gray; out[i+2] = gray; out[i+3] = Math.round(a*255);
-        }
-      }
-      return { width: width, height: height, data: out };
-    }
+    // Reflection map removed
 
     // --- Additional maps ---
     function extractAlbedo(imageData) {
@@ -563,9 +526,10 @@
           var mapConverter = new window.img2css({
             source: dataURL,
             processing: {
-              details: 50, // Good detail level for maps
-              compression: 20, // Lower compression to preserve map details
-              mode: 'auto' // Let it choose the best direction
+              details: 80, // Higher detail for fidelity
+              // Force no compression for normal/roughness to preserve fidelity
+              compression: (type === 'normal' || type === 'roughness') ? 0 : 20,
+              mode: 'columns' // Explicitly use columns direction
             },
             minified: false // Readable CSS
           });
@@ -605,7 +569,6 @@
       // Second pass: compute other maps, using object mask for depth if available
       (cfg.types || ['specular']).forEach(function(t){
         if (t === 'specular') out.push(emitMap('specular', extractSpecularity(imageData), stage));
-        else if (t === 'reflection') out.push(emitMap('reflection', extractReflection(imageData), stage));
         else if (t === 'albedo') out.push(emitMap('albedo', extractAlbedo(imageData), stage));
         else if (t === 'normal') out.push(emitMap('normal', extractNormal(imageData), stage));
         else if (t === 'roughness') out.push(emitMap('roughness', extractRoughness(imageData), stage));
@@ -618,7 +581,7 @@
     }
 
     // Secondary CSS via core per-line stops (no re-analysis)
-    var lineLayersByType = { specular: [], reflection: [], albedo: [], normal: [], roughness: [], subjectnormal: [], irradiance: [], depth: [], object: [] };
+    var lineLayersByType = { specular: [], albedo: [], normal: [], roughness: [], subjectnormal: [], irradiance: [], depth: [], object: [] };
     var lastDimensions = null;
     function colorToSpecGray(c) {
       var r = c.r / 255, g = c.g / 255, b = c.b / 255;
@@ -633,20 +596,7 @@
       var gray = Math.round(spec * 255);
       return { r: gray, g: gray, b: gray, a: 255 };
     }
-    function colorToReflectionGray(c) {
-      var r = c.r / 255, g = c.g / 255, b = c.b / 255;
-      var maxCh = Math.max(r, g, b), minCh = Math.min(r, g, b);
-      var S = maxCh === 0 ? 0 : (maxCh - minCh) / maxCh;
-      var Y = 0.2126*r + 0.7152*g + 0.0722*b;
-      var whiteness = 1 - Math.sqrt(((1 - r)*(1 - r) + (1 - g)*(1 - g) + (1 - b)*(1 - b)) / 3);
-      var base = (Y * (1 - S) * 0.7) + (whiteness * 0.3);
-      var refl = base; // no edge term available from stops
-      if (refl < cfg.threshold) refl = 0; else refl = (refl - cfg.threshold) / (1 - cfg.threshold);
-      refl = Math.max(0, Math.min(1, refl * cfg.strength));
-      if (cfg.gamma && cfg.gamma !== 1.0) refl = Math.pow(refl, cfg.gamma);
-      var gray = Math.round(refl * 255);
-      return { r: gray, g: gray, b: gray, a: 255 };
-    }
+    // Reflection CSS conversion removed
     
     function colorToNormalMap(c) {
       // Convert original color to normal map representation
@@ -728,12 +678,6 @@
             var cssStops;
             if (t === 'specular') {
               cssStops = buildStopsToSpec(ctx.stops);
-            } else if (t === 'reflection') {
-              cssStops = (ctx.stops || []).map(function(s){
-                var g = colorToReflectionGray(s);
-                var hex = '#' + g.r.toString(16).padStart(2,'0') + g.g.toString(16).padStart(2,'0') + g.b.toString(16).padStart(2,'0');
-                return hex + ' ' + s.position.toFixed(2) + '%';
-              });
             } else if (t === 'subjectnormal') {
               cssStops = (ctx.stops || []).map(function(s){
                 var g = colorToSubjectNormalMap(s);
@@ -831,19 +775,19 @@
       if (values.normalOn) types.push('normal');
       if (values.roughnessOn) types.push('roughness');
       if (values.subjectnormalOn) types.push('subjectnormal');
-      // Albedo, depth, object isolation, specular, reflection, and irradiance are disabled and hidden
+      // Albedo, depth, object isolation, specular, and irradiance are disabled and hidden
       // if (!types.length) types = ['normal']; // Fallback to normal map if nothing selected
       return MapExtractor({
         types: types,
         emitCSS: true,
         computeAt: values.computeAt || 'scaled',
         quality: values.quality || 'balanced',
-        // Use default values for hidden specular/reflection controls
+        // Use default values for hidden specular controls
         threshold: 0.2,
         whitenessBlend: 0.5,
         strength: 1.0,
         gamma: 1.0,
-        edgeBoost: 0.8,
+        
         normalStrength: parseFloat(values.normalStrength),
         roughnessWindow: parseInt(values.roughnessWindow, 10),
         // Default values for hidden controls
@@ -856,7 +800,7 @@
         objectRadius: 2,
         objectThreshold: 0.6,
         objectDepthPercentile: 0.7,
-        selectors: { specular: '.specular-gradient-preview', reflection: '.reflection-gradient-preview', albedo: '.albedo-gradient-preview', normal: '.normal-gradient-preview', roughness: '.roughness-gradient-preview', subjectnormal: '.subjectnormal-gradient-preview', irradiance: '.irradiance-gradient-preview', depth: '.depth-gradient-preview', object: '.object-mask-preview' },
+        selectors: { specular: '.specular-gradient-preview', albedo: '.albedo-gradient-preview', normal: '.normal-gradient-preview', roughness: '.roughness-gradient-preview', subjectnormal: '.subjectnormal-gradient-preview', irradiance: '.irradiance-gradient-preview', depth: '.depth-gradient-preview', object: '.object-mask-preview' },
         on: (ctx && ctx.hooks) ? ctx.hooks : undefined
       });
     }

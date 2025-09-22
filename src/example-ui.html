@@ -743,10 +743,7 @@ input:checked + .slider:before {
           <div id="specGradientPreview"></div>
         </div>
 
-        <h3 style="margin-top:12px; display: none;">Reflection Map Preview</h3>
-        <div class="image-container" style="display: none;">
-          <div id="reflGradientPreview"></div>
-        </div>
+        
 
         <div id="albedoPreviewSection" style="display: none;">
           <h3 style="margin-top:12px;">Albedo Map Preview</h3>
@@ -894,18 +891,42 @@ input:checked + .slider:before {
         </button>
       </div>
 
-      <h3 style="margin-top:16px; display: none;">Map CSS (Specular)</h3>
-      <div class="css-code-container" style="display: none;">
+      <h3 style="margin-top:16px;">Specularity CSS (via Roughness)</h3>
+      <div class="css-code-container">
         <div class="css-code" id="specCssCode"></div>
         <button id="specDownloadBtn" class="copy-button" title="Download Specular CSS">
           <span class="copy-icon">⤓</span>
         </button>
       </div>
 
-      <h3 style="margin-top:16px; display: none;">Map CSS (Reflection)</h3>
-      <div class="css-code-container" style="display: none;">
-        <div class="css-code" id="reflCssCode"></div>
-        <button id="reflDownloadBtn" class="copy-button" title="Download Reflection CSS">
+      <h3 style="margin-top:16px;">Map CSS (Normal)</h3>
+      <div class="css-code-container">
+        <div class="css-code" id="normalCssCode"></div>
+        <button id="normalDownloadBtn" class="copy-button" title="Download Normal CSS">
+          <span class="copy-icon">⤓</span>
+        </button>
+      </div>
+
+      <h3 style="margin-top:16px;">Map CSS (Roughness)</h3>
+      <div class="css-code-container">
+        <div class="css-code" id="roughCssCode"></div>
+        <button id="roughDownloadBtn" class="copy-button" title="Download Roughness CSS">
+          <span class="copy-icon">⤓</span>
+        </button>
+      </div>
+
+      <h3 style="margin-top:16px;">Map CSS (Subject Normal)</h3>
+      <div class="css-code-container">
+        <div class="css-code" id="subjectnormalCssCode"></div>
+        <button id="subjectnormalDownloadBtn" class="copy-button" title="Download Subject Normal CSS">
+          <span class="copy-icon">⤓</span>
+        </button>
+      </div>
+
+      <h3 style="margin-top:16px;">Reflection CSS (via Subject Normal)</h3>
+      <div class="css-code-container">
+        <div class="css-code" id="reflFromSubjectnormalCssCode"></div>
+        <button id="reflFromSubjectnormalDownloadBtn" class="copy-button" title="Download Reflection (via Subject Normal) CSS">
           <span class="copy-icon">⤓</span>
         </button>
       </div>
@@ -972,29 +993,25 @@ input:checked + .slider:before {
                         hooks: {
                             mapExtractor: {
                                 onMapCSS({ type, css }) {
-                                    // Route CSS based previews for specular, reflection, normal, and roughness maps
-                                    if (type === 'reflection') {
-                                        self.updateReflectionGradientClass(css);
-                                        const el = document.getElementById('reflGradientPreview');
-                                        if (el) el.className = 'reflection-gradient-preview';
-                                        const out2 = document.getElementById('reflCssCode'); if (out2) out2.textContent = css;
-                                    } else if (type === 'specular') {
-                                        self.updateSpecGradientClass(css);
-                                        const specEl = document.getElementById('specGradientPreview');
-                                        if (specEl) specEl.className = 'specular-gradient-preview';
-                                        const out = document.getElementById('specCssCode'); if (out) out.textContent = css;
-                                    } else if (type === 'normal') {
+                                    // Route CSS based previews for normal, roughness, and subject normal maps
+                                    if (type === 'normal') {
                                         self.updateNormalGradientClass(css);
                                         const normalEl = document.getElementById('normalGradientPreview');
                                         if (normalEl) normalEl.className = 'normal-gradient-preview';
+                                        const outN = document.getElementById('normalCssCode'); if (outN) outN.textContent = css;
                                     } else if (type === 'roughness') {
                                         self.updateRoughnessGradientClass(css);
                                         const roughnessEl = document.getElementById('roughnessGradientPreview');
                                         if (roughnessEl) roughnessEl.className = 'roughness-gradient-preview';
+                                        const outR = document.getElementById('roughCssCode'); if (outR) outR.textContent = css;
+                                        // Also use roughness as specularity CSS
+                                        const outSpec = document.getElementById('specCssCode'); if (outSpec) outSpec.textContent = css;
                                     } else if (type === 'subjectnormal') {
                                         self.updateSubjectNormalGradientClass(css);
                                         const subjectnormalEl = document.getElementById('subjectnormalGradientPreview');
                                         if (subjectnormalEl) subjectnormalEl.className = 'subjectnormal-gradient-preview';
+                                        const outS = document.getElementById('subjectnormalCssCode'); if (outS) outS.textContent = css;
+                                        const outReflS = document.getElementById('reflFromSubjectnormalCssCode'); if (outReflS) outReflS.textContent = css;
                                     }
                                 },
                                 onMap({ type, dataURL }) {
@@ -1102,8 +1119,14 @@ input:checked + .slider:before {
                 elements.copyBtn.addEventListener('click', () => this.copyCSS());
                 const specDl = document.getElementById('specDownloadBtn');
                 if (specDl) specDl.addEventListener('click', () => this.downloadMapCSS('specular'));
-                const reflDl = document.getElementById('reflDownloadBtn');
-                if (reflDl) reflDl.addEventListener('click', () => this.downloadMapCSS('reflection'));;
+                const normalDl = document.getElementById('normalDownloadBtn');
+                if (normalDl) normalDl.addEventListener('click', () => this.downloadMapCSS('normal'));
+                const roughDl = document.getElementById('roughDownloadBtn');
+                if (roughDl) roughDl.addEventListener('click', () => this.downloadMapCSS('roughness'));
+                const subjNormDl = document.getElementById('subjectnormalDownloadBtn');
+                if (subjNormDl) subjNormDl.addEventListener('click', () => this.downloadMapCSS('subjectnormal'));
+                const reflFromSubjDl = document.getElementById('reflFromSubjectnormalDownloadBtn');
+                if (reflFromSubjDl) reflFromSubjDl.addEventListener('click', () => this.downloadMapCSS('reflViaSubjectnormal'));
                 const allBtn = document.getElementById('downloadAllBtn');
                 if (allBtn) allBtn.addEventListener('click', () => this.downloadAllMaps());
                 elements.toggleStats.addEventListener('click', () => this.toggleDetailedStats());
@@ -1461,17 +1484,7 @@ input:checked + .slider:before {
                 styleElement.textContent = cssClass;
             }
 
-            updateReflectionGradientClass(cssClass) {
-                // Update or create the reflection map CSS class
-                let styleElement = document.getElementById('reflection-map-style');
-                if (!styleElement) {
-                    styleElement = document.createElement('style');
-                    styleElement.id = 'reflection-map-style';
-                    document.head.appendChild(styleElement);
-                }
-                
-                styleElement.textContent = cssClass;
-            }
+            
 
             updateNormalGradientClass(cssClass) {
                 // Update or create the normal map CSS class
@@ -1845,14 +1858,22 @@ input:checked + .slider:before {
             }
 
             downloadMapCSS(mapType) {
-                let cssCode, filename;
-                
+                let cssCode = '', filename = '';
                 if (mapType === 'specular') {
                     cssCode = document.getElementById('specCssCode').textContent;
-                    filename = 'specular-map.css';
-                } else if (mapType === 'reflection') {
-                    cssCode = document.getElementById('reflCssCode').textContent;
-                    filename = 'reflection-map.css';
+                    filename = 'specularity-from-roughness.css';
+                } else if (mapType === 'normal') {
+                    cssCode = document.getElementById('normalCssCode').textContent;
+                    filename = 'normal-map.css';
+                } else if (mapType === 'roughness') {
+                    cssCode = document.getElementById('roughCssCode').textContent;
+                    filename = 'roughness-map.css';
+                } else if (mapType === 'subjectnormal') {
+                    cssCode = document.getElementById('subjectnormalCssCode').textContent;
+                    filename = 'subject-normal-map.css';
+                } else if (mapType === 'reflViaSubjectnormal') {
+                    cssCode = document.getElementById('reflFromSubjectnormalCssCode').textContent;
+                    filename = 'reflection-from-subjectnormal.css';
                 } else {
                     alert('Unknown map type: ' + mapType);
                     return;
@@ -1879,10 +1900,18 @@ input:checked + .slider:before {
                 const maps = [];
                 
                 const specCSS = document.getElementById('specCssCode').textContent;
-                if (specCSS) maps.push({ name: 'specular-map.css', content: specCSS });
+                if (specCSS) maps.push({ name: 'specularity-from-roughness.css', content: specCSS });
                 
-                const reflCSS = document.getElementById('reflCssCode').textContent;
-                if (reflCSS) maps.push({ name: 'reflection-map.css', content: reflCSS });
+                const normalCSS = document.getElementById('normalCssCode').textContent;
+                if (normalCSS) maps.push({ name: 'normal-map.css', content: normalCSS });
+
+                const roughCSS = document.getElementById('roughCssCode').textContent;
+                if (roughCSS) maps.push({ name: 'roughness-map.css', content: roughCSS });
+
+                const subjNormCSS = document.getElementById('subjectnormalCssCode').textContent;
+                if (subjNormCSS) maps.push({ name: 'subject-normal-map.css', content: subjNormCSS });
+                const reflViaSubjCSS = document.getElementById('reflFromSubjectnormalCssCode').textContent;
+                if (reflViaSubjCSS) maps.push({ name: 'reflection-from-subjectnormal.css', content: reflViaSubjCSS });
                 
                 const mainCSS = document.getElementById('cssCode').textContent;
                 if (mainCSS) maps.push({ name: 'main-gradient.css', content: mainCSS });

@@ -147,13 +147,19 @@ Works without Node via script tags:
 
 Supported `types` values (can be combined):
 - `specular`: high‑value/low‑saturation highlights.
-- `reflection`: luminance + desaturation with edge‑boost.
 - `albedo`: Retinex‑like deshaded base color (multi‑scale log‑ratio).
 - `normal`: image‑height Sobel normals (RGB encoded).
 - `roughness`: local gradient variance as roughness proxy (grayscale).
+- `subjectnormal`: subject‑focused normal map (CSS from stops).
+- `depth`: heuristic depth approximation (grayscale).
+- `object`: largest connected region mask (binary RGBA).
 - `irradiance`: large‑radius Gaussian blur (RGB low‑frequency).
 
 Controls:
-- `normalStrength`, `roughnessWindow`, `irradianceRadius`, `albedoDeshade`, `edgeBoost`.
+- `normalStrength`, `roughnessWindow`, `irradianceRadius`, `albedoDeshade`.
 
-Note: CSS emission is high‑fidelity for `specular` and `reflection` using core line stops. Other maps emit pixel data via `onMap` (with `dataURL`) for display or saving.
+Note: CSS emission is delivered for `specular`, `normal`, `roughness`, and `subjectnormal` via `onMapCSS`. Other maps emit pixel data via `onMap` (`dataURL`) for display or saving.
+
+Usage mapping in demo UI:
+- Specularity CSS uses the Roughness map output (derived spec look).
+- Reflection CSS uses the Subject Normal map output (work‑in‑progress proxy).
