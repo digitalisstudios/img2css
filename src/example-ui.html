@@ -738,34 +738,56 @@ input:checked + .slider:before {
           <div id="gradientPreview"></div>
         </div>
 
-        <h3 style="margin-top:12px;">Specular Map Preview</h3>
-        <div class="image-container">
+        <h3 style="margin-top:12px; display: none;">Specular Map Preview</h3>
+        <div class="image-container" style="display: none;">
           <div id="specGradientPreview"></div>
         </div>
 
-        <h3 style="margin-top:12px;">Reflection Map Preview</h3>
-        <div class="image-container">
+        <h3 style="margin-top:12px; display: none;">Reflection Map Preview</h3>
+        <div class="image-container" style="display: none;">
           <div id="reflGradientPreview"></div>
         </div>
 
-        <h3 style="margin-top:12px;">Albedo Map Preview</h3>
-        <div class="image-container">
-          <img id="albedoImage" alt="Albedo Map" style="max-width:100%; display:block;" />
+        <div id="albedoPreviewSection" style="display: none;">
+          <h3 style="margin-top:12px;">Albedo Map Preview</h3>
+          <div class="image-container">
+            <img id="albedoImage" alt="Albedo Map" style="max-width:100%; display:block;" />
+          </div>
         </div>
 
-        <h3 style="margin-top:12px;">Normal Map Preview</h3>
-        <div class="image-container">
-          <img id="normalImage" alt="Normal Map" style="max-width:100%; display:block;" />
+        <div id="normalPreviewSection">
+          <h3 style="margin-top:12px;">Normal Map Preview</h3>
+          <div class="image-container">
+            <img id="normalImage" alt="Normal Map" style="max-width:100%; display:block;" />
+          </div>
         </div>
 
-        <h3 style="margin-top:12px;">Roughness Map Preview</h3>
-        <div class="image-container">
-          <img id="roughnessImage" alt="Roughness Map" style="max-width:100%; display:block;" />
+        <div id="roughnessPreviewSection">
+          <h3 style="margin-top:12px;">Roughness Map Preview</h3>
+          <div class="image-container">
+            <img id="roughnessImage" alt="Roughness Map" style="max-width:100%; display:block;" />
+          </div>
         </div>
 
-        <h3 style="margin-top:12px;">Irradiance Map Preview</h3>
-        <div class="image-container">
-          <img id="irradianceImage" alt="Irradiance Map" style="max-width:100%; display:block;" />
+        <div id="irradiancePreviewSection" style="display: none;">
+          <h3 style="margin-top:12px;">Irradiance Map Preview</h3>
+          <div class="image-container">
+            <img id="irradianceImage" alt="Irradiance Map" style="max-width:100%; display:block;" />
+          </div>
+        </div>
+
+        <div id="depthPreviewSection" style="display: none;">
+          <h3 style="margin-top:12px;">Depth Map Preview</h3>
+          <div class="image-container">
+            <img id="depthImage" alt="Depth Map" style="max-width:100%; display:block;" />
+          </div>
+        </div>
+
+        <div id="objectPreviewSection" style="display: none;">
+          <h3 style="margin-top:12px;">Object Isolation Preview</h3>
+          <div class="image-container">
+            <img id="objectImage" alt="Object Mask" style="max-width:100%; display:block;" />
+          </div>
         </div>
       </div>
 
@@ -865,16 +887,16 @@ input:checked + .slider:before {
         </button>
       </div>
 
-      <h3 style="margin-top:16px;">Map CSS (Specular)</h3>
-      <div class="css-code-container">
+      <h3 style="margin-top:16px; display: none;">Map CSS (Specular)</h3>
+      <div class="css-code-container" style="display: none;">
         <div class="css-code" id="specCssCode"></div>
         <button id="specDownloadBtn" class="copy-button" title="Download Specular CSS">
           <span class="copy-icon">⤓</span>
         </button>
       </div>
 
-      <h3 style="margin-top:16px;">Map CSS (Reflection)</h3>
-      <div class="css-code-container">
+      <h3 style="margin-top:16px; display: none;">Map CSS (Reflection)</h3>
+      <div class="css-code-container" style="display: none;">
         <div class="css-code" id="reflCssCode"></div>
         <button id="reflDownloadBtn" class="copy-button" title="Download Reflection CSS">
           <span class="copy-icon">⤓</span>
@@ -960,7 +982,7 @@ input:checked + .slider:before {
                                 onMap({ type, dataURL }) {
                                     self.lastMapData = self.lastMapData || {};
                                     self.lastMapData[type] = dataURL || null;
-                                    const mapToImg = { albedo: 'albedoImage', normal: 'normalImage', roughness: 'roughnessImage', irradiance: 'irradianceImage' };
+                                    const mapToImg = { albedo: 'albedoImage', normal: 'normalImage', roughness: 'roughnessImage', irradiance: 'irradianceImage', depth: 'depthImage', object: 'objectImage' };
                                     const imgId = mapToImg[type];
                                     if (imgId) {
                                         const img = document.getElementById(imgId);
@@ -971,8 +993,15 @@ input:checked + .slider:before {
                                 }
                             }
                         },
-                        onChange: () => { this.updateStats(); this.scheduleGeneration(); }
+                        onChange: () => { 
+                            this.updateMapPreviewVisibility(); 
+                            this.updateStats(); 
+                            this.scheduleGeneration(); 
+                        }
                     });
+                    
+                    // Set initial preview visibility based on default values
+                    setTimeout(() => this.updateMapPreviewVisibility(), 0);
                 };
                 if (document.readyState === 'complete') setTimeout(setup, 0);
                 else setTimeout(setup, 0);
@@ -1423,6 +1452,88 @@ input:checked + .slider:before {
                 }
                 
                 styleElement.textContent = cssClass;
+            }
+
+            updateNormalGradientClass(cssClass) {
+                // Update or create the normal map CSS class
+                let styleElement = document.getElementById('normal-map-style');
+                if (!styleElement) {
+                    styleElement = document.createElement('style');
+                    styleElement.id = 'normal-map-style';
+                    document.head.appendChild(styleElement);
+                }
+                
+                // Extract aspect ratio from the CSS and apply it to the preview div
+                const aspectRatioMatch = cssClass.match(/aspect-ratio:\s*(\d+)\s*\/\s*(\d+)/);
+                if (aspectRatioMatch) {
+                    const ratio = `${aspectRatioMatch[1]} / ${aspectRatioMatch[2]}`;
+                    const normalDiv = document.getElementById('normalGradientPreview');
+                    if (normalDiv) {
+                        normalDiv.style.aspectRatio = ratio;
+                    }
+                }
+                
+                styleElement.textContent = cssClass;
+            }
+
+            updateRoughnessGradientClass(cssClass) {
+                // Update or create the roughness map CSS class
+                let styleElement = document.getElementById('roughness-map-style');
+                if (!styleElement) {
+                    styleElement = document.createElement('style');
+                    styleElement.id = 'roughness-map-style';
+                    document.head.appendChild(styleElement);
+                }
+                
+                // Extract aspect ratio from the CSS and apply it to the preview div
+                const aspectRatioMatch = cssClass.match(/aspect-ratio:\s*(\d+)\s*\/\s*(\d+)/);
+                if (aspectRatioMatch) {
+                    const ratio = `${aspectRatioMatch[1]} / ${aspectRatioMatch[2]}`;
+                    const roughnessDiv = document.getElementById('roughnessGradientPreview');
+                    if (roughnessDiv) {
+                        roughnessDiv.style.aspectRatio = ratio;
+                    }
+                }
+                
+                styleElement.textContent = cssClass;
+            }
+
+            updateMapPreviewVisibility() {
+                // Update visibility of map preview sections based on plugin control states
+                if (!this.pluginUI) return;
+                
+                try {
+                    // Get current plugin values
+                    const pluginValues = this.pluginUI.getValues();
+                    const mapExtractorValues = pluginValues.mapExtractor || {};
+                    
+                    // Map of control keys to preview section IDs (only for visible controls)
+                    const previewSections = {
+                        'normalOn': 'normalPreviewSection', 
+                        'roughnessOn': 'roughnessPreviewSection'
+                    };
+                    
+                    // Update visibility for each section
+                    Object.keys(previewSections).forEach(controlKey => {
+                        const sectionId = previewSections[controlKey];
+                        const section = document.getElementById(sectionId);
+                        if (section) {
+                            const isEnabled = mapExtractorValues[controlKey] === true;
+                            section.style.display = isEnabled ? 'block' : 'none';
+                        }
+                    });
+                    
+                    // Hide disabled preview sections permanently
+                    const disabledSections = ['albedoPreviewSection', 'depthPreviewSection', 'objectPreviewSection', 'irradiancePreviewSection'];
+                    disabledSections.forEach(sectionId => {
+                        const section = document.getElementById(sectionId);
+                        if (section) {
+                            section.style.display = 'none';
+                        }
+                    });
+                } catch (e) {
+                    console.warn('Error updating map preview visibility:', e);
+                }
             }
 
             updateBodyBackground(css, width, height) {
