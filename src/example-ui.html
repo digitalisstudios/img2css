@@ -180,6 +180,18 @@ input[type="file"] {
   mask-mode: luminance;
 }
 
+/* Mask visualization mode: show the roughness-derived mask directly */
+.css-lighting.show-mask::before {
+  /* Remove masking and blending; paint the gradients directly */
+  -webkit-mask: none !important;
+  mask: none !important;
+  mix-blend-mode: normal;
+  opacity: 1;
+  background: var(--spec-mask);
+  background-attachment: scroll;
+}
+.css-lighting.show-mask::after { background: none; }
+
 .light-badges { position:absolute; top:6px; left:6px; z-index:3; display:flex; gap:6px; pointer-events:none; }
 .light-badges .badge { background: rgba(0,0,0,0.5); color:#e6edf3; padding:2px 6px; border-radius:4px; font-size:12px; line-height:1.2; }
 
@@ -805,6 +817,13 @@ input:checked + .slider:before {
             <label for="shadowIntensitySlider">Shadow intensity: <span id="shadowIntensityValue">35%</span></label>
             <input type="range" id="shadowIntensitySlider" min="0" max="100" value="35" step="1" style="width:100%;">
           </div>
+
+          <div class="control-row" style="margin-top:6px;">
+            <label>
+              <input type="checkbox" id="showMaskCheckbox">
+              Show mask only (roughness)
+            </label>
+          </div>
         </div>
 
         <h3 style="margin-top:12px; display: none;">Specular Map Preview</h3>
@@ -1204,6 +1223,12 @@ input:checked + .slider:before {
                 // Lighting overlay toggle
                 const lightingCb = document.getElementById('lightingOverlayCheckbox');
                 if (lightingCb) lightingCb.addEventListener('change', (e) => this.applyCSSLightingOverlay(e.target.checked));
+                // Show mask toggle
+                const showMaskCb = document.getElementById('showMaskCheckbox');
+                if (showMaskCb) showMaskCb.addEventListener('change', (e) => {
+                    const gp = document.getElementById('gradientPreview');
+                    if (gp) gp.classList.toggle('show-mask', !!e.target.checked);
+                });
                 // Lighting controls (angle and intensity)
                 const angleSlider = document.getElementById('lightAngleSlider');
                 const angleValue = document.getElementById('lightAngleValue');
