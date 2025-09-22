@@ -1096,15 +1096,12 @@ input:checked + .slider:before {
                                         const outR = document.getElementById('roughCssCode'); if (outR) outR.textContent = css;
                                         // Also use roughness as specularity CSS
                                         const outSpec = document.getElementById('specCssCode'); if (outSpec) outSpec.textContent = css;
-                                        // Update CSS-lighting mask only if not already set to a dataURL image
+                                        // Update CSS-lighting mask from converted CSS background (preferred)
                                         const bg = self.extractBackgroundFromCSS(css);
                                         const gp = document.getElementById('gradientPreview');
                                         if (bg && gp) {
-                                            const current = (gp.style.getPropertyValue('--spec-mask') || '').trim();
-                                            if (!current.startsWith('url(')) {
-                                                gp.style.setProperty('--spec-mask', bg);
-                                                gp.style.setProperty('--shadow-mask', bg);
-                                            }
+                                            gp.style.setProperty('--spec-mask', bg);
+                                            gp.style.setProperty('--shadow-mask', bg);
                                         }
                                     } else if (type === 'subjectnormal') {
                                         self.updateSubjectNormalGradientClass(css);
@@ -1132,15 +1129,8 @@ input:checked + .slider:before {
                                             img.src = dataURL;
                                         }
                                     }
-                                    // Prefer exact pixel mask: use roughness dataURL as CSS mask image
-                                    if (type === 'roughness' && dataURL) {
-                                        const gp = document.getElementById('gradientPreview');
-                                        if (gp) {
-                                            const mask = 'url("' + dataURL + '") left top / 100% 100% no-repeat';
-                                            gp.style.setProperty('--spec-mask', mask);
-                                            gp.style.setProperty('--shadow-mask', mask);
-                                        }
-                                    }
+                                    // Keep image data handy; CSS mask will be set from onMapCSS (converted CSS)
+                                    // If needed, we could fallback to dataURL masking when CSS is unavailable.
                                 }
                             }
                         },
