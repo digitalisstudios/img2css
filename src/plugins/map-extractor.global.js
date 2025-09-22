@@ -514,8 +514,46 @@
 
     function emitMap(type, map, stage) {
       var payload = { type: type, map: map, stage: stage, dataURL: cfg.dataUrl ? toDataURL(map) : null };
+      
+      // For normal and roughness maps, convert the analyzed map to CSS using img2css
+      if ((type === 'normal' || type === 'roughness') && payload.dataURL) {
+        convertMapToCSS(payload.dataURL, type);
+      }
+      
       emit('onMap', payload);
       return payload;
+    }
+    
+    function convertMapToCSS(dataURL, type) {
+      // Use a completely new instance of img2css to convert the exact analyzed map image to CSS
+      if (typeof window !== 'undefined' && window.img2css) {
+        try {
+          // Create a fresh img2css instance
+          var mapConverter = new window.img2css({
+            source: dataURL,
+            processing: {
+              details: 50, // Good detail level for maps
+              compression: 20, // Lower compression to preserve map details
+              mode: 'auto' // Let it choose the best direction
+            },
+            minified: false // Readable CSS
+          });
+          
+          // Convert the base64 image using img2css processing pipeline
+          mapConverter.toCSS().then(function(css) {
+            if (css) {
+              // Replace the default selector with our map-specific selector
+              var selector = (cfg.selectors && cfg.selectors[type]) || ('.' + type + '-gradient-preview');
+              var finalCSS = css.replace(/\.slick-img-gradient/g, selector);
+              emit('onMapCSS', { type: type, css: finalCSS });
+            }
+          }).catch(function(err) {
+            console.warn('Failed to convert ' + type + ' map to CSS:', err);
+          });
+        } catch (e) {
+          console.warn('Error converting ' + type + ' map to CSS:', e);
+        }
+      }
     }
 
     function maybeCompute(imageData, stage) {

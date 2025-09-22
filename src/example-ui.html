@@ -758,14 +758,14 @@ input:checked + .slider:before {
         <div id="normalPreviewSection">
           <h3 style="margin-top:12px;">Normal Map Preview</h3>
           <div class="image-container">
-            <img id="normalImage" alt="Normal Map" style="max-width:100%; display:block;" />
+            <div id="normalGradientPreview"></div>
           </div>
         </div>
 
         <div id="roughnessPreviewSection">
           <h3 style="margin-top:12px;">Roughness Map Preview</h3>
           <div class="image-container">
-            <img id="roughnessImage" alt="Roughness Map" style="max-width:100%; display:block;" />
+            <div id="roughnessGradientPreview"></div>
           </div>
         </div>
 
@@ -965,8 +965,7 @@ input:checked + .slider:before {
                         hooks: {
                             mapExtractor: {
                                 onMapCSS({ type, css }) {
-                                    // Only route CSS based previews for specular and reflection.
-                                    // Other map types are displayed via data URLs in onMap.
+                                    // Route CSS based previews for specular, reflection, normal, and roughness maps
                                     if (type === 'reflection') {
                                         self.updateReflectionGradientClass(css);
                                         const el = document.getElementById('reflGradientPreview');
@@ -977,12 +976,21 @@ input:checked + .slider:before {
                                         const specEl = document.getElementById('specGradientPreview');
                                         if (specEl) specEl.className = 'specular-gradient-preview';
                                         const out = document.getElementById('specCssCode'); if (out) out.textContent = css;
+                                    } else if (type === 'normal') {
+                                        self.updateNormalGradientClass(css);
+                                        const normalEl = document.getElementById('normalGradientPreview');
+                                        if (normalEl) normalEl.className = 'normal-gradient-preview';
+                                    } else if (type === 'roughness') {
+                                        self.updateRoughnessGradientClass(css);
+                                        const roughnessEl = document.getElementById('roughnessGradientPreview');
+                                        if (roughnessEl) roughnessEl.className = 'roughness-gradient-preview';
                                     }
                                 },
                                 onMap({ type, dataURL }) {
                                     self.lastMapData = self.lastMapData || {};
                                     self.lastMapData[type] = dataURL || null;
-                                    const mapToImg = { albedo: 'albedoImage', normal: 'normalImage', roughness: 'roughnessImage', irradiance: 'irradianceImage', depth: 'depthImage', object: 'objectImage' };
+                                    // Only handle image-based previews for maps that don't use CSS gradients
+                                    const mapToImg = { albedo: 'albedoImage', irradiance: 'irradianceImage', depth: 'depthImage', object: 'objectImage' };
                                     const imgId = mapToImg[type];
                                     if (imgId) {
                                         const img = document.getElementById(imgId);
