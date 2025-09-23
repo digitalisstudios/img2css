@@ -202,7 +202,7 @@ input[type="file"] {
   background-attachment: fixed;
   /* Blend mode configurable via dropdown */
   mix-blend-mode: var(--blend-mode, normal);
-  opacity: var(--shadow-alpha, 0.35);
+  opacity: var(--shadow-alpha, 0.0);
   -webkit-mask: var(--shadow-mask, var(--spec-mask));
   mask: var(--shadow-mask, var(--spec-mask));
   mask-mode: luminance;
@@ -842,8 +842,8 @@ input:checked + .slider:before {
             Enable CSS lighting overlay (highlights)
           </label>
           <div class="control-row" style="margin-bottom:6px;">
-            <label for="lightAngleSlider">Light angle: <span id="lightAngleValue">35°</span></label>
-            <input type="range" id="lightAngleSlider" min="0" max="360" value="35" style="width:100%;">
+            <label for="lightAngleSlider">Light angle: <span id="lightAngleValue">173°</span></label>
+            <input type="range" id="lightAngleSlider" min="0" max="360" value="173" style="width:100%;">
           </div>
           <div class="control-row">
             <label for="highlightIntensitySlider">Highlight intensity: <span id="highlightIntensityValue">75%</span></label>
@@ -910,10 +910,10 @@ input:checked + .slider:before {
           <div class="control-row" style="margin-top:6px;">
             <label for="bandPresetSelect">Band preset:</label>
             <select id="bandPresetSelect" style="width:100%;">
-              <option value="subtle" selected>Subtle</option>
+              <option value="subtle">Subtle</option>
               <option value="medium">Medium</option>
               <option value="strong">Strong</option>
-              <option value="chrome">Chrome</option>
+              <option value="chrome" selected>Chrome</option>
               <option value="random">Randomize</option>
             </select>
           </div>
@@ -930,13 +930,13 @@ input:checked + .slider:before {
           <div class="control-row" style="margin-top:6px;">
             <label for="blendModeSelect">Blend mode:</label>
             <select id="blendModeSelect" style="width:100%;">
-              <option value="normal" selected>normal</option>
+              <option value="normal">normal</option>
               <option value="screen">screen</option>
               <option value="multiply">multiply</option>
               <option value="overlay">overlay</option>
               <option value="soft-light">soft-light</option>
               <option value="hard-light">hard-light</option>
-              <option value="color-dodge">color-dodge</option>
+              <option value="color-dodge" selected>color-dodge</option>
               <option value="color-burn">color-burn</option>
               <option value="lighten">lighten</option>
               <option value="darken">darken</option>
@@ -1375,8 +1375,6 @@ input:checked + .slider:before {
                 const angleValue = document.getElementById('lightAngleValue');
                 const intensitySlider = document.getElementById('highlightIntensitySlider');
                 const intensityValue = document.getElementById('highlightIntensityValue');
-                const shadowSlider = document.getElementById('shadowIntensitySlider');
-                const shadowValue = document.getElementById('shadowIntensityValue');
                 const colorPicker = document.getElementById('highlightColorPicker');
                 const bandGapSlider = document.getElementById('bandGapSlider');
                 const bandGapValue = document.getElementById('bandGapValue');
@@ -1425,16 +1423,11 @@ input:checked + .slider:before {
                     intensitySlider.addEventListener('input', updateIntensity);
                     updateIntensity();
                 }
-                if (shadowSlider && shadowValue && previewEl) {
-                    const updateShadow = () => {
-                        const pct = parseInt(shadowSlider.value, 10) || 0;
-                        shadowValue.textContent = pct + '%';
-                        const alpha = Math.max(0, Math.min(1, pct / 100));
-                        previewEl.style.setProperty('--shadow-alpha', String(alpha));
-                        if (badgeShadow) badgeShadow.textContent = 'S: ' + pct + '%';
-                    };
-                    shadowSlider.addEventListener('input', updateShadow);
-                    updateShadow();
+                // Shadow default to 0 opacity; no slider
+                if (previewEl) {
+                    previewEl.style.setProperty('--shadow-alpha', '0');
+                    const badgeShadow = document.getElementById('badgeShadow');
+                    if (badgeShadow) badgeShadow.textContent = 'S: 0%';
                 }
                 if (colorPicker && previewEl) {
                     const updateColor = () => {
@@ -1533,6 +1526,8 @@ input:checked + .slider:before {
                     const v = bandPresetSelect.value;
                     applyPreset(v);
                   });
+                  // Apply default preset on load
+                  applyPreset('chrome');
                 }
                 // Randomize and reset buttons for band parameters
                 function randomIn(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
