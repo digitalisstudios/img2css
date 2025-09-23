@@ -198,6 +198,14 @@ input[type="file"] {
 }
 .css-lighting.show-mask::after { background: none; }
 
+/* Lighting-only preview helpers */
+#gradientPreview.lighting-only { background: none !important; }
+.css-lighting.lighting-unmasked::before,
+.css-lighting.lighting-unmasked::after {
+  -webkit-mask: none !important;
+  mask: none !important;
+}
+
 .light-badges { position:absolute; top:6px; left:6px; z-index:3; display:flex; gap:6px; pointer-events:none; }
 .light-badges .badge { background: rgba(0,0,0,0.5); color:#e6edf3; padding:2px 6px; border-radius:4px; font-size:12px; line-height:1.2; }
 
@@ -830,6 +838,25 @@ input:checked + .slider:before {
           </div>
 
           <div class="control-row" style="margin-top:6px;">
+            <label for="bandGapSlider">Band gap: <span id="bandGapValue">40px</span></label>
+            <input type="range" id="bandGapSlider" min="4" max="160" value="40" step="2" style="width:100%;">
+          </div>
+
+          <div class="control-row" style="margin-top:6px;">
+            <label for="bandWidthSlider">Band width: <span id="bandWidthValue">10px</span></label>
+            <input type="range" id="bandWidthSlider" min="2" max="80" value="10" step="1" style="width:100%;">
+          </div>
+
+          <div class="control-row" style="margin-top:6px;">
+            <label for="lightingPreviewMode">Lighting preview:</label>
+            <select id="lightingPreviewMode" style="width:100%;">
+              <option value="off" selected>Off (normal)</option>
+              <option value="masked">Masked only</option>
+              <option value="unmasked">Unmasked only</option>
+            </select>
+          </div>
+
+          <div class="control-row" style="margin-top:6px;">
             <label>
               <input type="checkbox" id="showMaskCheckbox">
               Show mask only (roughness)
@@ -1262,6 +1289,11 @@ input:checked + .slider:before {
                 const shadowSlider = document.getElementById('shadowIntensitySlider');
                 const shadowValue = document.getElementById('shadowIntensityValue');
                 const colorPicker = document.getElementById('highlightColorPicker');
+                const bandGapSlider = document.getElementById('bandGapSlider');
+                const bandGapValue = document.getElementById('bandGapValue');
+                const bandWidthSlider = document.getElementById('bandWidthSlider');
+                const bandWidthValue = document.getElementById('bandWidthValue');
+                const lightingPreviewMode = document.getElementById('lightingPreviewMode');
                 const previewEl = document.getElementById('gradientPreview');
                 const badgeAngle = document.getElementById('badgeAngle');
                 const badgeHighlight = document.getElementById('badgeHighlight');
@@ -1308,6 +1340,37 @@ input:checked + .slider:before {
                     };
                     colorPicker.addEventListener('input', updateColor);
                     updateColor();
+                }
+
+                // Band controls
+                if (bandGapSlider && bandGapValue && previewEl) {
+                    const updateGap = () => {
+                        const px = parseInt(bandGapSlider.value, 10) || 40;
+                        bandGapValue.textContent = px + 'px';
+                        previewEl.style.setProperty('--band-gap', px + 'px');
+                    };
+                    bandGapSlider.addEventListener('input', updateGap);
+                    updateGap();
+                }
+                if (bandWidthSlider && bandWidthValue && previewEl) {
+                    const updateWidth = () => {
+                        const px = parseInt(bandWidthSlider.value, 10) || 10;
+                        bandWidthValue.textContent = px + 'px';
+                        previewEl.style.setProperty('--band-width', px + 'px');
+                    };
+                    bandWidthSlider.addEventListener('input', updateWidth);
+                    updateWidth();
+                }
+
+                // Lighting preview mode
+                if (lightingPreviewMode && previewEl) {
+                    const applyMode = () => {
+                        const mode = lightingPreviewMode.value;
+                        previewEl.classList.toggle('lighting-only', mode === 'masked' || mode === 'unmasked');
+                        previewEl.classList.toggle('lighting-unmasked', mode === 'unmasked');
+                    };
+                    lightingPreviewMode.addEventListener('change', applyMode);
+                    applyMode();
                 }
                 const specDl = document.getElementById('specDownloadBtn');
                 if (specDl) specDl.addEventListener('click', () => this.downloadMapCSS('specular'));
