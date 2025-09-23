@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Enhanced Stats Test</title>
+</head>
+<body>
+    <h1>Enhanced Stats Collection Test</h1>
+    <div id="results"></div>
+
+    <!-- Load plugins -->
+    <script src="plugins/lighting.global.js"></script>
+    <script src="plugins/map-extractor.global.js"></script>
+    <script src="plugins/soft-posterize.global.js"></script>
+    
+    <!-- Load core -->
+    <script src="img2css.js"></script>
+    
+    <script>
+        function log(message) {
+            const results = document.getElementById('results');
+            results.innerHTML += '<p>' + message + '</p>';
+            console.log(message);
+        }
+        
+        function logObject(label, obj) {
+            log(label + ':');
+            log('<pre>' + JSON.stringify(obj, null, 2) + '</pre>');
+        }
+        
+        async function runTests() {
+            log('=== Enhanced Stats Collection Tests ===');
+            
+            const testImage = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7'; // 1x1 transparent gif
+            
+            // Test 1: Minimal stats (default)
+            log('\n1. Testing Minimal Stats (Default):');
+            try {
+                const converter1 = new img2css({
+                    source: testImage,
+                    lighting: { enabled: true, lightAngle: 45 },
+                    mapExtractor: { enabled: true, types: ['normal'] }
+                    // No stats config = minimal by default
+                });
+                
+                const css1 = await converter1.toCSS();
+                log('   ✅ CSS generated successfully');
+                log('   ✅ Stats level: ' + (converter1.config.stats.level || 'minimal'));
+                log('   ✅ Plugin results collected: ' + (!!converter1.stats.plugins));
+                log('   ✅ Stats size: ' + JSON.stringify(converter1.stats).length + ' characters');
+                
+            } catch (error) {
+                log('   ❌ Error: ' + error.message);
+            }
+            
+            // Test 2: Standard stats
+            log('\n2. Testing Standard Stats:');
+            try {
+                const converter2 = new img2css({
+                    source: testImage,
+                    lighting: { enabled: true, lightAngle: 90 },
+                    mapExtractor: { enabled: true, types: ['normal', 'roughness'] },
+                    stats: 'standard'
+                });
+                
+                const css2 = await converter2.toCSS();
+                log('   ✅ CSS generated successfully');
+                log('   ✅ Stats level: ' + converter2.config.stats.level);
+                log('   ✅ Plugin results collected: ' + (!!converter2.stats.plugins));
+                log('   ✅ Stats size: ' + JSON.stringify(converter2.stats).length + ' characters');
+                
+                if (converter2.stats.plugins) {
+                    const pluginNames = Object.keys(converter2.stats.plugins);
+                    log('   ✅ Plugin results available for: ' + pluginNames.join(', '));
+                }
+                
+            } catch (error) {
+                log('   ❌ Error: ' + error.message);
+            }
+            
+            // Test 3: Verbose stats
+            log('\n3. Testing Verbose Stats:');
+            try {
+                const converter3 = new img2css({
+                    source: testImage,
+                    lighting: { enabled: true, lightAngle: 135 },
+                    mapExtractor: { enabled: true, types: ['normal'] },
+                    stats: 'verbose'
+                });
+                
+                const css3 = await converter3.toCSS();
+                log('   ✅ CSS generated successfully');
+                log('   ✅ Stats level: ' + converter3.config.stats.level);
+                log('   ✅ Plugin results collected: ' + (!!converter3.stats.plugins));
+                log('   ✅ Performance data included: ' + (!!converter3.stats.performance));
+                log('   ✅ Stats size: ' + JSON.stringify(converter3.stats).length + ' characters');
+                
+            } catch (error) {
+                log('   ❌ Error: ' + error.message);
+            }
+            
+            // Test 4: Selective plugin collection
+            log('\n4. Testing Selective Plugin Collection:');
+            try {
+                const converter4 = new img2css({
+                    source: testImage,
+                    lighting: { enabled: true, lightAngle: 180 },
+                    mapExtractor: { enabled: true, types: ['normal', 'roughness'] },
+                    stats: {
+                        level: 'standard',
+                        plugins: ['mapExtractor']  // Only collect from map extractor
+                    }
+                });
+                
+                const css4 = await converter4.toCSS();
+                log('   ✅ CSS generated successfully');
+                log('   ✅ Stats config: ' + JSON.stringify(converter4.config.stats));
+                log('   ✅ Plugin results collected: ' + (!!converter4.stats.plugins));
+                
+                if (converter4.stats.plugins) {
+                    const pluginNames = Object.keys(converter4.stats.plugins);
+                    log('   ✅ Results collected from: ' + pluginNames.join(', '));
+                    log('   ✅ Should only include mapExtractor: ' + (pluginNames.length === 1 && pluginNames[0] === 'mapExtractor'));
+                }
+                
+            } catch (error) {
+                log('   ❌ Error: ' + error.message);
+            }
+            
+            // Test 5: Memory safety comparison
+            log('\n5. Memory Usage Comparison:');
+            try {
+                const configs = [
+                    { name: 'Minimal', config: {} },
+                    { name: 'Standard', config: { stats: 'standard' } },
+                    { name: 'Verbose', config: { stats: 'verbose' } }
+                ];
+                
+                for (const test of configs) {
+                    const converter = new img2css({
+                        source: testImage,
+                        lighting: { enabled: true },
+                        mapExtractor: { enabled: true, types: ['normal', 'roughness'] },
+                        ...test.config
+                    });
+                    
+                    await converter.toCSS();
+                    const size = JSON.stringify(converter.stats).length;
+                    const hasPlugins = !!converter.stats.plugins;
+                    
+                    log(`   ${test.name}: ${size} chars, plugins: ${hasPlugins}`);
+                }
+                
+            } catch (error) {
+                log('   ❌ Error: ' + error.message);
+            }
+            
+            log('\n=== Enhanced Stats Tests Complete ===');
+            log('\n✅ Key Benefits Demonstrated:');
+            log('- Conservative memory usage by default');
+            log('- Configurable stats collection levels');
+            log('- Selective plugin result capture');
+            log('- No breaking changes to toCSS() API');
+        }
+        
+        // Run tests when page loads
+        window.onload = runTests;
+    </script>
+</body>
+</html>

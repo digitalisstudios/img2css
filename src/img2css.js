@@ -15,7 +15,10 @@ class img2css {
                 useOriginalPalette: processing.useOriginalPalette !== undefined ? processing.useOriginalPalette : (config.useOriginalPalette !== undefined ? config.useOriginalPalette : false)
             },
             maxSize: config.maxSize || null, // e.g., '500KB', '2MB', '1.5MB'
-            minified: config.minified || false // Minify CSS output
+            minified: config.minified || false, // Minify CSS output
+            
+            // Stats collection configuration
+            stats: this._normalizeStatsConfig(config.stats)
         };
         
         // Plugin/Hook system initialization with comprehensive configuration support
@@ -26,6 +29,7 @@ class img2css {
         this.ctx = null;
         this.imageData = null;
         this.stats = null; // Stores detailed stats from last toCSS() call
+        this._pluginResults = {}; // Internal storage for plugin-generated content
         
         // If source is provided, load it automatically
         if (this.config.source) {
@@ -88,6 +92,156 @@ class img2css {
         return plugins;
     }
     
+    // Normalize stats configuration with conservative defaults
+    _normalizeStatsConfig(statsConfig) {
+        // Default: minimal stats collection to prevent memory issues
+        const defaults = {
+            level: 'minimal',           // 'minimal' | 'standard' | 'verbose'
+            collectPluginResults: false,  // Only collect if explicitly requested
+            collectIntermediates: false,  // Skip heavy intermediate data by default
+            plugins: []                  // Specific plugins to collect from (empty = none)
+        };
+        
+        if (!statsConfig) return defaults;
+        
+        // Handle string shorthand: 'minimal', 'standard', 'verbose'
+        if (typeof statsConfig === 'string') {
+            return {
+                ...defaults,
+                level: statsConfig,
+                collectPluginResults: statsConfig !== 'minimal',
+                collectIntermediates: statsConfig === 'verbose'
+            };
+        }
+        
+        // Handle object configuration
+        if (typeof statsConfig === 'object') {
+            return {
+                ...defaults,
+                ...statsConfig,
+                // Auto-enable plugin collection if specific plugins are requested
+                collectPluginResults: statsConfig.collectPluginResults !== false && 
+                    (statsConfig.collectPluginResults || 
+                     (Array.isArray(statsConfig.plugins) && statsConfig.plugins.length > 0))
+            };
+        }
+        
+        return defaults;
+    }
+    
+    // Build comprehensive stats object including plugin results when configured
+    _buildStatsObject(css, config) {
+        const statsConfig = this.config.stats;
+        
+        // Base stats (always included)
+        const stats = {
+            css: css,
+            settings: {
+                details: config.details,
+                compression: config.compression,
+                processingMode: config.processingMode,
+                autoOptimize: this.config.autoOptimize,
+                maxSize: this.config.maxSize,
+                selector: this.config.selector,
+                dimensions: {
+                    width: this.imageData.width,
+                    height: this.imageData.height
+                }
+            }
+        };
+        
+        // Add plugin results if configured
+        if (statsConfig.collectPluginResults && Object.keys(this._pluginResults).length > 0) {
+            stats.plugins = {};
+            
+            // Filter plugin results based on configuration
+            const pluginsToInclude = statsConfig.plugins.length > 0 
+                ? statsConfig.plugins 
+                : Object.keys(this._pluginResults);
+                
+            pluginsToInclude.forEach(pluginName => {
+                if (this._pluginResults[pluginName]) {
+                    stats.plugins[pluginName] = this._pluginResults[pluginName];
+                }
+            });
+        }
+        
+        // Add intermediate data if verbose mode
+        if (statsConfig.collectIntermediates && statsConfig.level === 'verbose') {
+            stats.performance = {
+                timestamp: Date.now(),
+                memoryUsage: this._getMemoryEstimate()
+            };
+        }
+        
+        return stats;
+    }
+    
+    // Helper to estimate memory usage (best effort)
+    _getMemoryEstimate() {
+        try {
+            if (performance && performance.memory) {
+                return {
+                    used: performance.memory.usedJSHeapSize,
+                    total: performance.memory.totalJSHeapSize,
+                    limit: performance.memory.jsHeapSizeLimit
+                };
+            }
+        } catch (_) {}
+        return null;
+    }
+    
+    // Create hooks that capture plugin results for stats collection
+    _createStatsCollectionHooks() {
+        const self = this;
+        
+        return {
+            // Capture map extractor results
+            onMapCSS: function(data) {
+                if (!self._pluginResults.mapExtractor) {
+                    self._pluginResults.mapExtractor = { maps: {} };
+                }
+                if (data.type && data.css) {
+                    self._pluginResults.mapExtractor.maps[data.type] = {
+                        css: data.css,
+                        dimensions: data.dimensions,
+                        timestamp: Date.now()
+                    };
+                }
+                return data;
+            },
+            
+            // Capture lighting plugin modifications
+            afterBuildCSS: function(ctx) {
+                // Detect lighting modifications by checking if CSS was enhanced
+                if (ctx.css && ctx.css.includes('css-lighting')) {
+                    if (!self._pluginResults.lighting) {
+                        self._pluginResults.lighting = {};
+                    }
+                    self._pluginResults.lighting.enhancedCSS = true;
+                    self._pluginResults.lighting.hasLightingEffects = true;
+                    self._pluginResults.lighting.timestamp = Date.now();
+                }
+                return ctx;
+            },
+            
+            // Capture general plugin hook execution for debugging
+            onPluginHookExecution: function(data) {
+                if (self.config.stats.level === 'verbose') {
+                    if (!self._pluginResults.debug) {
+                        self._pluginResults.debug = { hookExecutions: [] };
+                    }
+                    self._pluginResults.debug.hookExecutions.push({
+                        hook: data.hookName,
+                        plugin: data.pluginName,
+                        timestamp: Date.now()
+                    });
+                }
+                return data;
+            }
+        };
+    }
+    
     _normalizeHooks(inlineHooks, plugins) {
         const collected = [];
         const pushHooks = (maybeHooks) => {
@@ -110,6 +264,12 @@ class img2css {
                 } catch (_) {}
             }
         }
+        
+        // Inject stats collection hooks if configured
+        if (this.config.stats.collectPluginResults) {
+            collected.push(this._createStatsCollectionHooks());
+        }
+        
         return collected;
     }
 
@@ -178,27 +338,16 @@ class img2css {
             this._plugins = Array.isArray(this.config.plugins) ? this.config.plugins.slice() : [];
             this._hooks = this._normalizeHooks(this.config.hooks || {}, this._plugins);
 
+            // Clear previous plugin results for fresh collection
+            this._pluginResults = {};
+            
             await this._applyHook('beforeProcess', { config, imageData: this.imageData });
             
             // Generate the CSS
             const css = await this.processImageToCSS(this.imageData, config);
             
             // Store detailed results for access via this.stats
-            this.stats = {
-                css: css,
-                settings: {
-                    details: config.details,
-                    compression: config.compression,
-                    processingMode: config.processingMode,
-                    autoOptimize: this.config.autoOptimize,
-                    maxSize: this.config.maxSize,
-                    selector: this.config.selector,
-                    dimensions: {
-                        width: this.imageData.width,
-                        height: this.imageData.height
-                    }
-                }
-            };
+            this.stats = this._buildStatsObject(css, config);
             
             await this._applyHook('afterProcess', { css, stats: this.stats });
             // Return just the CSS string
