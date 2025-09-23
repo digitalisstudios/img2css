@@ -1153,6 +1153,7 @@ input:checked + .slider:before {
 
     <script src="plugins/soft-posterize.global.js"></script>
     <script src="plugins/map-extractor.global.js"></script>
+    <script src="plugins/lighting.global.js"></script>
     <script src="plugin-ui.js"></script>
     <script src="img2css.js"></script>
     <script>
@@ -1185,9 +1186,8 @@ input:checked + .slider:before {
                 const setup = () => {
                     const defs = [];
                     if (window.SoftPosterize && window.SoftPosterize.ui) defs.push({ factory: window.SoftPosterize, ui: window.SoftPosterize.ui });
-                    if (window.MapExtractor && window.MapExtractor.ui) {
-                        defs.push({ factory: window.MapExtractor, ui: window.MapExtractor.ui });
-                    }
+                    if (window.MapExtractor && window.MapExtractor.ui) defs.push({ factory: window.MapExtractor, ui: window.MapExtractor.ui });
+                    if (window.Lighting && window.Lighting.ui) defs.push({ factory: window.Lighting, ui: window.Lighting.ui });
 
                     if (!window.PluginUI) {
                         console.warn('[Plugins] plugin-ui.js not loaded.');
