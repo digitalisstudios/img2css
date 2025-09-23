@@ -1395,9 +1395,6 @@ input:checked + .slider:before {
                 const bandPhase3Slider = document.getElementById('bandPhase3Slider');
                 const bandPhase3Value = document.getElementById('bandPhase3Value');
                 const bandPresetSelect = document.getElementById('bandPresetSelect');
-                const bandGapValue = document.getElementById('bandGapValue');
-                const bandWidthSlider = document.getElementById('bandWidthSlider');
-                const bandWidthValue = document.getElementById('bandWidthValue');
                 const lightingPreviewMode = document.getElementById('lightingPreviewMode');
                 const blendModeSelect = document.getElementById('blendModeSelect');
                 const previewEl = document.getElementById('gradientPreview');
@@ -1498,6 +1495,44 @@ input:checked + .slider:before {
                     };
                     blendModeSelect.addEventListener('change', applyBlend);
                     applyBlend();
+                }
+
+                // Band presets
+                function applyPreset(name) {
+                  if (!previewEl) return;
+                  const presets = {
+                    subtle: { gap:140, width:16, space:140, gap2:110, width2:8, space2:110, gap3:160, width3:8, space3:160, phase:6, phase3:14 },
+                    medium: { gap:120, width:24, space:120, gap2:90, width2:12, space2:90, gap3:140, width3:10, space3:140, phase:8, phase3:17 },
+                    strong: { gap:90, width:32, space:90, gap2:70, width2:16, space2:70, gap3:120, width3:12, space3:120, phase:10, phase3:20 },
+                    chrome: { gap:80, width:36, space:80, gap2:60, width2:20, space2:60, gap3:100, width3:14, space3:100, phase:12, phase3:24 }
+                  };
+                  if (name === 'random') { randomizeBands(); return; }
+                  const p = presets[name] || presets.medium;
+                  previewEl.style.setProperty('--band-gap', p.gap + 'px');
+                  previewEl.style.setProperty('--band-width', p.width + 'px');
+                  previewEl.style.setProperty('--band-space', p.space + 'px');
+                  previewEl.style.setProperty('--band-gap2', p.gap2 + 'px');
+                  previewEl.style.setProperty('--band-width2', p.width2 + 'px');
+                  previewEl.style.setProperty('--band-space2', p.space2 + 'px');
+                  previewEl.style.setProperty('--band-gap3', p.gap3 + 'px');
+                  previewEl.style.setProperty('--band-width3', p.width3 + 'px');
+                  previewEl.style.setProperty('--band-space3', p.space3 + 'px');
+                  previewEl.style.setProperty('--band-phase', p.phase + 'deg');
+                  previewEl.style.setProperty('--band-phase3', p.phase3 + 'deg');
+                  if (bandGapSlider && bandGapValue) { bandGapSlider.value = String(p.gap); bandGapValue.textContent = p.gap + 'px'; }
+                  if (bandWidthSlider && bandWidthValue) { bandWidthSlider.value = String(p.width); bandWidthValue.textContent = p.width + 'px'; }
+                  if (bandGap2Slider && bandGap2Value) { bandGap2Slider.value = String(p.gap2); bandGap2Value.textContent = p.gap2 + 'px'; }
+                  if (bandWidth2Slider && bandWidth2Value) { bandWidth2Slider.value = String(p.width2); bandWidth2Value.textContent = p.width2 + 'px'; }
+                  if (bandPhaseSlider && bandPhaseValue) { bandPhaseSlider.value = String(p.phase); bandPhaseValue.textContent = p.phase + '°'; }
+                  if (bandGap3Slider && bandGap3Value) { bandGap3Slider.value = String(p.gap3); bandGap3Value.textContent = p.gap3 + 'px'; }
+                  if (bandWidth3Slider && bandWidth3Value) { bandWidth3Slider.value = String(p.width3); bandWidth3Value.textContent = p.width3 + 'px'; }
+                  if (bandPhase3Slider && bandPhase3Value) { bandPhase3Slider.value = String(p.phase3); bandPhase3Value.textContent = p.phase3 + '°'; }
+                }
+                if (bandPresetSelect) {
+                  bandPresetSelect.addEventListener('change', () => {
+                    const v = bandPresetSelect.value;
+                    applyPreset(v);
+                  });
                 }
                 // Randomize and reset buttons for band parameters
                 function randomIn(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
