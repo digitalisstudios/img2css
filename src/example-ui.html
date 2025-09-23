@@ -151,23 +151,24 @@ input[type="file"] {
 .css-lighting { position: relative; }
 .css-lighting::before, .css-lighting::after { content: ''; position: absolute; inset: 0; pointer-events: none; }
 .css-lighting::before {
-  /* Fixed highlight gradient with hard transitions (specular bands), masked by roughness-derived spec mask */
-  background: 
-    /* Primary bands */
+  /* Specular bands: transparent -> hard line -> fade to transparent, repeated */
+  /* Primary and secondary phase-shifted layers for richness */
+  background:
     repeating-linear-gradient(
       var(--light-angle, 35deg),
-      var(--highlight-color, #ffffff) 0,
-      var(--highlight-color, #ffffff) var(--band-width, 10px),
-      transparent var(--band-width, 10px),
-      transparent calc(var(--band-width, 10px) + var(--band-gap, 40px))
+      transparent 0,
+      transparent var(--band-gap, 40px),
+      var(--highlight-color, #ffffff) var(--band-gap, 40px),
+      var(--highlight-color-0, rgba(255,255,255,0)) calc(var(--band-gap, 40px) + var(--band-width, 10px)),
+      transparent calc(var(--band-gap, 40px) + var(--band-width, 10px) + var(--band-space, 40px))
     ),
-    /* Secondary subtle bands with phase offset */
     repeating-linear-gradient(
       calc(var(--light-angle, 35deg) + var(--band-phase, 8deg)),
-      var(--highlight-color-weak, rgba(255,255,255,0.35)) 0,
-      var(--highlight-color-weak, rgba(255,255,255,0.35)) var(--band-width2, 6px),
-      transparent var(--band-width2, 6px),
-      transparent calc(var(--band-width2, 6px) + var(--band-gap2, 30px))
+      transparent 0,
+      transparent var(--band-gap2, 30px),
+      var(--highlight-color-weak, rgba(255,255,255,0.35)) var(--band-gap2, 30px),
+      rgba(255,255,255,0) calc(var(--band-gap2, 30px) + var(--band-width2, 6px)),
+      transparent calc(var(--band-gap2, 30px) + var(--band-width2, 6px) + var(--band-space2, 35px))
     );
   /* Make lighting fixed to viewport so scroll changes interaction */
   background-attachment: fixed;
@@ -1374,6 +1375,8 @@ input:checked + .slider:before {
                             const b = parseInt(hex.substring(4,6),16);
                             const weak = `rgba(${r}, ${g}, ${b}, 0.35)`;
                             previewEl.style.setProperty('--highlight-color-weak', weak);
+                            const zero = `rgba(${r}, ${g}, ${b}, 0)`;
+                            previewEl.style.setProperty('--highlight-color-0', zero);
                         } catch (_) {}
                     };
                     colorPicker.addEventListener('input', updateColor);
