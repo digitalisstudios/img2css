@@ -874,6 +874,12 @@
       });
     },
     customContent(values) {
+      // Check if DOM is available (UI environment)
+      if (typeof document === 'undefined' || !document.createElement) {
+        // Headless environment - return null to skip UI content creation
+        return null;
+      }
+      
       // Create the map preview container
       var container = document.createElement('div');
       container.id = 'mapExtractor-rendered-layers';

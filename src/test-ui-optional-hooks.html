@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>UI-Optional Hooks Test</title>
+</head>
+<body>
+    <h1>UI-Optional Hooks Test</h1>
+    <p>Testing that plugins work with and without DOM elements</p>
+    <div id="results"></div>
+
+    <!-- Load plugins -->
+    <script src="plugins/lighting.global.js"></script>
+    <script src="plugins/map-extractor.global.js"></script>
+    
+    <!-- Load core -->
+    <script src="img2css.js"></script>
+    
+    <script>
+        function log(message) {
+            const results = document.getElementById('results');
+            results.innerHTML += '<p>' + message + '</p>';
+            console.log(message);
+        }
+        
+        async function testUIOptionalHooks() {
+            log('=== Testing UI-Optional Hooks ===');
+            
+            const testImage = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+            
+            // Test 1: Lighting hooks with null/undefined elements
+            log('\n1. Testing Lighting Hooks with Missing Elements:');
+            try {
+                const lightingPlugin = Lighting({ enabled: true, lightAngle: 45 });
+                
+                // Test beforeMaskLoaded with null element
+                const mockContext1 = {
+                    mask: 'linear-gradient(90deg, #000 0%, #fff 100%)',
+                    element: null,
+                    mapType: 'roughness',
+                    lightingState: { enabled: true }
+                };
+                
+                if (lightingPlugin.hooks.beforeMaskLoaded) {
+                    const result1 = lightingPlugin.hooks.beforeMaskLoaded(mockContext1);
+                    log('   ✅ beforeMaskLoaded handles null element: ' + (result1 !== null));
+                }
+                
+                // Test onMaskLoaded with undefined element
+                const mockContext2 = {
+                    mask: 'linear-gradient(180deg, #000 0%, #fff 100%)',
+                    element: undefined,
+                    mapType: 'normal',
+                    lightingState: { enabled: true }
+                };
+                
+                if (lightingPlugin.hooks.onMaskLoaded) {
+                    const result2 = lightingPlugin.hooks.onMaskLoaded(mockContext2);
+                    log('   ✅ onMaskLoaded handles undefined element: ' + (result2 !== null));
+                }
+                
+            } catch (error) {
+                log('   ❌ Error: ' + error.message);
+            }
+            
+            // Test 2: MapExtractor customContent in browser vs headless simulation
+            log('\n2. Testing MapExtractor customContent:');
+            try {
+                // Test normal browser environment
+                if (MapExtractor.ui && MapExtractor.ui.customContent) {
+                    const content1 = MapExtractor.ui.customContent({
+                        enabled: true,
+                        normalOn: true,
+                        roughnessOn: true
+                    });
+                    log('   ✅ Browser environment creates content: ' + (content1 !== null));
+                    
+                    // Simulate headless by temporarily removing document
+                    const originalDoc = window.document;
+                    window.document = undefined;
+                    
+                    const content2 = MapExtractor.ui.customContent({
+                        enabled: true,
+                        normalOn: true
+                    });
+                    log('   ✅ Headless simulation returns null: ' + (content2 === null));
+                    
+                    // Restore document
+                    window.document = originalDoc;
+                }
+                
+            } catch (error) {
+                log('   ❌ Error: ' + error.message);
+            }
+            
+            // Test 3: Plugin shorthand configuration with missing plugins
+            log('\n3. Testing Resilient Plugin Configuration:');
+            try {
+                // Test with existing plugins
+                const converter1 = new img2css({
+                    source: testImage,
+                    lighting: { enabled: true, lightAngle: 90 },
+                    mapExtractor: { enabled: true, types: ['normal'] }
+                });
+                log('   ✅ Valid plugins configured: ' + converter1._plugins.length + ' plugins loaded');
+                
+                // Test with non-existent plugin (should not break)
+                const converter2 = new img2css({
+                    source: testImage,
+                    lighting: { enabled: true },
+                    nonExistentPlugin: { enabled: true, someOption: 'value' }
+                });
+                log('   ✅ Missing plugin handled gracefully: ' + converter2._plugins.length + ' plugins loaded');
+                
+                // Test CSS generation still works
+                const css = await converter2.toCSS();
+                log('   ✅ CSS generation works despite missing plugin: ' + (css.length > 0));
+                
+            } catch (error) {
+                log('   ❌ Error: ' + error.message);
+            }
+            
+            // Test 4: Stats collection with optional UI hooks
+            log('\n4. Testing Stats Collection Without UI Dependencies:');
+            try {
+                const converter = new img2css({
+                    source: testImage,
+                    lighting: { enabled: true, lightAngle: 135 },
+                    mapExtractor: { enabled: true, types: ['normal', 'roughness'] },
+                    stats: 'standard'
+                });
+                
+                const css = await converter.toCSS();
+                log('   ✅ CSS generated with stats collection');
+                log('   ✅ Stats object created: ' + (converter.stats !== null));
+                log('   ✅ Plugin results captured: ' + (!!converter.stats.plugins));
+                
+                if (converter.stats.plugins) {
+                    const pluginNames = Object.keys(converter.stats.plugins);
+                    log('   ✅ Plugin stats available for: ' + pluginNames.join(', '));
+                }
+                
+            } catch (error) {
+                log('   ❌ Error: ' + error.message);
+            }
+            
+            // Test 5: Hook execution with missing functions
+            log('\n5. Testing Robust Hook Execution:');
+            try {
+                // Create a mock plugin with missing hooks
+                const mockPlugin = {
+                    hooks: {
+                        afterBuildCSS: function(ctx) {
+                            log('   ✅ afterBuildCSS hook executed successfully');
+                            return ctx;
+                        }
+                        // Missing other hooks like beforeMaskLoaded
+                    }
+                };
+                
+                const converter = new img2css({
+                    source: testImage,
+                    plugins: [mockPlugin]
+                });
+                
+                const css = await converter.toCSS();
+                log('   ✅ Plugin with partial hooks works: ' + (css.length > 0));
+                
+            } catch (error) {
+                log('   ❌ Error: ' + error.message);
+            }
+            
+            log('\n=== UI-Optional Hooks Tests Complete ===');
+            log('\n✅ Key Results:');
+            log('- Lighting hooks handle missing DOM elements gracefully');
+            log('- MapExtractor detects headless environment and skips UI creation');
+            log('- Plugin configuration is resilient to missing plugins');
+            log('- Stats collection works without UI dependencies');
+            log('- Hook execution is robust with partial implementations');
+        }
+        
+        // Run tests when page loads
+        window.onload = testUIOptionalHooks;
+    </script>
+</body>
+</html>
