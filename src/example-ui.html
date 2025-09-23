@@ -154,10 +154,10 @@ input[type="file"] {
   /* Fixed highlight gradient with hard transitions (specular bands), masked by roughness-derived spec mask */
   background: repeating-linear-gradient(
     var(--light-angle, 35deg),
-    transparent 0,
-    transparent var(--band-gap, 40px),
-    var(--highlight-color, #ffffff) var(--band-gap, 40px),
-    var(--highlight-color, calc(var(--band-gap, 40px) + var(--band-width, 10px)))
+    var(--highlight-color, #ffffff) 0,
+    var(--highlight-color, #ffffff) var(--band-width, 10px),
+    transparent var(--band-width, 10px),
+    transparent calc(var(--band-width, 10px) + var(--band-gap, 40px))
   );
   /* Make lighting fixed to viewport so scroll changes interaction */
   background-attachment: fixed;
