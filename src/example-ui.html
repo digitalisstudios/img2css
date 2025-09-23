@@ -158,26 +158,29 @@ input[type="file"] {
       var(--light-angle, 35deg),
       transparent 0,
       transparent var(--band-gap, 120px),
-      var(--highlight-color, #ffffff) var(--band-gap, 120px),
-      var(--highlight-color-0, rgba(255,255,255,0)) calc(var(--band-gap, 120px) + var(--band-width, 24px)),
-      transparent calc(var(--band-gap, 120px) + var(--band-width, 24px) + var(--band-space, 120px))
+      var(--highlight-color-soft, rgba(255,255,255,0.15)) var(--band-gap, 120px),
+      var(--highlight-color, #ffffff) calc(var(--band-gap, 120px) + var(--soft-edge, 6px)),
+      var(--highlight-color-0, rgba(255,255,255,0)) calc(var(--band-gap, 120px) + var(--soft-edge, 6px) + var(--band-width, 24px)),
+      transparent calc(var(--band-gap, 120px) + var(--soft-edge, 6px) + var(--band-width, 24px) + var(--band-space, 120px))
     ),
     repeating-linear-gradient(
       calc(var(--light-angle, 35deg) + var(--band-phase, 8deg)),
       transparent 0,
       transparent var(--band-gap2, 90px),
-      var(--highlight-color-weak, rgba(255,255,255,0.35)) var(--band-gap2, 90px),
-      rgba(255,255,255,0) calc(var(--band-gap2, 90px) + var(--band-width2, 12px)),
-      transparent calc(var(--band-gap2, 90px) + var(--band-width2, 12px) + var(--band-space2, 90px))
+      var(--highlight-color-soft, rgba(255,255,255,0.15)) var(--band-gap2, 90px),
+      var(--highlight-color-weak, rgba(255,255,255,0.35)) calc(var(--band-gap2, 90px) + var(--soft-edge, 6px)),
+      rgba(255,255,255,0) calc(var(--band-gap2, 90px) + var(--soft-edge, 6px) + var(--band-width2, 12px)),
+      transparent calc(var(--band-gap2, 90px) + var(--soft-edge, 6px) + var(--band-width2, 12px) + var(--band-space2, 90px))
     ),
     /* Tertiary very subtle noise bands */
     repeating-linear-gradient(
       calc(var(--light-angle, 35deg) + var(--band-phase3, 17deg)),
       transparent 0,
       transparent var(--band-gap3, 140px),
-      var(--highlight-color-weak2, rgba(255,255,255,0.2)) var(--band-gap3, 140px),
-      rgba(255,255,255,0) calc(var(--band-gap3, 140px) + var(--band-width3, 10px)),
-      transparent calc(var(--band-gap3, 140px) + var(--band-width3, 10px) + var(--band-space3, 140px))
+      var(--highlight-color-soft, rgba(255,255,255,0.15)) var(--band-gap3, 140px),
+      var(--highlight-color-weak2, rgba(255,255,255,0.2)) calc(var(--band-gap3, 140px) + var(--soft-edge, 6px)),
+      rgba(255,255,255,0) calc(var(--band-gap3, 140px) + var(--soft-edge, 6px) + var(--band-width3, 10px)),
+      transparent calc(var(--band-gap3, 140px) + var(--soft-edge, 6px) + var(--band-width3, 10px) + var(--band-space3, 140px))
     );
   /* Make lighting fixed to viewport so scroll changes interaction */
   background-attachment: fixed;
@@ -872,6 +875,49 @@ input:checked + .slider:before {
             <button id="resetBandsBtn" type="button" style="flex:1;">Reset bands</button>
           </div>
 
+          <div class="option-group" style="margin-top:8px;">
+            <label>Secondary bands</label>
+            <div class="control-row">
+              <label for="bandGap2Slider">Gap 2: <span id="bandGap2Value">90px</span></label>
+              <input type="range" id="bandGap2Slider" min="10" max="240" value="90" step="2" style="width:100%;">
+            </div>
+            <div class="control-row">
+              <label for="bandWidth2Slider">Width 2: <span id="bandWidth2Value">12px</span></label>
+              <input type="range" id="bandWidth2Slider" min="2" max="60" value="12" step="1" style="width:100%;">
+            </div>
+            <div class="control-row">
+              <label for="bandPhaseSlider">Phase: <span id="bandPhaseValue">8°</span></label>
+              <input type="range" id="bandPhaseSlider" min="0" max="45" value="8" step="1" style="width:100%;">
+            </div>
+          </div>
+
+          <div class="option-group" style="margin-top:8px;">
+            <label>Tertiary bands</label>
+            <div class="control-row">
+              <label for="bandGap3Slider">Gap 3: <span id="bandGap3Value">140px</span></label>
+              <input type="range" id="bandGap3Slider" min="20" max="300" value="140" step="2" style="width:100%;">
+            </div>
+            <div class="control-row">
+              <label for="bandWidth3Slider">Width 3: <span id="bandWidth3Value">10px</span></label>
+              <input type="range" id="bandWidth3Slider" min="2" max="60" value="10" step="1" style="width:100%;">
+            </div>
+            <div class="control-row">
+              <label for="bandPhase3Slider">Phase 3: <span id="bandPhase3Value">17°</span></label>
+              <input type="range" id="bandPhase3Slider" min="0" max="45" value="17" step="1" style="width:100%;">
+            </div>
+          </div>
+
+          <div class="control-row" style="margin-top:6px;">
+            <label for="bandPresetSelect">Band preset:</label>
+            <select id="bandPresetSelect" style="width:100%;">
+              <option value="subtle" selected>Subtle</option>
+              <option value="medium">Medium</option>
+              <option value="strong">Strong</option>
+              <option value="chrome">Chrome</option>
+              <option value="random">Randomize</option>
+            </select>
+          </div>
+
           <div class="control-row" style="margin-top:6px;">
             <label for="lightingPreviewMode">Lighting preview:</label>
             <select id="lightingPreviewMode" style="width:100%;">
@@ -1333,6 +1379,22 @@ input:checked + .slider:before {
                 const shadowValue = document.getElementById('shadowIntensityValue');
                 const colorPicker = document.getElementById('highlightColorPicker');
                 const bandGapSlider = document.getElementById('bandGapSlider');
+                const bandGapValue = document.getElementById('bandGapValue');
+                const bandWidthSlider = document.getElementById('bandWidthSlider');
+                const bandWidthValue = document.getElementById('bandWidthValue');
+                const bandGap2Slider = document.getElementById('bandGap2Slider');
+                const bandGap2Value = document.getElementById('bandGap2Value');
+                const bandWidth2Slider = document.getElementById('bandWidth2Slider');
+                const bandWidth2Value = document.getElementById('bandWidth2Value');
+                const bandPhaseSlider = document.getElementById('bandPhaseSlider');
+                const bandPhaseValue = document.getElementById('bandPhaseValue');
+                const bandGap3Slider = document.getElementById('bandGap3Slider');
+                const bandGap3Value = document.getElementById('bandGap3Value');
+                const bandWidth3Slider = document.getElementById('bandWidth3Slider');
+                const bandWidth3Value = document.getElementById('bandWidth3Value');
+                const bandPhase3Slider = document.getElementById('bandPhase3Slider');
+                const bandPhase3Value = document.getElementById('bandPhase3Value');
+                const bandPresetSelect = document.getElementById('bandPresetSelect');
                 const bandGapValue = document.getElementById('bandGapValue');
                 const bandWidthSlider = document.getElementById('bandWidthSlider');
                 const bandWidthValue = document.getElementById('bandWidthValue');
