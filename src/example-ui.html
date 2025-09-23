@@ -832,7 +832,6 @@ input:checked + .slider:before {
           <div class="light-badges" id="lightBadges">
             <span class="badge" id="badgeAngle">Angle: 35°</span>
             <span class="badge" id="badgeHighlight">H: 75%</span>
-            <span class="badge" id="badgeShadow">S: 0%</span>
           </div>
         </div>
 
@@ -1398,7 +1397,6 @@ input:checked + .slider:before {
                 const previewEl = document.getElementById('gradientPreview');
                 const badgeAngle = document.getElementById('badgeAngle');
                 const badgeHighlight = document.getElementById('badgeHighlight');
-                const badgeShadow = document.getElementById('badgeShadow');
                 if (angleSlider && angleValue && previewEl) {
                     const updateAngle = () => {
                         const deg = parseInt(angleSlider.value, 10) || 0;
@@ -1426,8 +1424,6 @@ input:checked + .slider:before {
                 // Shadow default to 0 opacity; no slider
                 if (previewEl) {
                     previewEl.style.setProperty('--shadow-alpha', '0');
-                    const badgeShadow = document.getElementById('badgeShadow');
-                    if (badgeShadow) badgeShadow.textContent = 'S: 0%';
                 }
                 if (colorPicker && previewEl) {
                     const updateColor = () => {
@@ -1842,6 +1838,94 @@ input:checked + .slider:before {
                 
                 this.showStats(img.width, img.height);
                 this.updateStats();
+                // Derive a default lighting color from dominant non-black/white tones
+                this.applyDominantLightingColor();
+            }
+
+            applyDominantLightingColor() {
+                try {
+                    const id = this.core.imageData;
+                    if (!id || !id.data) return;
+                    // Sample pixels with stride for performance
+                    const { data, width, height } = id;
+                    const total = width * height;
+                    const stride = Math.max(4, Math.floor((total / 50000)) * 4); // aim ~50k samples
+                    const bins = new Map();
+                    // quantization step
+                    const q = 32; // 8 levels per channel
+                    for (let i = 0; i < data.length; i += stride) {
+                        const r = data[i], g = data[i + 1], b = data[i + 2];
+                        const maxc = Math.max(r, g, b), minc = Math.min(r, g, b);
+                        const lum = (r + g + b) / 3;
+                        // skip near black/white
+                        if (lum < 18 || lum > 235) continue;
+                        // skip near grey extremes (very low saturation)
+                        if (maxc - minc < 12) continue;
+                        const rq = Math.floor(r / q) * q;
+                        const gq = Math.floor(g / q) * q;
+                        const bq = Math.floor(b / q) * q;
+                        const key = rq + ',' + gq + ',' + bq;
+                        bins.set(key, (bins.get(key) || 0) + 1);
+                    }
+                    if (!bins.size) return;
+                    // choose dominant bin
+                    let bestKey = null, bestCount = -1;
+                    for (const [k, c] of bins) { if (c > bestCount) { bestCount = c; bestKey = k; } }
+                    if (!bestKey) return;
+                    const [r, g, b] = bestKey.split(',').map(n => parseInt(n, 10));
+                    // lighten: convert to HSL and lift lightness
+                    const toHsl = (r, g, b) => {
+                        r /= 255; g /= 255; b /= 255;
+                        const max = Math.max(r, g, b), min = Math.min(r, g, b);
+                        let h, s, l = (max + min) / 2;
+                        if (max === min) { h = s = 0; }
+                        else {
+                            const d = max - min;
+                            s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+                            switch (max) {
+                                case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+                                case g: h = (b - r) / d + 2; break;
+                                case b: h = (r - g) / d + 4; break;
+                            }
+                            h /= 6;
+                        }
+                        return [h, s, l];
+                    };
+                    const fromHsl = (h, s, l) => {
+                        const hue2rgb = (p, q, t) => {
+                            if (t < 0) t += 1; if (t > 1) t -= 1;
+                            if (t < 1/6) return p + (q - p) * 6 * t;
+                            if (t < 1/2) return q;
+                            if (t < 2/3) return p + (q - p) * (2/3 - t) * 6;
+                            return p;
+                        };
+                        let r, g, b;
+                        if (s === 0) { r = g = b = l; }
+                        else {
+                            const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+                            const p = 2 * l - q;
+                            r = hue2rgb(p, q, h + 1/3);
+                            g = hue2rgb(p, q, h);
+                            b = hue2rgb(p, q, h - 1/3);
+                        }
+                        return [Math.round(r * 255), Math.round(g * 255), Math.round(b * 255)];
+                    };
+                    let [h, s, l] = toHsl(r, g, b);
+                    l = Math.min(0.85, Math.max(l, 0.6)); // ensure it is light
+                    s = Math.min(1.0, s * 1.05);
+                    const [lr, lg, lb] = fromHsl(h, s, l);
+                    const toHex = (x) => x.toString(16).padStart(2, '0');
+                    const hex = '#' + toHex(lr) + toHex(lg) + toHex(lb);
+                    // apply to overlay and color picker
+                    const previewEl = document.getElementById('gradientPreview');
+                    if (previewEl) {
+                        previewEl.style.setProperty('--highlight-color', hex);
+                        previewEl.style.setProperty('--highlight-color-weak', `rgba(${lr}, ${lg}, ${lb}, 0.35)`);
+                        previewEl.style.setProperty('--highlight-color-0', `rgba(${lr}, ${lg}, ${lb}, 0)`);
+                    }
+                    const picker = document.getElementById('highlightColorPicker');
+                    if (picker) picker.value = hex;
+                } catch (e) { /* ignore */ }
             }
 
             generateGradient() {
