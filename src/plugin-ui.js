@@ -9,6 +9,51 @@
     return el;
   }
 
+  // Auto-discover and load plugins from the plugins folder
+  function autoLoadPlugins(callback, options) {
+    options = options || {};
+    var basePath = options.basePath || 'src/plugins/';
+    var pluginFiles = options.pluginFiles || [
+      'soft-posterize.global.js',
+      'map-extractor.global.js', 
+      'lighting.global.js'
+    ];
+    
+    var loadedCount = 0;
+    var totalFiles = pluginFiles.length;
+    var discoveredPlugins = [];
+    
+    function onPluginLoaded() {
+      loadedCount++;
+      if (loadedCount === totalFiles) {
+        // Collect all plugins that have been loaded
+        pluginFiles.forEach(function(filename) {
+          var pluginName = filename.replace('.global.js', '').replace(/-([a-z])/g, function(match, letter) {
+            return letter.toUpperCase();
+          });
+          // Convert kebab-case to PascalCase (e.g., 'soft-posterize' -> 'SoftPosterize')
+          pluginName = pluginName.charAt(0).toUpperCase() + pluginName.slice(1);
+          
+          if (global[pluginName] && global[pluginName].ui) {
+            discoveredPlugins.push({ factory: global[pluginName], ui: global[pluginName].ui });
+          }
+        });
+        callback(discoveredPlugins);
+      }
+    }
+    
+    pluginFiles.forEach(function(filename) {
+      var script = document.createElement('script');
+      script.src = basePath + filename;
+      script.onload = onPluginLoaded;
+      script.onerror = function() {
+        console.warn('Failed to load plugin:', filename);
+        onPluginLoaded(); // Continue even if one fails
+      };
+      document.head.appendChild(script);
+    });
+  }
+
   function PluginUI(opts) {
     this.mount = opts.mount;
     this.plugins = opts.plugins || [];
@@ -190,6 +235,21 @@
 
   PluginUI.prototype.forceUpdateCustomContent = function(pluginId) {
     this.updateCustomContent(pluginId, true);
+  };
+
+  // Static method to auto-initialize with discovered plugins
+  PluginUI.autoInit = function(mountElement, onChange, hooks, options) {
+    autoLoadPlugins(function(discoveredPlugins) {
+      var instance = new PluginUI({
+        mount: mountElement,
+        plugins: discoveredPlugins,
+        onChange: onChange,
+        hooks: hooks
+      });
+      // Store reference on mount element for access
+      mountElement.pluginUIInstance = instance;
+      return instance;
+    }, options);
   };
 
   global.PluginUI = PluginUI;

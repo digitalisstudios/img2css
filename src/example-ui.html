@@ -1250,9 +1250,6 @@ input:checked + .slider:before {
     </div>
   </div>
 
-    <script src="plugins/soft-posterize.global.js"></script>
-    <script src="plugins/map-extractor.global.js"></script>
-    <script src="plugins/lighting.global.js"></script>
     <script src="plugin-ui.js"></script>
     <script src="img2css.js"></script>
     <script>
@@ -1281,88 +1278,101 @@ input:checked + .slider:before {
 
             initPluginUI(pluginMount) {
                 if (!pluginMount) return;
-                // Defer to ensure all plugin globals are available
-                const setup = () => {
-                    const defs = [];
-                    if (window.SoftPosterize && window.SoftPosterize.ui) defs.push({ factory: window.SoftPosterize, ui: window.SoftPosterize.ui });
-                    if (window.MapExtractor && window.MapExtractor.ui) defs.push({ factory: window.MapExtractor, ui: window.MapExtractor.ui });
-                    if (window.Lighting && window.Lighting.ui) defs.push({ factory: window.Lighting, ui: window.Lighting.ui });
-
-                    if (!window.PluginUI) {
-                        console.warn('[Plugins] plugin-ui.js not loaded.');
-                        pluginMount.innerHTML = '<div class="help-text">No plugins UI available (plugin-ui.js not loaded).</div>';
-                        return;
-                    }
-                    if (!defs.length) {
-                        console.warn('[Plugins] No compatible plugins detected.');
-                        pluginMount.innerHTML = '<div class="help-text">No compatible plugins detected. Ensure plugin scripts are loaded before this script.</div>';
-                        return;
-                    }
-                    const self = this;
-                    this.pluginUI = new window.PluginUI({
-                        mount: pluginMount,
-                        plugins: defs,
-                        hooks: {
-                            mapExtractor: {
-                                onMapCSS({ type, css, fromImage }) {
-                                    // Route CSS based previews for normal, roughness, and subject normal maps
-                                    if (type === 'normal') {
-                                        self.updateNormalGradientClass(css);
-                                        const normalEl = document.getElementById('normalGradientPreview');
-                                        if (normalEl) normalEl.className = 'normal-gradient-preview';
-                                        const outN = document.getElementById('normalCssCode'); if (outN) outN.textContent = css;
-                                    } else if (type === 'roughness') {
-                                        self.updateRoughnessGradientClass(css);
-                                        const roughnessEl = document.getElementById('roughnessGradientPreview');
-                                        if (roughnessEl) roughnessEl.className = 'roughness-gradient-preview';
-                                        const outR = document.getElementById('roughCssCode'); if (outR) outR.textContent = css;
-                                        // Also use roughness as specularity CSS
-                                        const outSpec = document.getElementById('specCssCode'); if (outSpec) outSpec.textContent = css;
-                                        // Update CSS-lighting mask only when CSS came from the pixel map conversion
-                                        if (fromImage) {
-                                            const bg = self.extractBackgroundFromCSS(css);
-                                            const gp = document.getElementById('gradientPreview');
-                                            if (bg && gp) {
-                                                // Emit beforeMaskLoaded hook for lighting plugin
-                                                try {
-                                                    if (self.pluginUI && self.pluginUI.getValues) {
-                                                        const st = self.pluginUI.getValues();
-                                                        if (st && st.lighting) {
-                                                            self.emitLightingHook('beforeMaskLoaded', { 
-                                                                mask: bg, 
-                                                                element: gp, 
-                                                                mapType: 'roughness',
-                                                                lightingState: st.lighting 
-                                                            });
-                                                        }
+                if (!window.PluginUI) {
+                    console.warn('[Plugins] plugin-ui.js not loaded.');
+                    pluginMount.innerHTML = '<div class="help-text">No plugins UI available (plugin-ui.js not loaded).</div>';
+                    return;
+                }
+                
+                const self = this;
+                
+                // Auto-load and initialize plugins
+                window.PluginUI.autoInit(
+                    pluginMount,
+                    function(id, values) {
+                        console.log('[Plugin]', id, 'changed:', values);
+                        
+                        // Handle lighting changes - only update CSS variables, don't regenerate
+                        if (id === 'lighting') {
+                            self.applyLightingVars(values);
+                            return; // Don't schedule full regeneration for lighting changes
+                        }
+                        
+                        // Handle MapExtractor preview visibility
+                        if (id === 'mapExtractor') {
+                            self.updateMapPreviewVisibility(values);
+                        }
+                        
+                        self.scheduleGeneration();
+                    },
+                    {
+                        mapExtractor: {
+                            onMapCSS: function(data) {
+                                var type = data.type;
+                                var css = data.css;
+                                var fromImage = data.fromImage;
+                                
+                                // Route CSS based previews for normal, roughness, and subject normal maps
+                                if (type === 'normal') {
+                                    self.updateNormalGradientClass(css);
+                                    var normalEl = document.getElementById('normalGradientPreview');
+                                    if (normalEl) normalEl.className = 'normal-gradient-preview';
+                                    var outN = document.getElementById('normalCssCode'); 
+                                    if (outN) outN.textContent = css;
+                                } else if (type === 'roughness') {
+                                    self.updateRoughnessGradientClass(css);
+                                    var roughnessEl = document.getElementById('roughnessGradientPreview');
+                                    if (roughnessEl) roughnessEl.className = 'roughness-gradient-preview';
+                                    var outR = document.getElementById('roughCssCode'); 
+                                    if (outR) outR.textContent = css;
+                                    // Also use roughness as specularity CSS
+                                    var outSpec = document.getElementById('specCssCode'); 
+                                    if (outSpec) outSpec.textContent = css;
+                                    
+                                    // Update CSS-lighting mask only when CSS came from the pixel map conversion
+                                    if (fromImage) {
+                                        var bg = self.extractBackgroundFromCSS(css);
+                                        var gp = document.getElementById('gradientPreview');
+                                        if (bg && gp) {
+                                            // Emit beforeMaskLoaded hook for lighting plugin
+                                            try {
+                                                if (self.pluginUI && self.pluginUI.getValues) {
+                                                    var st = self.pluginUI.getValues();
+                                                    if (st && st.lighting) {
+                                                        self.emitLightingHook('beforeMaskLoaded', { 
+                                                            mask: bg, 
+                                                            element: gp, 
+                                                            mapType: 'roughness',
+                                                            lightingState: st.lighting 
+                                                        });
                                                     }
-                                                } catch(_) {}
-                                                
-                                                gp.style.setProperty('--spec-mask', bg);
-                                                gp.classList.add('mask-ready');
-                                                
-                                                // Emit onMaskLoaded hook for lighting plugin
-                                                try {
-                                                    if (self.pluginUI && self.pluginUI.getValues) {
-                                                        const st = self.pluginUI.getValues();
-                                                        if (st && st.lighting) {
-                                                            self.emitLightingHook('onMaskLoaded', { 
-                                                                mask: bg, 
-                                                                element: gp, 
-                                                                mapType: 'roughness',
-                                                                lightingState: st.lighting 
-                                                            });
-                                                        }
+                                                }
+                                            } catch(_) {}
+                                            
+                                            gp.style.setProperty('--spec-mask', bg);
+                                            gp.classList.add('mask-ready');
+                                            
+                                            // Emit onMaskLoaded hook for lighting plugin
+                                            try {
+                                                if (self.pluginUI && self.pluginUI.getValues) {
+                                                    var st = self.pluginUI.getValues();
+                                                    if (st && st.lighting) {
+                                                        self.emitLightingHook('onMaskLoaded', { 
+                                                            mask: bg, 
+                                                            element: gp, 
+                                                            mapType: 'roughness',
+                                                            lightingState: st.lighting 
+                                                        });
                                                     }
-                                                } catch(_) {}
-                                            }
+                                                }
+                                            } catch(_) {}
                                             
                                             // Apply clearcoat lighting preset values now that roughness map is ready
                                             try {
                                                 if (self.pluginUI && self.pluginUI.getValues) {
-                                                    const st = self.pluginUI.getValues();
+                                                    var st = self.pluginUI.getValues();
                                                     if (st && st.lighting && (st.lighting.preset === 'clearcoat' || !st.lighting.preset)) {
-                                                        const clearcoatValues = {
+                                                        var clearcoatValues = {
                                                             preset: 'clearcoat',
                                                             lightAngle: 171,
                                                             highlightAlpha: 1.0,
@@ -1384,99 +1394,74 @@ input:checked + .slider:before {
                                                 }
                                             } catch(_) {}
                                         }
-                                    } else if (type === 'subjectnormal') {
-                                        self.updateSubjectNormalGradientClass(css);
-                                        const subjectnormalEl = document.getElementById('subjectnormalGradientPreview');
-                                        if (subjectnormalEl) subjectnormalEl.className = 'subjectnormal-gradient-preview';
-                                        const outS = document.getElementById('subjectnormalCssCode'); if (outS) outS.textContent = css;
-                                        const outReflS = document.getElementById('reflFromSubjectnormalCssCode'); if (outReflS) outReflS.textContent = css;
-                                        // Optionally use subject normal as an alternative highlight mask
-                                        const bg = self.extractBackgroundFromCSS(css);
-                                        const gp = document.getElementById('gradientPreview');
-                                        if (bg && gp) {
-                                            gp.style.setProperty('--refl-mask', bg);
-                                        }
                                     }
-                                },
-                                onMap({ type, dataURL }) {
-                                    self.lastMapData = self.lastMapData || {};
-                                    self.lastMapData[type] = dataURL || null;
-                                    // Only handle image-based previews for maps that don't use CSS gradients
-                                    const mapToImg = { albedo: 'albedoImage', irradiance: 'irradianceImage', depth: 'depthImage', object: 'objectImage' };
-                                    const imgId = mapToImg[type];
-                                    if (imgId) {
-                                        const img = document.getElementById(imgId);
-                                        if (img && dataURL) {
-                                            img.src = dataURL;
-                                        }
+                                } else if (type === 'subjectnormal') {
+                                    self.updateSubjectNormalGradientClass(css);
+                                    var subjectnormalEl = document.getElementById('subjectnormalGradientPreview');
+                                    if (subjectnormalEl) subjectnormalEl.className = 'subjectnormal-gradient-preview';
+                                    var outS = document.getElementById('subjectnormalCssCode'); 
+                                    if (outS) outS.textContent = css;
+                                    var outReflS = document.getElementById('reflFromSubjectnormalCssCode'); 
+                                    if (outReflS) outReflS.textContent = css;
+                                    
+                                    // Optionally use subject normal as an alternative highlight mask
+                                    var bg = self.extractBackgroundFromCSS(css);
+                                    var gp = document.getElementById('gradientPreview');
+                                    if (bg && gp) {
+                                        gp.style.setProperty('--refl-mask', bg);
                                     }
-                                    // Roughness: prefer exact base64 image for masking and visualization
-                                    if (type === 'roughness' && dataURL) {
-                                        const gp = document.getElementById('gradientPreview');
-                                        if (gp) {
-                                            const urlDecl = 'url("' + dataURL + '") left top / 100% 100% no-repeat';
-                                            // For overlay masking
-                                            gp.style.setProperty('--spec-mask', urlDecl);
-                                            gp.classList.add('mask-ready');
-                                            // For mask-only visualization
-                                            gp.style.setProperty('--mask-visual', urlDecl);
-                                        }
+                                }
+                            },
+                            onMap: function(data) {
+                                var type = data.type;
+                                var dataURL = data.dataURL;
+                                
+                                self.lastMapData = self.lastMapData || {};
+                                self.lastMapData[type] = dataURL || null;
+                                
+                                // Only handle image-based previews for maps that don't use CSS gradients
+                                var mapToImg = { albedo: 'albedoImage', irradiance: 'irradianceImage', depth: 'depthImage', object: 'objectImage' };
+                                var imgId = mapToImg[type];
+                                if (imgId) {
+                                    var img = document.getElementById(imgId);
+                                    if (img && dataURL) {
+                                        img.src = dataURL;
+                                    }
+                                }
+                                
+                                // Roughness: prefer exact base64 image for masking and visualization
+                                if (type === 'roughness' && dataURL) {
+                                    var gp = document.getElementById('gradientPreview');
+                                    if (gp) {
+                                        var urlDecl = 'url("' + dataURL + '") left top / 100% 100% no-repeat';
+                                        gp.style.setProperty('--spec-mask', urlDecl);
+                                        gp.classList.add('mask-ready');
+                                        gp.style.setProperty('--mask-visual', urlDecl);
                                     }
                                 }
                             }
-                        },
-                        onChange: (pid, values) => { 
-                            if (pid === 'lighting') { this.applyLightingVars(values, true); return; }
-                            this.updateMapPreviewVisibility(); 
-                            this.updateStats(); 
-                            this.scheduleGeneration(); 
                         }
-                    });
-                    
-                    // Set initial preview visibility based on default values
-                    setTimeout(() => {
-                        this.updateMapPreviewVisibility();
-                        try { 
-                            if (this.pluginUI && this.pluginUI.getValues) { 
-                                const st = this.pluginUI.getValues(); 
-                                if (st && st.lighting) {
-                                    // Ensure Clearcoat preset is applied by default
-                                    const clearcoatValues = {
-                                        preset: 'clearcoat',
-                                        lightAngle: 171,
-                                        highlightAlpha: 1.0,
-                                        blendMode: 'screen',
-                                        color: '#ffffff',
-                                        bandGap: 110,
-                                        bandWidth: 50,
-                                        softEdge: 4,
-                                        bandPhase: 2,
-                                        bandGap2: 80,
-                                        bandWidth2: 10,
-                                        bandPhase3: 14,
-                                        bandGap3: 120,
-                                        bandWidth3: 8
-                                    };
-                                    
-                                    if (st.lighting.preset === 'clearcoat') {
-                                        // Ensure all clearcoat values are populated even when preset is already selected
-                                        Object.assign(st.lighting, clearcoatValues);
-                                        this.applyLightingVars(st.lighting);
-                                    } else {
-                                        // Force Clearcoat preset if not already set and populate all values
-                                        Object.assign(st.lighting, clearcoatValues);
-                                        this.applyLightingVars(st.lighting);
-                                    }
-                                }
-                            } 
-                        } catch(_) {}
-                    }, 0);
-                    
+                    },
+                    {
+                        basePath: 'plugins/',
+                        pluginFiles: [
+                            'soft-posterize.global.js',
+                            'map-extractor.global.js',
+                            'lighting.global.js'
+                        ]
+                    }
+                );
+                
+                // Store reference to pluginUI when it's created
+                setTimeout(() => {
+                    this.pluginUI = pluginMount.pluginUIInstance;
                     // Add collapsible functionality to plugins
-                    setTimeout(() => this.setupPluginCollapse(), 100);
-                };
-                if (document.readyState === 'complete') setTimeout(setup, 0);
-                else setTimeout(setup, 0);
+                    this.setupPluginCollapse();
+                    // Initialize map preview visibility
+                    if (this.pluginUI && this.pluginUI.state && this.pluginUI.state.mapExtractor) {
+                        this.updateMapPreviewVisibility(this.pluginUI.state.mapExtractor);
+                    }
+                }, 100);
             }
 
             emitLightingHook(eventName, payload) {
