@@ -151,11 +151,13 @@ input[type="file"] {
 .css-lighting { position: relative; }
 .css-lighting::before, .css-lighting::after { content: ''; position: absolute; inset: 0; pointer-events: none; }
 .css-lighting::before {
-  /* Fixed highlight gradient, masked by roughness-derived spec mask */
-  background: linear-gradient(
+  /* Fixed highlight gradient with hard transitions (specular bands), masked by roughness-derived spec mask */
+  background: repeating-linear-gradient(
     var(--light-angle, 35deg),
-    var(--highlight-color, #ffffff) 0%,
-    transparent 60%
+    transparent 0,
+    transparent var(--band-gap, 40px),
+    var(--highlight-color, #ffffff) var(--band-gap, 40px),
+    var(--highlight-color, calc(var(--band-gap, 40px) + var(--band-width, 10px)))
   );
   /* Make lighting fixed to viewport so scroll changes interaction */
   background-attachment: fixed;
