@@ -820,10 +820,10 @@
     id: 'mapExtractor',
     name: 'MapExtractor (PBR Maps)',
     controls: [
+      { type: 'switch', key: 'enabled', label: 'Enable', default: true },
       { type: 'switch', key: 'normalOn', label: 'Normal', default: false },
       { type: 'switch', key: 'roughnessOn', label: 'Roughness', default: true },
       { type: 'switch', key: 'subjectnormalOn', label: 'Subject Normal', default: false },
-      { type: 'switch', key: 'enabled', label: 'Enable', default: true },
       { type: 'select', key: 'computeAt', label: 'Compute At', default: 'scaled', options: [
         { label: 'Scaled', value: 'scaled' },
         { label: 'Original', value: 'original' }

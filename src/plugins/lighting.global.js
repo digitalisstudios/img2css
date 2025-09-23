@@ -278,7 +278,6 @@
       { type: 'slider', key: 'lightAngle', label: 'Angle', min: 0, max: 360, step: 1, default: 171 },
       { type: 'slider', key: 'highlightAlpha', label: 'Intensity', min: 0, max: 1, step: 0.01, default: 1.0 },
       { type: 'color', key: 'color', label: 'Lighting Color', default: '#ffffff' },
-      { type: 'switch', key: 'reflection', label: 'Reflection Mode (Use Subject Normal)', default: false },
       { type: 'select', key: 'blendMode', label: 'Blend Mode', default: 'screen', options: [
         { label: 'normal', value: 'normal' },
         { label: 'screen', value: 'screen' },
