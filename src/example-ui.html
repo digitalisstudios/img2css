@@ -5,11 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>img2css Example</title>
     <style>
+    	* {
+    		box-sizing: border-box;
+
+    	}
         body {
   font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
   margin: 0;
-  padding: 15px;
-  background: #0d1117;
+  /*padding: 15px;*/
+  background: #0a0f14;
   color: #e6edf3;
   position: relative;
   line-height: 1.5;
@@ -52,17 +56,16 @@ a,
   );
 }
 
-.gradient-background.active {
-  opacity: 0.35;
-}
+.gradient-background.active { opacity: 0; }
 
 .container {
-  background: #161b22;
+  background: #0e141b;
   padding: clamp(15px, 3vw, 25px);
   border-radius: 8px;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3), 0 1px 4px rgba(0, 0, 0, 0.2);
   border: 1px solid #30363d;
-  max-width: clamp(300px, 95%, 1200px);
+  width: 100%;
+  max-width: none;
   margin: 0 auto;
 }
 
@@ -75,13 +78,7 @@ h1 {
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
 }
 
-h1.direction-step {
-  margin-top: clamp(2rem, 4vw, 3rem);
-  text-align: left;
-  color: #1f6feb;
-  text-transform: uppercase;
-  font-size: clamp(1.5rem, 3vw, 2.5rem);
-}
+h1.direction-step { display: none !important; }
 
 h1.direction-step small {
   text-align: right;
@@ -275,7 +272,7 @@ button:disabled {
 }
 
 .preview-section {
-  margin: clamp(15px, 3vw, 25px) 0;
+  /*margin: clamp(15px, 3vw, 25px) 0;*/
   display: none;
 }
 
@@ -307,23 +304,33 @@ button:disabled {
   cursor: pointer;
 }
 
-.main-row {
-  display: grid;
-  grid-template-columns: 2fr 1fr;
-  gap: clamp(12px, 2.5vw, 20px);
-  margin: clamp(15px, 3vw, 20px) 0;
+.main-row {     display: grid
+;
+    grid-template-columns: minmax(0, 1fr) minmax(520px, 20%);
+    gap: clamp(12px, 2.5vw, 20px);
+    /* margin: clamp(15px, 3vw, 20px) 0; */
+    align-items: center;
+    justify-content: center;
+    justify-items: center;
 }
 
-.preview-column {
-  display: flex;
-  flex-direction: column;
+.preview-column {     
+	display: flex;
+    flex-direction: column;
+    padding: 12px;
+    height: calc(100vh - 45px);
+
+    /* max-width: 1480px; */
+    /* margin-left: auto; */
+    /* margin-right: auto; */
+    overflow: auto;
+    flex-wrap: wrap;
+    /* align-content: center; */
+    /* align-items: center; */
+    width: 80%;
 }
 
-.side-column {
-  display: flex;
-  flex-direction: column;
-  gap: clamp(12px, 2.5vw, 18px);
-}
+.side-column { display: flex; flex-direction: column; gap: clamp(12px, 2.5vw, 18px); background: #0b1118; border-left: 1px solid #243041; width: 100%; padding: 15px 40px; max-height: calc(100vh - 45px); overflow-y: auto; background: #0b1118;}
 
 .original-section {
   display: flex;
@@ -339,14 +346,7 @@ button:disabled {
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
 }
 
-.image-container {
-  border: 1px solid #30363d;
-  border-radius: 8px;
-  overflow: hidden;
-  background: #21262d;
-  transition: transform 0.2s, box-shadow 0.2s;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-}
+.image-container { border: 1px solid #243041; border-radius: 8px; overflow: hidden; background: #0d1219; transition: transform 0.2s, box-shadow 0.2s; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2); margin: 0 auto; max-width: 960px; width: 80%; }
 
 .image-container.clickable {
   cursor: pointer;
@@ -362,17 +362,15 @@ button:disabled {
   max-width: 100%;
   height: auto;
   display: block;
+  width: 100%;
+  min-height: 300px; /* fallback so preview area is visible before CSS arrives */
 }
 
-.options-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: clamp(12px, 2.5vw, 18px);
-  margin: clamp(15px, 3vw, 20px) 0;
-  padding: clamp(15px, 3vw, 20px);
-  background: #161b22;
-  border-radius: 8px;
-}
+.options-grid { display: flex; flex-direction: column; gap: clamp(12px, 2.5vw, 18px); margin: 0; padding: 0; background: transparent; border-radius: 0; }
+.site-header { position: sticky; top: 0; z-index: 1000; background: #0b1118; border-bottom: 1px solid #243041; padding: 10px 16px; display: flex; align-items: center; justify-content: space-between; }
+.site-header .title { font-weight: 700; letter-spacing: 0.5px; }
+.site-header .tag a { color: #2ea043; }
+.preview-section { display: block; }
 
 .option-column {
   display: flex;
@@ -719,7 +717,7 @@ input:checked + .slider:before {
 
 @media (max-width: 768px) {
   body {
-    padding: 10px;
+   /* padding: 10px;*/
     font-size: 13px;
   }
   
@@ -788,16 +786,10 @@ input:checked + .slider:before {
     </style>
 </head>
 <body>
-    <div class="container">
-  <h1><span class="main-header">img2css</span>
-    <p>
-      <small>Convert any image to a single css gradient. </small>
-    </p>
-  </h1>
-
-  <p style="padding: clamp(10px, 2vw, 15px); text-align:center; font-size: clamp(0.9rem, 2vw, 1.1rem); line-height: 1.4;">
-    This demo shows the capabilities of the img2css package. For full documentation see <a href="https://github.com/digitalisstudios/img2css" target="_blank">the documentation here</a>
-  </p>
+  <div class="site-header">
+    <div class="title">img2css</div>
+    <div class="tag">Convert any image to a single CSS gradient. <a href="https://github.com/digitalisstudios/img2css" target="_blank">Docs</a></div>
+  </div>
 
   <div class="upload-section">
     <h1 class="direction-step">Step 1. <small>Drop an image, browse for an image or load an image from a url</small></h1>
@@ -823,7 +815,7 @@ input:checked + .slider:before {
 
   <div class="preview-section" id="previewSection">
 
-    <h1 class="direction-step">Step 2. <small> Preview the converted image. (Yes that's actually a css gradient)</small></h1>
+    
     <div class="main-row">
       <div class="preview-column">
         <h3>Pure CSS Preview</h3>
@@ -967,6 +959,7 @@ input:checked + .slider:before {
       </div>
     </div>
 
+    
     <div class="css-output" id="cssOutput" style="display: none;">
       <h1 class="direction-step">Step 4. <small>Grab your generated gradient</small></h1>
       <div class="css-header">
@@ -1031,7 +1024,6 @@ input:checked + .slider:before {
       </div>
     </div>
   </div>
-</div>
 
     <script src="plugins/soft-posterize.global.js"></script>
     <script src="plugins/map-extractor.global.js"></script>
@@ -1338,6 +1330,26 @@ input:checked + .slider:before {
                   return null;
                 })();
                 this.initPluginUI(pluginMount);
+
+                // Re-layout: move non-plugin controls (options-grid) into right sidebar, and stats to left column above preview
+                try {
+                    const sideCol = document.querySelector('.side-column');
+                    const opts = document.querySelector('.options-grid');
+                    if (opts && sideCol) sideCol.appendChild(opts);
+                    const statsBox = document.getElementById('stats');
+                    const imgContainer = document.querySelector('.preview-column .image-container');
+                    if (statsBox && imgContainer && imgContainer.parentNode) {
+                        imgContainer.parentNode.insertBefore(statsBox, imgContainer);
+                    }
+                    // Move upload section into the top of preview column
+                    const upload = document.querySelector('.upload-section');
+                    const previewCol = document.querySelector('.preview-column');
+                    if (upload && previewCol) previewCol.insertBefore(upload, previewCol.firstChild);
+                    // Hide Step 3 header if present since controls are in sidebar
+                    const headers = Array.from(document.querySelectorAll('h1.direction-step'));
+                    const step3 = headers.find(h => /Step\s*3/i.test(h.textContent));
+                    headers.forEach(h => h.style.display = 'none');
+                } catch (_) {}
             }
 
             scheduleGeneration() {
@@ -1637,7 +1649,6 @@ input:checked + .slider:before {
                     const css = await this.core.toCSS();
                     
                     this.createGradientPreview(css, width, height);
-                    this.updateBodyBackground(css, width, height);
                     
                     document.getElementById('cssCode').textContent = css;
                     document.getElementById('cssOutput').style.display = 'block';
@@ -1670,6 +1681,8 @@ input:checked + .slider:before {
                 preview.style.backgroundSize = '';
                 preview.style.backgroundRepeat = '';
                 preview.style.backgroundPosition = '';
+                // Remove fallback min-height once real CSS with aspect-ratio is applied
+                preview.style.minHeight = '';
             }
 
             applyCSSLightingOverlay(enabled) {
