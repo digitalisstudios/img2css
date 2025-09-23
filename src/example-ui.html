@@ -1238,14 +1238,9 @@ input:checked + .slider:before {
                 
                 elements.imageInput.addEventListener('change', (e) => this.handleFileSelect(e));
                 elements.loadUrlBtn.addEventListener('click', () => this.loadFromUrl());
-                elements.copyBtn.addEventListener('click', () => this.copyCSS());                if (lightingCb) lightingCb.addEventListener('change', (e) => this.applyCSSLightingOverlay(e.target.checked));
+                elements.copyBtn.addEventListener('click', () => this.copyCSS());
                 // Show mask toggle
-                const showMaskCb = document.getElementById('showMaskCheckbox');
-                if (showMaskCb) showMaskCb.addEventListener('change', (e) => {
-                    const gp = document.getElementById('gradientPreview');
-                    if (gp) gp.classList.toggle('show-mask', !!e.target.checked);
-                });
-                const specDl = document.getElementById('specDownloadBtn');
+                                const specDl = document.getElementById('specDownloadBtn');
                 if (specDl) specDl.addEventListener('click', () => this.downloadMapCSS('specular'));
                 const normalDl = document.getElementById('normalDownloadBtn');
                 if (normalDl) normalDl.addEventListener('click', () => this.downloadMapCSS('normal'));
