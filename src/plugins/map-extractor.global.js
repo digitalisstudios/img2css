@@ -819,6 +819,7 @@
   global.MapExtractor.ui = {
     id: 'mapExtractor',
     name: 'MapExtractor (PBR Maps)',
+    noAutoRerender: true, // Don't re-render custom content on control changes
     controls: [
       { type: 'switch', key: 'enabled', label: 'Enable', default: true },
       { type: 'switch', key: 'normalOn', label: 'Normal', default: false },
@@ -871,6 +872,76 @@
         selectors: { specular: '.specular-gradient-preview', albedo: '.albedo-gradient-preview', normal: '.normal-gradient-preview', roughness: '.roughness-gradient-preview', subjectnormal: '.subjectnormal-gradient-preview', irradiance: '.irradiance-gradient-preview', depth: '.depth-gradient-preview', object: '.object-mask-preview' },
         on: (ctx && ctx.hooks) ? ctx.hooks : undefined
       });
+    },
+    customContent(values) {
+      // Create the map preview container
+      var container = document.createElement('div');
+      container.id = 'mapExtractor-rendered-layers';
+      container.style.marginTop = '20px';
+      
+      // Helper function to create preview sections
+      function createPreviewSection(id, title, isVisible, isImageBased) {
+        var section = document.createElement('div');
+        section.id = id;
+        section.style.display = isVisible ? 'block' : 'none';
+        section.style.marginTop = '12px';
+        
+        var h3 = document.createElement('h3');
+        h3.textContent = title;
+        h3.style.marginTop = '12px';
+        h3.style.marginBottom = '8px';
+        h3.style.color = '#e6edf3';
+        h3.style.fontSize = '14px';
+        h3.style.fontWeight = '600';
+        section.appendChild(h3);
+        
+        var imageContainer = document.createElement('div');
+        imageContainer.className = 'image-container';
+        imageContainer.style.border = '1px solid #30363d';
+        imageContainer.style.borderRadius = '8px';
+        imageContainer.style.overflow = 'hidden';
+        imageContainer.style.background = '#0d1219';
+        
+        if (isImageBased) {
+          var img = document.createElement('img');
+          img.id = id.replace('PreviewSection', 'Image');
+          img.alt = title;
+          img.style.maxWidth = '100%';
+          img.style.display = 'block';
+          imageContainer.appendChild(img);
+        } else {
+          var previewDiv = document.createElement('div');
+          previewDiv.id = id.replace('PreviewSection', 'GradientPreview');
+          previewDiv.style.width = '100%';
+          previewDiv.style.minHeight = '200px';
+          imageContainer.appendChild(previewDiv);
+        }
+        
+        section.appendChild(imageContainer);
+        return section;
+      }
+      
+      // Create preview sections based on enabled map types
+      if (values.normalOn) {
+        container.appendChild(createPreviewSection('normalPreviewSection', 'Normal Map Preview', true, false));
+      }
+      
+      if (values.roughnessOn) {
+        container.appendChild(createPreviewSection('roughnessPreviewSection', 'Roughness Map Preview', true, false));
+      }
+      
+      if (values.subjectnormalOn) {
+        container.appendChild(createPreviewSection('subjectnormalPreviewSection', 'Subject Normal Map Preview', true, false));
+      }
+      
+      // Hidden sections (always created but hidden)
+      container.appendChild(createPreviewSection('specGradientPreviewSection', 'Specular Map Preview', false, false));
+      container.appendChild(createPreviewSection('albedoPreviewSection', 'Albedo Map Preview', false, true));
+      container.appendChild(createPreviewSection('irradiancePreviewSection', 'Irradiance Map Preview', false, true));
+      container.appendChild(createPreviewSection('depthPreviewSection', 'Depth Map Preview', false, true));
+      container.appendChild(createPreviewSection('objectPreviewSection', 'Object Isolation Preview', false, true));
+      
+      return container;
     }
   };
 })(typeof window !== 'undefined' ? window : this);

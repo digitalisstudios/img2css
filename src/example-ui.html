@@ -179,12 +179,16 @@
 }
 
 .plugin-header {
+	--blue-ui-color:#1f6feb;
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 12px 18px;
   cursor: pointer;
   border-bottom: 1px solid #1f6feb;
+  background: rgba(from var(--blue-ui-color) r g b / 0.25);
+  border-radius: 8px 8px 0 0;
+
 }
 
 .plugin-title {
@@ -1080,59 +1084,6 @@ input:checked + .slider:before {
             <div id="gradientPreview"></div>
           </div>
 
-          <h3 style="margin-top:12px; display: none;">Specular Map Preview</h3>
-          <div class="image-container" style="display: none;">
-            <div id="specGradientPreview"></div>
-          </div>
-
-          <div id="albedoPreviewSection" style="display: none;">
-            <h3 style="margin-top:12px;">Albedo Map Preview</h3>
-            <div class="image-container">
-              <img id="albedoImage" alt="Albedo Map" style="max-width:100%; display:block;" />
-            </div>
-          </div>
-
-          <div id="normalPreviewSection">
-            <h3 style="margin-top:12px;">Normal Map Preview</h3>
-            <div class="image-container">
-              <div id="normalGradientPreview"></div>
-            </div>
-          </div>
-
-          <div id="roughnessPreviewSection">
-            <h3 style="margin-top:12px;">Roughness Map Preview</h3>
-            <div class="image-container">
-              <div id="roughnessGradientPreview"></div>
-            </div>
-          </div>
-
-          <div id="subjectnormalPreviewSection">
-            <h3 style="margin-top:12px;">Subject Normal Map Preview</h3>
-            <div class="image-container">
-              <div id="subjectnormalGradientPreview"></div>
-            </div>
-          </div>
-
-          <div id="irradiancePreviewSection" style="display: none;">
-            <h3 style="margin-top:12px;">Irradiance Map Preview</h3>
-            <div class="image-container">
-              <img id="irradianceImage" alt="Irradiance Map" style="max-width:100%; display:block;" />
-            </div>
-          </div>
-
-          <div id="depthPreviewSection" style="display: none;">
-            <h3 style="margin-top:12px;">Depth Map Preview</h3>
-            <div class="image-container">
-              <img id="depthImage" alt="Depth Map" style="max-width:100%; display:block;" />
-            </div>
-          </div>
-
-          <div id="objectPreviewSection" style="display: none;">
-            <h3 style="margin-top:12px;">Object Isolation Preview</h3>
-            <div class="image-container">
-              <img id="objectImage" alt="Object Mask" style="max-width:100%; display:block;" />
-            </div>
-          </div>
 
           <div class="css-output" id="cssOutput" style="display: none;">
             <h3>Generated CSS</h3>
@@ -2010,6 +1961,11 @@ input:checked + .slider:before {
                 this.updateStats();
                 // Derive a default lighting color from dominant non-black/white tones
                 this.applyDominantLightingColor();
+                
+                // Force update MapExtractor custom content with new image
+                if (this.pluginUI && this.pluginUI.forceUpdateCustomContent) {
+                    this.pluginUI.forceUpdateCustomContent('mapExtractor');
+                }
             }
 
             applyDominantLightingColor() {

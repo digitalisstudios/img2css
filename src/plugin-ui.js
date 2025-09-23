@@ -92,6 +92,16 @@
         wrap.appendChild(row);
       });
 
+      // Add custom content if provided
+      if (ui.customContent && typeof ui.customContent === 'function') {
+        var customEl = ui.customContent(self.state[ui.id] || {});
+        if (customEl) {
+          customEl.className = 'plugin-custom-content';
+          customEl.setAttribute('data-plugin-id', ui.id);
+          wrap.appendChild(customEl);
+        }
+      }
+
       container.appendChild(wrap);
     });
   };
@@ -152,6 +162,34 @@
         element.value = value;
       }
     }
+    
+    // Update custom content if plugin has it (but respect noAutoRerender flag)
+    var plugin = this.plugins.find(function(p) { return p.ui && p.ui.id === pluginId; });
+    if (!plugin || !plugin.ui.noAutoRerender) {
+      this.updateCustomContent(pluginId);
+    }
+  };
+
+  PluginUI.prototype.updateCustomContent = function(pluginId, force) {
+    var plugin = this.plugins.find(function(p) { return p.ui && p.ui.id === pluginId; });
+    if (!plugin || !plugin.ui.customContent) return;
+    
+    // Don't auto-rerender if plugin has noAutoRerender flag, unless forced
+    if (!force && plugin.ui.noAutoRerender) return;
+    
+    var existingCustom = this.mount.querySelector('[data-plugin-id="' + pluginId + '"]');
+    if (existingCustom && existingCustom.parentNode) {
+      var newCustomEl = plugin.ui.customContent(this.state[pluginId] || {});
+      if (newCustomEl) {
+        newCustomEl.className = 'plugin-custom-content';
+        newCustomEl.setAttribute('data-plugin-id', pluginId);
+        existingCustom.parentNode.replaceChild(newCustomEl, existingCustom);
+      }
+    }
+  };
+
+  PluginUI.prototype.forceUpdateCustomContent = function(pluginId) {
+    this.updateCustomContent(pluginId, true);
   };
 
   global.PluginUI = PluginUI;
