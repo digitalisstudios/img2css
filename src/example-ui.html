@@ -12,12 +12,263 @@
         body {
   font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
   margin: 0;
-  /*padding: 15px;*/
+  padding: 0;
   background: #0a0f14;
   color: #e6edf3;
   position: relative;
   line-height: 1.5;
   font-size: 14px;
+  overflow: hidden;
+  height: 100vh;
+  width: 100vw;
+
+}
+
+.app-layout {
+  display: grid;
+  grid-template-rows: auto 1fr;
+  height: 100vh;
+}
+
+.fixed-header {
+  background: #0b1118;
+  border-bottom: 2px solid #243041;
+  padding: 15px 20px;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 30px;
+  align-items: center;
+  z-index: 1000;
+}
+
+.main-content {
+  display: grid;
+  grid-template-columns: 1fr 890px;
+  height: calc(100vh - 70px);
+}
+
+.preview-area {
+  padding: 20px;
+  overflow-y: auto;
+  background: #0a0f14;
+}
+
+.controls-sidebar {
+  background: #0b1118;
+  border-left: 2px solid #243041;
+  overflow-y: auto;
+  padding: 20px;
+}
+
+.header-title h1 {
+  color: #4CAF50;
+  margin: 0;
+  font-size: 20px;
+}
+
+.header-title p {
+  color: #999;
+  margin: 5px 0 0 0;
+  font-size: 12px;
+  text-align: center;
+}
+
+.header-title p a {
+  color: #2ea043;
+  text-decoration: none;
+}
+
+.header-title p a:hover {
+  text-decoration: underline;
+}
+
+.header-upload {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.compact-file-input {
+  background: #333;
+  color: white;
+  border: 1px solid #555;
+  padding: 8px 15px;
+  border-radius: 4px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.compact-generate-btn {
+  background: #4CAF50;
+  color: white;
+  border: none;
+  padding: 8px 15px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.compact-generate-btn:hover {
+  background: #45a049;
+}
+
+.header-stats {
+  font-size: 11px;
+  color: #999;
+  text-align: right;
+  min-width: 200px;
+}
+
+.header-stats .stat-line {
+  margin: 2px 0;
+}
+
+.control-tabs {
+  display: flex;
+  margin-bottom: 15px;
+  border-bottom: 1px solid #30363d;
+}
+
+.control-tab {
+  background: none;
+  border: none;
+  color: #8b949e;
+  padding: 10px 15px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  border-bottom: 2px solid transparent;
+  transition: all 0.2s;
+}
+
+.control-tab:hover {
+  color: #e6edf3;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.control-tab.active {
+  color: #1f6feb;
+  border-bottom-color: #1f6feb;
+}
+
+.control-tab-icon {
+  font-size: 16px;
+}
+
+.control-panel {
+  display: none;
+}
+
+.control-panel.active {
+  display: block;
+}
+
+.plugin-container {
+  position: relative;
+  background: #21262d;
+  border-radius: 8px;
+  border: 1px solid #30363d;
+  border-left: 4px solid #1f6feb;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2), inset 0 1px 1px rgba(255, 255, 255, 0.03);
+  margin-bottom: 1.5em;
+  transition: all 0.3s ease;
+}
+
+.plugin-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 18px;
+  cursor: pointer;
+}
+
+.plugin-title {
+  font-weight: 600;
+  color: #e6edf3;
+  font-size: 14px;
+  margin: 0;
+}
+
+.plugin-toggle-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.plugin-collapse-icon {
+  color: #8b949e;
+  font-size: 12px;
+  transition: transform 0.3s ease;
+}
+
+.plugin-container.collapsed .plugin-collapse-icon {
+  transform: rotate(-90deg);
+}
+
+.plugin-content {
+  padding: 0 18px 18px 18px;
+  transition: all 0.3s ease;
+  overflow: hidden;
+}
+
+.plugin-container.collapsed .plugin-content {
+  max-height: 0;
+  padding-top: 0;
+  padding-bottom: 0;
+  opacity: 0;
+}
+
+.plugin-container:not(.collapsed) .plugin-content {
+  opacity: 1;
+}
+
+.plugin-content label {
+  display: block;
+  margin-bottom: 6px;
+  font-weight: 600;
+  color: #e6edf3;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  font-size: 13px;
+}
+
+.plugin-content input[type="range"] {
+  width: 100%;
+  margin-bottom: 12px;
+}
+
+.plugin-content input[type="text"],
+.plugin-content select {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #30363d;
+  border-radius: 6px;
+  margin-bottom: 12px;
+  background: #0d1117;
+  color: #e6edf3;
+  font-size: 13px;
+}
+
+.plugin-content .switch {
+  margin-bottom: 12px;
+}
+
+.plugin-content .help-text {
+  font-size: 11px;
+  color: #8b949e;
+  line-height: 1.3;
+  margin-bottom: 12px;
+}
+
+.plugin-content > div {
+  margin-bottom: 12px;
+}
+
+.plugin-content > div:last-child {
+  margin-bottom: 0;
 }
 
 .main-header {
@@ -58,16 +309,6 @@ a,
 
 .gradient-background.active { opacity: 0; }
 
-.container {
-  background: #0e141b;
-  padding: clamp(15px, 3vw, 25px);
-  border-radius: 8px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3), 0 1px 4px rgba(0, 0, 0, 0.2);
-  border: 1px solid #30363d;
-  width: 100%;
-  max-width: none;
-  margin: 0 auto;
-}
 
 h1 {
   color: #f0f6fc;
@@ -185,46 +426,53 @@ input[type="file"] {
   mix-blend-mode: var(--blend-mode, normal);
   opacity: var(--highlight-alpha, 0.75);
   /* Use generated specularity mask (via Roughness). Accept full shorthand (image pos/size/repeat). */
-  -webkit-mask: var(--spec-mask);
-  mask: var(--spec-mask);
+  -webkit-mask: var(--lighting-mask, var(--spec-mask));
+  mask: var(--lighting-mask, var(--spec-mask));
   mask-mode: luminance;
 }
-.css-lighting::after {
-  /* Fixed shadow gradient masked by same mask; angle opposite the light */
-  background: linear-gradient(
-    var(--shadow-angle, 215deg),
-    rgba(0,0,0, var(--shadow-alpha, 0.35)) 0%,
-    rgba(0,0,0, 0.0) 60%
-  );
-  background-attachment: fixed;
-  /* Blend mode configurable via dropdown */
-  mix-blend-mode: var(--blend-mode, normal);
-  opacity: var(--shadow-alpha, 0.0);
-  -webkit-mask: var(--shadow-mask, var(--spec-mask));
-  mask: var(--shadow-mask, var(--spec-mask));
-  mask-mode: luminance;
-}
+/* Never render a shadow layer */
+.css-lighting::after { content: none !important; background: none !important; }
+
+/* Do not render lighting until a roughness mask has been applied */
+.css-lighting:not(.mask-ready):not(.show-mask)::before { content: none !important; }
 
 /* Mask visualization mode: show the roughness-derived mask directly */
 .css-lighting.show-mask::before {
   /* Remove masking and blending; paint the gradients directly */
   -webkit-mask: none !important;
   mask: none !important;
-  mix-blend-mode: normal;
-  opacity: 1;
+  mix-blend-mode: normal !important;
+  opacity: 1 !important;
   /* Prefer exact pixel map (dataURL) if available; fallback to CSS gradient */
-  background: var(--mask-visual, var(--spec-mask));
-  background-attachment: scroll;
+  background: var(--mask-visual, var(--spec-mask)) !important;
+  /* Guard against later overlay CSS overriding shorthand from var() */
+  background-size: 100% 100% !important;
+  background-repeat: no-repeat !important;
+  background-position: left top !important;
+  background-attachment: scroll !important;
 }
-.css-lighting.show-mask::after { background: none; }
+.css-lighting.show-mask::after { background: none !important; }
 
 /* Lighting-only preview helpers */
-#gradientPreview.lighting-only { background: none !important; }
+#gradientPreview.lighting-only { background: none !important; background-color: #000 !important; }
 .css-lighting.lighting-unmasked::before,
 .css-lighting.lighting-unmasked::after {
   -webkit-mask: none !important;
   mask: none !important;
 }
+/* Unmasked-only preview should ignore blend mode and intensity */
+.css-lighting.lighting-unmasked::before {
+  mix-blend-mode: normal !important;
+  opacity: 1 !important;
+}
+/* Masked-only preview: keep masking but ignore blend/intensity; draw on black */
+.css-lighting.lighting-masked::before,
+.css-lighting.lighting-masked::after {
+  mix-blend-mode: normal !important;
+  opacity: 1 !important;
+}
+/* Hide shadow layer entirely in masked-only mode */
+.css-lighting.lighting-masked::after { content: none !important; background: none !important; }
 
 .light-badges { position:absolute; top:6px; left:6px; z-index:3; display:flex; gap:6px; pointer-events:none; }
 .light-badges .badge { background: rgba(0,0,0,0.5); color:#e6edf3; padding:2px 6px; border-radius:4px; font-size:12px; line-height:1.2; }
@@ -304,37 +552,13 @@ button:disabled {
   cursor: pointer;
 }
 
-.main-row {     display: grid
-;
-    grid-template-columns: minmax(0, 1fr) minmax(520px, 20%);
-    gap: clamp(12px, 2.5vw, 20px);
-    /* margin: clamp(15px, 3vw, 20px) 0; */
-    align-items: center;
-    justify-content: center;
-    justify-items: center;
-}
-
-.preview-column {     
-	display: flex;
-    flex-direction: column;
-    padding: 12px;
-    height: calc(100vh - 45px);
-
-    /* max-width: 1480px; */
-    /* margin-left: auto; */
-    /* margin-right: auto; */
-    overflow: auto;
-    flex-wrap: wrap;
-    /* align-content: center; */
-    /* align-items: center; */
-    width: 80%;
-}
-
-.side-column { display: flex; flex-direction: column; gap: clamp(12px, 2.5vw, 18px); background: #0b1118; border-left: 1px solid #243041; width: 100%; padding: 15px 40px; max-height: calc(100vh - 45px); overflow-y: auto; background: #0b1118;}
 
 .original-section {
-  display: flex;
-  flex-direction: column;
+    display: flex;
+    flex-direction: column;
+    align-content: center;
+    flex-wrap: wrap;
+    align-items: center;
 }
 
 .original-section h3,
@@ -346,7 +570,35 @@ button:disabled {
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
 }
 
-.image-container { border: 1px solid #243041; border-radius: 8px; overflow: hidden; background: #0d1219; transition: transform 0.2s, box-shadow 0.2s; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2); margin: 0 auto; max-width: 960px; width: 80%; }
+.preview-area .image-container {
+    margin: 0 auto;
+    max-width: 960px;
+    width: 80%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 40vh;
+    flex-wrap: wrap;
+    align-content: center;
+    flex-direction: row;
+}
+
+.controls-sidebar .image-container { 
+  border: 1px solid #243041; 
+  border-radius: 8px; 
+  overflow: hidden; 
+  background: #0d1219; 
+  transition: transform 0.2s, box-shadow 0.2s; 
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2); 
+  max-width: 300px;
+  width: 100%;
+}
+
+.controls-sidebar .image-container img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
 
 .image-container.clickable {
   cursor: pointer;
@@ -357,7 +609,13 @@ button:disabled {
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4), 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
-#originalImage,
+#originalImage {
+  max-width: 100%;
+  height: auto;
+  display: block;
+  width: 100%;
+}
+
 #gradientPreview {
   max-width: 100%;
   height: auto;
@@ -367,9 +625,6 @@ button:disabled {
 }
 
 .options-grid { display: flex; flex-direction: column; gap: clamp(12px, 2.5vw, 18px); margin: 0; padding: 0; background: transparent; border-radius: 0; }
-.site-header { position: sticky; top: 0; z-index: 1000; background: #0b1118; border-bottom: 1px solid #243041; padding: 10px 16px; display: flex; align-items: center; justify-content: space-between; }
-.site-header .title { font-weight: 700; letter-spacing: 0.5px; }
-.site-header .tag a { color: #2ea043; }
 .preview-section { display: block; }
 
 .option-column {
@@ -386,6 +641,7 @@ button:disabled {
   border-left: 4px solid #1f6feb;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2),
     inset 0 1px 1px rgba(255, 255, 255, 0.03);
+    margin-bottom: 1.5em;
 }
 
 .option-group label {
@@ -545,6 +801,9 @@ input:checked + .slider:before {
 
 .css-output {
   margin-top: clamp(15px, 3vw, 25px);
+  max-width: 85%;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .css-code-container {
@@ -721,14 +980,6 @@ input:checked + .slider:before {
     font-size: 13px;
   }
   
-  .container {
-    padding: 15px;
-  }
-
-  .main-row {
-    grid-template-columns: 1fr;
-    gap: 15px;
-  }
 
   .upload-options {
     flex-direction: column;
@@ -765,10 +1016,6 @@ input:checked + .slider:before {
     padding: 8px;
   }
   
-  .container {
-    padding: 12px;
-  }
-  
   .upload-area {
     padding: 15px;
   }
@@ -786,101 +1033,167 @@ input:checked + .slider:before {
     </style>
 </head>
 <body>
-  <div class="site-header">
-    <div class="title">img2css</div>
-    <div class="tag">Convert any image to a single CSS gradient. <a href="https://github.com/digitalisstudios/img2css" target="_blank">Docs</a></div>
-  </div>
-
-  <div class="upload-section">
-    <h1 class="direction-step">Step 1. <small>Drop an image, browse for an image or load an image from a url</small></h1>
-    <div class="upload-area" id="uploadArea">
-      <p>Drag and drop an image here or choose an option below</p>
-
-    </div>
-
-    <div class="upload-options">
-      <div>
-        <input type="file" id="imageInput" accept="image/*">
+  <div class="app-layout">
+    <header class="fixed-header">
+      <div class="header-title">
+        <h1>img2css</h1>
+        <p>Convert any image to a single CSS gradient. <a href="https://github.com/digitalisstudios/img2css" target="_blank">Docs</a></p>
       </div>
-      <div class="url-input">
-        <input type="text" id="urlInput" placeholder="Or enter image URL" value="https://i.imgur.com/Qc3TD8h.jpeg">
-        <button id="loadUrlBtn">Load URL</button>
+      <div class="header-stats">
+        <div class="stat-line" id="headerStats"></div>
       </div>
-    </div>
-  </div>
+    </header>
 
-  <div class="spinner-overlay" id="spinnerOverlay">
-    <div class="spinner"></div>
-  </div>
-
-  <div class="preview-section" id="previewSection">
-
-    
-    <div class="main-row">
-      <div class="preview-column">
-        <h3>Pure CSS Preview</h3>
-        <div class="image-container">
-          <div id="gradientPreview"></div>
-        </div>
-
-        <h3 style="margin-top:12px; display: none;">Specular Map Preview</h3>
-        <div class="image-container" style="display: none;">
-          <div id="specGradientPreview"></div>
-        </div>
-
-        
-
-        <div id="albedoPreviewSection" style="display: none;">
-          <h3 style="margin-top:12px;">Albedo Map Preview</h3>
-          <div class="image-container">
-            <img id="albedoImage" alt="Albedo Map" style="max-width:100%; display:block;" />
+    <div class="main-content">
+      <div class="preview-area">
+        <div class="upload-section stats" style="max-width: 960px; margin: 1em auto;">
+          
+          <div class="upload-area" id="uploadArea">
+            <p>Drag and drop an image here or choose an option below</p>
+          </div>
+          <div class="upload-options" >
+            <div>
+              <input type="file" id="imageInput" accept="image/*">
+            </div>
+            <div class="url-input">
+              <input type="text" id="urlInput" placeholder="Or enter image URL" value="https://i.imgur.com/Qc3TD8h.jpeg">
+              <button id="loadUrlBtn">Load URL</button>
+            </div>
           </div>
         </div>
 
-        <div id="normalPreviewSection">
-          <h3 style="margin-top:12px;">Normal Map Preview</h3>
+        <div class="preview-section" id="previewSection">
+        	<div id="stats" class="stats" style="max-width: 960px; margin: 1em auto;">
+	          <div class="stats-content" id="statsContent"></div>
+	          <div class="stats-detailed" id="statsDetailed"></div>
+	          <span class="toggle-stats" id="toggleStats">Show detailed stats</span>
+	        </div>
+          
           <div class="image-container">
-            <div id="normalGradientPreview"></div>
+          	<h2 style="margin-bottom: 5px;">Pure CSS Preview</h2>
+            <div id="gradientPreview"></div>
           </div>
-        </div>
 
-        <div id="roughnessPreviewSection">
-          <h3 style="margin-top:12px;">Roughness Map Preview</h3>
-          <div class="image-container">
-            <div id="roughnessGradientPreview"></div>
+          <h3 style="margin-top:12px; display: none;">Specular Map Preview</h3>
+          <div class="image-container" style="display: none;">
+            <div id="specGradientPreview"></div>
           </div>
-        </div>
 
-        <div id="subjectnormalPreviewSection">
-          <h3 style="margin-top:12px;">Subject Normal Map Preview</h3>
-          <div class="image-container">
-            <div id="subjectnormalGradientPreview"></div>
+          <div id="albedoPreviewSection" style="display: none;">
+            <h3 style="margin-top:12px;">Albedo Map Preview</h3>
+            <div class="image-container">
+              <img id="albedoImage" alt="Albedo Map" style="max-width:100%; display:block;" />
+            </div>
           </div>
-        </div>
 
-        <div id="irradiancePreviewSection" style="display: none;">
-          <h3 style="margin-top:12px;">Irradiance Map Preview</h3>
-          <div class="image-container">
-            <img id="irradianceImage" alt="Irradiance Map" style="max-width:100%; display:block;" />
+          <div id="normalPreviewSection">
+            <h3 style="margin-top:12px;">Normal Map Preview</h3>
+            <div class="image-container">
+              <div id="normalGradientPreview"></div>
+            </div>
           </div>
-        </div>
 
-        <div id="depthPreviewSection" style="display: none;">
-          <h3 style="margin-top:12px;">Depth Map Preview</h3>
-          <div class="image-container">
-            <img id="depthImage" alt="Depth Map" style="max-width:100%; display:block;" />
+          <div id="roughnessPreviewSection">
+            <h3 style="margin-top:12px;">Roughness Map Preview</h3>
+            <div class="image-container">
+              <div id="roughnessGradientPreview"></div>
+            </div>
           </div>
-        </div>
 
-        <div id="objectPreviewSection" style="display: none;">
-          <h3 style="margin-top:12px;">Object Isolation Preview</h3>
-          <div class="image-container">
-            <img id="objectImage" alt="Object Mask" style="max-width:100%; display:block;" />
+          <div id="subjectnormalPreviewSection">
+            <h3 style="margin-top:12px;">Subject Normal Map Preview</h3>
+            <div class="image-container">
+              <div id="subjectnormalGradientPreview"></div>
+            </div>
+          </div>
+
+          <div id="irradiancePreviewSection" style="display: none;">
+            <h3 style="margin-top:12px;">Irradiance Map Preview</h3>
+            <div class="image-container">
+              <img id="irradianceImage" alt="Irradiance Map" style="max-width:100%; display:block;" />
+            </div>
+          </div>
+
+          <div id="depthPreviewSection" style="display: none;">
+            <h3 style="margin-top:12px;">Depth Map Preview</h3>
+            <div class="image-container">
+              <img id="depthImage" alt="Depth Map" style="max-width:100%; display:block;" />
+            </div>
+          </div>
+
+          <div id="objectPreviewSection" style="display: none;">
+            <h3 style="margin-top:12px;">Object Isolation Preview</h3>
+            <div class="image-container">
+              <img id="objectImage" alt="Object Mask" style="max-width:100%; display:block;" />
+            </div>
+          </div>
+
+          <div class="css-output" id="cssOutput" style="display: none;">
+            <h3>Generated CSS</h3>
+            <div class="css-header">
+              <div class="switch-container">
+                <span class="switch-label">Minify</span>
+                <label class="switch">
+                  <input type="checkbox" id="minifiedCheckbox">
+                  <span class="slider"></span>
+                </label>
+              </div>
+            </div>
+            <div class="css-code-container">
+              <div class="css-code" id="cssCode"></div>
+              <button id="copyBtn" class="copy-button" title="Copy CSS">
+                <span class="copy-icon">⎘</span>
+              </button>
+            </div>
+
+            <h3 style="margin-top:16px;">Specularity CSS (via Roughness)</h3>
+            <div class="css-code-container">
+              <div class="css-code" id="specCssCode"></div>
+              <button id="specDownloadBtn" class="copy-button" title="Download Specular CSS">
+                <span class="copy-icon">⤓</span>
+              </button>
+            </div>
+
+            <h3 style="margin-top:16px;">Map CSS (Normal)</h3>
+            <div class="css-code-container">
+              <div class="css-code" id="normalCssCode"></div>
+              <button id="normalDownloadBtn" class="copy-button" title="Download Normal CSS">
+                <span class="copy-icon">⤓</span>
+              </button>
+            </div>
+
+            <h3 style="margin-top:16px;">Map CSS (Roughness)</h3>
+            <div class="css-code-container">
+              <div class="css-code" id="roughCssCode"></div>
+              <button id="roughDownloadBtn" class="copy-button" title="Download Roughness CSS">
+                <span class="copy-icon">⤓</span>
+              </button>
+            </div>
+
+            <h3 style="margin-top:16px;">Map CSS (Subject Normal)</h3>
+            <div class="css-code-container">
+              <div class="css-code" id="subjectnormalCssCode"></div>
+              <button id="subjectnormalDownloadBtn" class="copy-button" title="Download Subject Normal CSS">
+                <span class="copy-icon">⤓</span>
+              </button>
+            </div>
+
+            <h3 style="margin-top:16px;">Reflection CSS (via Subject Normal)</h3>
+            <div class="css-code-container">
+              <div class="css-code" id="reflFromSubjectnormalCssCode"></div>
+              <button id="reflFromSubjectnormalDownloadBtn" class="copy-button" title="Download Reflection (via Subject Normal) CSS">
+                <span class="copy-icon">⤓</span>
+              </button>
+            </div>
+
+            <div style="margin-top:12px; text-align:right;">
+              <button id="downloadAllBtn" title="Download all generated maps">Download All Maps</button>
+            </div>
           </div>
         </div>
       </div>
 
-      <div class="side-column">
+      <div class="controls-sidebar">
         <div class="original-section">
           <h3>Original (Source image)</h3>
           <div class="image-container">
@@ -888,140 +1201,84 @@ input:checked + .slider:before {
           </div>
         </div>
 
-        <div id="stats" class="stats">
-          <div class="stats-content" id="statsContent"></div>
-          <div class="stats-detailed" id="statsDetailed"></div>
-          <span class="toggle-stats" id="toggleStats">Show detailed stats</span>
-        </div>
-      </div>
-    </div>
-
-    <h1 class="direction-step">Step 3. <small>Fine tune the settings for your gradient in real time</small></h1>
-    <div class="options-grid">
-      <div class="option-column">
-        <div class="option-group">
-          <label for="detailsSlider">
-            Details: <span id="detailsValue">100</span>%<span id="optimalDetails" class="optimal-hint" style="display: none;"></span>
-          </label>
-          <input type="range" id="detailsSlider" min="1" max="100" value="100">
-          <div class="help-text">
-            Higher values preserve more detail
-          </div>
-        </div>
-
-        <div class="option-group">
-          <label for="posterizationStrengthSlider">Posterization: <span id="posterizationStrengthValue">0%</span></label>
-          <input type="range" id="posterizationStrengthSlider" min="0" max="100" value="0" step="5">
-          <div class="help-text">
-            Limit gradients to colors from original image (0% = off, 100% = full posterization)
-          </div>
-        </div>
-
         
-      </div>
 
-      <div class="option-column">
-        <div class="option-group">
-          <label for="compressionSlider">
-            Compression: <span id="compressionValue">0</span>%<span id="optimalCompression" class="optimal-hint" style="display: none;"></span>
-          </label>
-          <input type="range" id="compressionSlider" min="0" max="100" value="-">
-          <div class="help-text">
-            Higher values reduce file size
+        <div class="control-tabs">
+          <button class="control-tab active" id="mainControlsTab">
+            <span class="control-tab-icon">⚙️</span>
+            <span>Controls</span>
+          </button>
+          <button class="control-tab" id="pluginsTab">
+            <span class="control-tab-icon">🔌</span>
+            <span>Plugins</span>
+          </button>
+        </div>
+
+        <div class="control-panel active" id="mainControlsPanel">
+          <div class="options-grid">
+            <div class="option-column">
+              <div class="option-group">
+                <label for="detailsSlider">
+                  Details: <span id="detailsValue">100</span>%<span id="optimalDetails" class="optimal-hint" style="display: none;"></span>
+                </label>
+                <input type="range" id="detailsSlider" min="1" max="100" value="100">
+                <div class="help-text">
+                  Higher values preserve more detail
+                </div>
+              </div>
+
+              <div class="option-group">
+                <label for="posterizationStrengthSlider">Posterization: <span id="posterizationStrengthValue">0%</span></label>
+                <input type="range" id="posterizationStrengthSlider" min="0" max="100" value="0" step="5">
+                <div class="help-text">
+                  Limit gradients to colors from original image (0% = off, 100% = full posterization)
+                </div>
+              </div>
+            </div>
+
+            <div class="option-column">
+              <div class="option-group">
+                <label for="compressionSlider">
+                  Compression: <span id="compressionValue">0</span>%<span id="optimalCompression" class="optimal-hint" style="display: none;"></span>
+                </label>
+                <input type="range" id="compressionSlider" min="0" max="100" value="-">
+                <div class="help-text">
+                  Higher values reduce file size
+                </div>
+              </div>
+            </div>
+
+            <div class="option-column">
+              <div class="option-group">
+                <label for="maxSizeInput">Max CSS file size</label>
+                <input type="text" id="maxSizeInput" placeholder="e.g., 500KB, 2MB">
+              </div>
+
+              <div class="option-group">
+                <label for="processingModeSelect">Processing Mode</label>
+                <select id="processingModeSelect">
+                  <option value="auto">Auto (detect orientation)</option>
+                  <option value="rows">Rows (horizontal gradients)</option>
+                  <option value="columns">Columns (vertical gradients)</option>
+                  <option value="hybrid">Hybrid (blend both directions)</option>
+                </select>
+                <div class="help-text">
+                  Choose gradient direction manually
+                </div>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
 
-      <div class="option-column">
-        <div class="option-group">
-          <label for="maxSizeInput">Max CSS file size</label>
-          <input type="text" id="maxSizeInput" placeholder="e.g., 500KB, 2MB">
-        </div>
-
-        <div class="option-group">
-          <label for="processingModeSelect">Processing Mode</label>
-          <select id="processingModeSelect">
-            <option value="auto">Auto (detect orientation)</option>
-            <option value="rows">Rows (horizontal gradients)</option>
-            <option value="columns">Columns (vertical gradients)</option>
-            <option value="hybrid">Hybrid (blend both directions)</option>
-          </select>
-          <div class="help-text">
-            Choose gradient direction manually
-          </div>
-        </div>
-
-        <div class="option-group">
-          <label>Plugins</label>
-          <div id="pluginControlsMount"></div>
-          <div class="help-text">Enable and configure installed plugins.</div>
+        <div class="control-panel" id="pluginsPanel">
+          
+            <div id="pluginControlsMount"></div>
         </div>
       </div>
     </div>
 
-    
-    <div class="css-output" id="cssOutput" style="display: none;">
-      <h1 class="direction-step">Step 4. <small>Grab your generated gradient</small></h1>
-      <div class="css-header">
-        <h3>Generated CSS:</h3>
-        <div class="switch-container">
-          <span class="switch-label">Minify</span>
-          <label class="switch">
-            <input type="checkbox" id="minifiedCheckbox">
-            <span class="slider"></span>
-          </label>
-        </div>
-      </div>
-      <div class="css-code-container">
-        <div class="css-code" id="cssCode"></div>
-        <button id="copyBtn" class="copy-button" title="Copy CSS">
-          <span class="copy-icon">⎘</span>
-        </button>
-      </div>
-
-      <h3 style="margin-top:16px;">Specularity CSS (via Roughness)</h3>
-      <div class="css-code-container">
-        <div class="css-code" id="specCssCode"></div>
-        <button id="specDownloadBtn" class="copy-button" title="Download Specular CSS">
-          <span class="copy-icon">⤓</span>
-        </button>
-      </div>
-
-      <h3 style="margin-top:16px;">Map CSS (Normal)</h3>
-      <div class="css-code-container">
-        <div class="css-code" id="normalCssCode"></div>
-        <button id="normalDownloadBtn" class="copy-button" title="Download Normal CSS">
-          <span class="copy-icon">⤓</span>
-        </button>
-      </div>
-
-      <h3 style="margin-top:16px;">Map CSS (Roughness)</h3>
-      <div class="css-code-container">
-        <div class="css-code" id="roughCssCode"></div>
-        <button id="roughDownloadBtn" class="copy-button" title="Download Roughness CSS">
-          <span class="copy-icon">⤓</span>
-        </button>
-      </div>
-
-      <h3 style="margin-top:16px;">Map CSS (Subject Normal)</h3>
-      <div class="css-code-container">
-        <div class="css-code" id="subjectnormalCssCode"></div>
-        <button id="subjectnormalDownloadBtn" class="copy-button" title="Download Subject Normal CSS">
-          <span class="copy-icon">⤓</span>
-        </button>
-      </div>
-
-      <h3 style="margin-top:16px;">Reflection CSS (via Subject Normal)</h3>
-      <div class="css-code-container">
-        <div class="css-code" id="reflFromSubjectnormalCssCode"></div>
-        <button id="reflFromSubjectnormalDownloadBtn" class="copy-button" title="Download Reflection (via Subject Normal) CSS">
-          <span class="copy-icon">⤓</span>
-        </button>
-      </div>
-
-      <div style="margin-top:12px; text-align:right;">
-        <button id="downloadAllBtn" title="Download all generated maps">Download All Maps</button>
-      </div>
+    <div class="spinner-overlay" id="spinnerOverlay">
+      <div class="spinner"></div>
     </div>
   </div>
 
@@ -1099,7 +1356,7 @@ input:checked + .slider:before {
                                             const gp = document.getElementById('gradientPreview');
                                             if (bg && gp) {
                                                 gp.style.setProperty('--spec-mask', bg);
-                                                gp.style.setProperty('--shadow-mask', bg);
+                                                gp.classList.add('mask-ready');
                                             }
                                         }
                                     } else if (type === 'subjectnormal') {
@@ -1135,7 +1392,7 @@ input:checked + .slider:before {
                                             const urlDecl = 'url("' + dataURL + '") left top / 100% 100% no-repeat';
                                             // For overlay masking
                                             gp.style.setProperty('--spec-mask', urlDecl);
-                                            gp.style.setProperty('--shadow-mask', urlDecl);
+                                            gp.classList.add('mask-ready');
                                             // For mask-only visualization
                                             gp.style.setProperty('--mask-visual', urlDecl);
                                         }
@@ -1143,7 +1400,8 @@ input:checked + .slider:before {
                                 }
                             }
                         },
-                        onChange: () => { 
+                        onChange: (pid, values) => { 
+                            if (pid === 'lighting') { this.applyLightingVars(values); return; }
                             this.updateMapPreviewVisibility(); 
                             this.updateStats(); 
                             this.scheduleGeneration(); 
@@ -1151,10 +1409,116 @@ input:checked + .slider:before {
                     });
                     
                     // Set initial preview visibility based on default values
-                    setTimeout(() => this.updateMapPreviewVisibility(), 0);
+                    setTimeout(() => {
+                        this.updateMapPreviewVisibility();
+                        try { if (this.pluginUI && this.pluginUI.getValues) { const st = this.pluginUI.getValues(); if (st && st.lighting) this.applyLightingVars(st.lighting); } } catch(_) {}
+                    }, 0);
+                    
+                    // Add collapsible functionality to plugins
+                    setTimeout(() => this.setupPluginCollapse(), 100);
                 };
                 if (document.readyState === 'complete') setTimeout(setup, 0);
                 else setTimeout(setup, 0);
+            }
+
+            setupPluginCollapse() {
+                // Wrap each plugin in a collapsible container
+                const pluginMount = document.getElementById('pluginControlsMount');
+                if (!pluginMount) return;
+                
+                const pluginSections = pluginMount.querySelectorAll('.plugin-section, .option-group');
+                pluginSections.forEach(section => {
+                    if (section.querySelector('.plugin-container')) return; // Already wrapped
+                    
+                    const title = section.querySelector('h3, h4, label')?.textContent || 'Plugin';
+                    const switchElement = section.querySelector('.switch');
+                    const toggleInput = section.querySelector('.switch input');
+                    
+                    if (!switchElement || !toggleInput) return; // Skip if no toggle switch found
+                    
+                    // Create wrapper structure
+                    const wrapper = document.createElement('div');
+                    wrapper.className = 'plugin-container collapsed';
+                    
+                    const header = document.createElement('div');
+                    header.className = 'plugin-header';
+                    
+                    const titleEl = document.createElement('h4');
+                    titleEl.className = 'plugin-title';
+                    titleEl.textContent = title;
+                    
+                    const toggleContainer = document.createElement('div');
+                    toggleContainer.className = 'plugin-toggle-container';
+                    
+                    // Clone the entire switch element to maintain styling
+                    const switchClone = switchElement.cloneNode(true);
+                    
+                    const collapseIcon = document.createElement('span');
+                    collapseIcon.className = 'plugin-collapse-icon';
+                    collapseIcon.textContent = '▼';
+                    
+                    toggleContainer.appendChild(switchClone);
+                    toggleContainer.appendChild(collapseIcon);
+                    
+                    header.appendChild(titleEl);
+                    header.appendChild(toggleContainer);
+                    
+                    const content = document.createElement('div');
+                    content.className = 'plugin-content';
+                    
+                    // Move all content to content area, excluding title and enable switch
+                    const elementsToMove = Array.from(section.children);
+                    elementsToMove.forEach(child => {
+                        // Skip title elements (h3, h4, labels that contain the plugin name)
+                        const isTitle = (child.tagName === 'H3' || child.tagName === 'H4' || 
+                                       (child.tagName === 'LABEL' && child.textContent.includes(title)));
+                        
+                        // Skip the switch element and any enable/disable switches
+                        const isSwitch = (child === switchElement || child.contains(switchElement) ||
+                                        child.classList?.contains('switch') ||
+                                        (child.tagName === 'LABEL' && child.textContent.toLowerCase().includes('enable')));
+                        
+                        if (!isTitle && !isSwitch) {
+                            content.appendChild(child);
+                        }
+                    });
+                    
+                    // Clean up any remaining title or switch elements
+                    const remainingTitles = section.querySelectorAll('h3, h4');
+                    const remainingSwitches = section.querySelectorAll('.switch');
+                    const remainingEnableLabels = section.querySelectorAll('label');
+                    
+                    remainingTitles.forEach(el => el.remove());
+                    remainingSwitches.forEach(el => el.remove());
+                    remainingEnableLabels.forEach(el => {
+                        if (el.textContent.toLowerCase().includes('enable')) {
+                            el.remove();
+                        }
+                    });
+                    
+                    wrapper.appendChild(header);
+                    wrapper.appendChild(content);
+                    
+                    section.parentNode.replaceChild(wrapper, section);
+                    
+                    // Add click handler for collapse/expand (excluding the switch area)
+                    header.addEventListener('click', (e) => {
+                        if (e.target.closest('.switch') || e.target.closest('.plugin-toggle-container')) {
+                            return; // Don't collapse when clicking on the switch or toggle area
+                        }
+                        wrapper.classList.toggle('collapsed');
+                    });
+                    
+                    // Ensure the cloned switch maintains functionality
+                    const clonedInput = switchClone.querySelector('input');
+                    const originalInput = toggleInput;
+                    if (clonedInput && originalInput) {
+                        clonedInput.addEventListener('change', () => {
+                            originalInput.checked = clonedInput.checked;
+                            originalInput.dispatchEvent(new Event('change', { bubbles: true }));
+                        });
+                    }
+                });
             }
 
             // Delegate to core for CSS generation
@@ -1331,25 +1695,27 @@ input:checked + .slider:before {
                 })();
                 this.initPluginUI(pluginMount);
 
-                // Re-layout: move non-plugin controls (options-grid) into right sidebar, and stats to left column above preview
-                try {
-                    const sideCol = document.querySelector('.side-column');
-                    const opts = document.querySelector('.options-grid');
-                    if (opts && sideCol) sideCol.appendChild(opts);
-                    const statsBox = document.getElementById('stats');
-                    const imgContainer = document.querySelector('.preview-column .image-container');
-                    if (statsBox && imgContainer && imgContainer.parentNode) {
-                        imgContainer.parentNode.insertBefore(statsBox, imgContainer);
-                    }
-                    // Move upload section into the top of preview column
-                    const upload = document.querySelector('.upload-section');
-                    const previewCol = document.querySelector('.preview-column');
-                    if (upload && previewCol) previewCol.insertBefore(upload, previewCol.firstChild);
-                    // Hide Step 3 header if present since controls are in sidebar
-                    const headers = Array.from(document.querySelectorAll('h1.direction-step'));
-                    const step3 = headers.find(h => /Step\s*3/i.test(h.textContent));
-                    headers.forEach(h => h.style.display = 'none');
-                } catch (_) {}
+                // Layout is now handled in HTML structure
+                
+                // Setup tab functionality
+                const mainControlsTab = document.getElementById('mainControlsTab');
+                const pluginsTab = document.getElementById('pluginsTab');
+                const mainControlsPanel = document.getElementById('mainControlsPanel');
+                const pluginsPanel = document.getElementById('pluginsPanel');
+                
+                mainControlsTab.addEventListener('click', () => {
+                    mainControlsTab.classList.add('active');
+                    pluginsTab.classList.remove('active');
+                    mainControlsPanel.classList.add('active');
+                    pluginsPanel.classList.remove('active');
+                });
+                
+                pluginsTab.addEventListener('click', () => {
+                    pluginsTab.classList.add('active');
+                    mainControlsTab.classList.remove('active');
+                    pluginsPanel.classList.add('active');
+                    mainControlsPanel.classList.remove('active');
+                });
             }
 
             scheduleGeneration() {
@@ -1666,7 +2032,7 @@ input:checked + .slider:before {
                 // Update the shared CSS class instead of inline styles
                 this.updateSharedGradientClass(cssClass);
                 // Lighting plugin controls overlay; always include css-lighting
-                preview.className = 'slick-img-gradient css-lighting';
+                preview.className = 'slick-img-gradient css-lighting'; // mask-ready intentionally not present until roughness arrives
                 
                 // Clear any inline styles
                 preview.style.width = '';
@@ -1695,6 +2061,133 @@ input:checked + .slider:before {
                 if (!cssText) return null;
                 const m = cssText.match(/background:\s*([^;]+);/);
                 return m ? m[1] : null;
+            }
+
+            applyLightingVars(values) {
+                try {
+                    const gp = document.getElementById('gradientPreview');
+                    if (!gp) return;
+                    if (values && typeof values === 'object') {
+                        // Apply presets first (they set CSS vars directly; sliders remain as-is)
+                        if (values.preset && values.preset !== 'custom') {
+                            const P = {
+                                'chrome':         { angle: 25,  alpha: 0.9,  blend: 'color-dodge', color: '#ffffff', gap: 110, width: 16, soft: 4, phase: 6, gap2: 80, width2: 10, phase3: 14, gap3: 120, width3: 8 },
+                                'water':          { angle: 175, alpha: 0.6,  blend: 'screen',      color: '#aee7ff', gap: 160, width: 28, soft: 10, phase: 10, gap2: 120, width2: 16, phase3: 20, gap3: 180, width3: 12 },
+                                'wet-paint':      { angle: 35,  alpha: 0.85, blend: 'overlay',     color: '#fff3e0', gap: 130, width: 20, soft: 6, phase: 8, gap2: 100, width2: 14, phase3: 18, gap3: 160, width3: 10 },
+                                'marble':         { angle: 20,  alpha: 0.7,  blend: 'soft-light',  color: '#ffffff', gap: 180, width: 26, soft: 12, phase: 12, gap2: 150, width2: 18, phase3: 22, gap3: 220, width3: 14 },
+                                'brushed-metal':  { angle: 15,  alpha: 0.8,  blend: 'color-dodge', color: '#ffffff', gap: 70,  width: 10, soft: 3, phase: 4, gap2: 60,  width2: 8,  phase3: 9,  gap3: 90,  width3: 6 },
+                                'glossy-plastic': { angle: 40,  alpha: 0.75, blend: 'screen',      color: '#ffd7d7', gap: 120, width: 22, soft: 8, phase: 8, gap2: 95,  width2: 12, phase3: 16, gap3: 150, width3: 10 },
+                                'satin':          { angle: 30,  alpha: 0.5,  blend: 'soft-light',  color: '#ffffff', gap: 140, width: 18, soft: 14, phase: 10, gap2: 120, width2: 14, phase3: 20, gap3: 180, width3: 12 },
+                                'ceramic':        { angle: 30,  alpha: 0.8,  blend: 'screen',      color: '#ffffff', gap: 150, width: 20, soft: 8, phase: 10, gap2: 120, width2: 14, phase3: 18, gap3: 180, width3: 12 },
+                                'clearcoat':      { angle: 33,  alpha: 0.9,  blend: 'color-dodge', color: '#ffffff', gap: 100, width: 16, soft: 5, phase: 6, gap2: 85,  width2: 10, phase3: 14, gap3: 140, width3: 8 },
+                                'frosted-glass':  { angle: 170, alpha: 0.4,  blend: 'screen',      color: '#ffffff', gap: 200, width: 30, soft: 16, phase: 12, gap2: 160, width2: 20, phase3: 24, gap3: 220, width3: 14 }
+                            };
+                            const p = P[String(values.preset)] || null;
+                            if (p) {
+                                gp.style.setProperty('--light-angle', String(p.angle) + 'deg');
+                                gp.style.setProperty('--highlight-alpha', String(p.alpha));
+                                gp.style.setProperty('--blend-mode', p.blend);
+                                gp.style.setProperty('--band-gap', String(p.gap) + 'px');
+                                gp.style.setProperty('--band-width', String(p.width) + 'px');
+                                gp.style.setProperty('--soft-edge', String(p.soft) + 'px');
+                                gp.style.setProperty('--band-phase', String(p.phase) + 'deg');
+                                gp.style.setProperty('--band-gap2', String(p.gap2) + 'px');
+                                gp.style.setProperty('--band-width2', String(p.width2) + 'px');
+                                gp.style.setProperty('--band-phase3', String(p.phase3) + 'deg');
+                                gp.style.setProperty('--band-gap3', String(p.gap3) + 'px');
+                                gp.style.setProperty('--band-width3', String(p.width3) + 'px');
+                                if (p.color) {
+                                    gp.style.setProperty('--highlight-color', String(p.color));
+                                    try {
+                                        const h = String(p.color).replace('#','');
+                                        const r = parseInt(h.substring(0,2),16), g = parseInt(h.substring(2,4),16), b = parseInt(h.substring(4,6),16);
+                                        gp.style.setProperty('--highlight-color-weak', `rgba(${r}, ${g}, ${b}, 0.35)`);
+                                        gp.style.setProperty('--highlight-color-0', `rgba(${r}, ${g}, ${b}, 0)`);
+                                    } catch(_) {}
+                                }
+                            }
+                        }
+                        if (values.lightAngle != null) gp.style.setProperty('--light-angle', String(values.lightAngle) + 'deg');
+                        if (values.highlightAlpha != null) gp.style.setProperty('--highlight-alpha', String(parseFloat(values.highlightAlpha)));
+                        if (values.blendMode) gp.style.setProperty('--blend-mode', String(values.blendMode));
+                        if (values.bandGap != null) gp.style.setProperty('--band-gap', String(values.bandGap) + 'px');
+                        if (values.bandWidth != null) gp.style.setProperty('--band-width', String(values.bandWidth) + 'px');
+                        if (values.softEdge != null) gp.style.setProperty('--soft-edge', String(values.softEdge) + 'px');
+                        if (values.bandPhase != null) gp.style.setProperty('--band-phase', String(values.bandPhase) + 'deg');
+                        if (values.bandGap2 != null) gp.style.setProperty('--band-gap2', String(values.bandGap2) + 'px');
+                        if (values.bandWidth2 != null) gp.style.setProperty('--band-width2', String(values.bandWidth2) + 'px');
+                        if (values.bandPhase3 != null) gp.style.setProperty('--band-phase3', String(values.bandPhase3) + 'deg');
+                        if (values.bandGap3 != null) gp.style.setProperty('--band-gap3', String(values.bandGap3) + 'px');
+                        if (values.bandWidth3 != null) gp.style.setProperty('--band-width3', String(values.bandWidth3) + 'px');
+                        // Color picker from plugin
+                        if (values.color) {
+                            const hex = String(values.color);
+                            gp.style.setProperty('--highlight-color', hex);
+                            try {
+                                const h = hex.replace('#','');
+                                const r = parseInt(h.substring(0,2),16), g = parseInt(h.substring(2,4),16), b = parseInt(h.substring(4,6),16);
+                                gp.style.setProperty('--highlight-color-weak', `rgba(${r}, ${g}, ${b}, 0.35)`);
+                                gp.style.setProperty('--highlight-color-0', `rgba(${r}, ${g}, ${b}, 0)`);
+                            } catch(_) {}
+                        }
+                        // Preview masking toggle
+                        if (values.preview) {
+                            if (values.preview === 'unmasked') {
+                                // Show only the lighting overlay without masking on black
+                                gp.style.setProperty('--lighting-mask', 'none');
+                                gp.classList.add('lighting-only');
+                                gp.classList.add('lighting-unmasked');
+                                gp.classList.remove('lighting-masked');
+                                gp.classList.remove('show-mask');
+                                // Remove base gradient entirely and force black bg
+                                try { gp.style.setProperty('background', 'none', 'important'); } catch(_) {}
+                                try { gp.style.setProperty('background-color', '#000', 'important'); } catch(_) {}
+                            } else if (values.preview === 'masked') {
+                                // Show only the masked lighting overlay on black
+                                gp.style.setProperty('--lighting-mask', 'var(--spec-mask)');
+                                gp.classList.add('lighting-only');
+                                gp.classList.add('lighting-masked');
+                                gp.classList.remove('lighting-unmasked');
+                                gp.classList.remove('show-mask');
+                                // Remove base gradient entirely and force black bg
+                                try { gp.style.setProperty('background', 'none', 'important'); } catch(_) {}
+                                try { gp.style.setProperty('background-color', '#000', 'important'); } catch(_) {}
+                            } else if (values.preview === 'mask-only') {
+                                // Visualize the mask image directly (roughness) on black
+                                gp.classList.add('lighting-only');
+                                gp.classList.add('show-mask');
+                                gp.classList.remove('lighting-masked');
+                                gp.classList.remove('lighting-unmasked');
+                                // Ensure background is black and base gradient is gone
+                                try { gp.style.setProperty('background', 'none', 'important'); } catch(_) {}
+                                try { gp.style.setProperty('background-color', '#000', 'important'); } catch(_) {}
+                                // Ensure we have a concrete mask visual available
+                                try {
+                                    const dataURL = (this.lastMapData && this.lastMapData.roughness) ? this.lastMapData.roughness : null;
+                                    if (dataURL) {
+                                        const urlDecl = 'url("' + dataURL + '") left top / 100% 100% no-repeat';
+                                        gp.style.setProperty('--mask-visual', urlDecl);
+                                    }
+                                } catch (_) {}
+                            } else { // off
+                                gp.style.removeProperty('--lighting-mask');
+                                gp.classList.remove('lighting-only');
+                                gp.classList.remove('lighting-unmasked');
+                                gp.classList.remove('lighting-masked');
+                                gp.classList.remove('show-mask');
+                                // Respect showMask state if it is set separately
+                                // Restore base element defaults
+                                gp.style.removeProperty('background');
+                                gp.style.removeProperty('background-color');
+                            }
+                        }
+                        // No separate showMask toggle anymore; moved into Preview dropdown
+                        // Enable/disable overlay class
+                        if (typeof values.enabled !== 'undefined') {
+                            gp.classList.toggle('css-lighting', !!values.enabled);
+                        }
+                    }
+                } catch (_) {}
             }
 
             updateSharedGradientClass(cssClass) {

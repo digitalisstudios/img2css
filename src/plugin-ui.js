@@ -43,7 +43,7 @@
           var slider = createEl('span', { class: 'slider' });
           label.appendChild(input); label.appendChild(slider);
           row.appendChild(span); row.appendChild(label);
-          input.addEventListener('change', function(){ self.state[ui.id][ctrl.key] = input.checked; self.onChange(); });
+          input.addEventListener('change', function(){ self.state[ui.id][ctrl.key] = input.checked; self.onChange(ui.id, Object.assign({}, self.state[ui.id])); });
         } else if (ctrl.type === 'slider') {
           row = createEl('div');
           var lab = createEl('label', { for: ui.id + '_' + ctrl.key, text: (ctrl.label || ctrl.key) + ': ' });
@@ -60,7 +60,7 @@
           input.addEventListener('input', function(){
             valueSpan.textContent = input.value;
             self.state[ui.id][ctrl.key] = input.value;
-            self.onChange();
+            self.onChange(ui.id, Object.assign({}, self.state[ui.id]));
           });
           row.appendChild(input);
         } else if (ctrl.type === 'select') {
@@ -74,8 +74,16 @@
             sel.appendChild(o);
           });
           self.state[ui.id][ctrl.key] = ctrl.default;
-          sel.addEventListener('change', function(){ self.state[ui.id][ctrl.key] = sel.value; self.onChange(); });
+          sel.addEventListener('change', function(){ self.state[ui.id][ctrl.key] = sel.value; self.onChange(ui.id, Object.assign({}, self.state[ui.id])); });
           row.appendChild(sel);
+        } else if (ctrl.type === 'color') {
+          row = createEl('div');
+          var lab = createEl('label', { for: ui.id + '_' + ctrl.key, text: (ctrl.label || ctrl.key) });
+          row.appendChild(lab);
+          var input = createEl('input'); input.type = 'color'; input.id = ui.id + '_' + ctrl.key; input.value = ctrl.default || '#ffffff';
+          self.state[ui.id][ctrl.key] = input.value;
+          input.addEventListener('input', function(){ self.state[ui.id][ctrl.key] = input.value; self.onChange(ui.id, Object.assign({}, self.state[ui.id])); });
+          row.appendChild(input);
         }
         if (ctrl.help) {
           var help = createEl('div', { class: 'help-text', text: ctrl.help });
@@ -109,6 +117,15 @@
       instances.push(inst);
     });
     return instances;
+  };
+
+  PluginUI.prototype.getValues = function() {
+    // Return a shallow copy of current state
+    var out = {};
+    for (var k in this.state) if (Object.prototype.hasOwnProperty.call(this.state, k)) {
+      out[k] = Object.assign({}, this.state[k]);
+    }
+    return out;
   };
 
   global.PluginUI = PluginUI;

@@ -57,43 +57,43 @@
 
       // Build banded backgrounds with one-sided soft edge → hard → fade
       var bg1 = 'repeating-linear-gradient(' +
-        cfg.lightAngle + 'deg,' +
+        'var(--light-angle, ' + cfg.lightAngle + 'deg),' +
         'transparent 0,' +
-        'transparent ' + cfg.bandGap + 'px,' +
+        'transparent var(--band-gap, ' + cfg.bandGap + 'px),' +
         'var(--highlight-color-soft, rgba(255,255,255,0.15)) ' + cfg.bandGap + 'px,' +
-        'var(--highlight-color, #ffffff) ' + (cfg.bandGap + cfg.softEdge) + 'px,' +
-        'var(--highlight-color-0, rgba(255,255,255,0)) ' + (cfg.bandGap + cfg.softEdge + cfg.bandWidth) + 'px,' +
-        'transparent ' + (cfg.bandGap + cfg.softEdge + cfg.bandWidth + cfg.bandSpace) + 'px' +
+        'var(--highlight-color, #ffffff) calc(var(--band-gap, ' + cfg.bandGap + 'px) + var(--soft-edge, ' + cfg.softEdge + 'px)),' +
+        'var(--highlight-color-0, rgba(255,255,255,0)) calc(var(--band-gap, ' + cfg.bandGap + 'px) + var(--soft-edge, ' + cfg.softEdge + 'px) + var(--band-width, ' + cfg.bandWidth + 'px)),' +
+        'transparent calc(var(--band-gap, ' + cfg.bandGap + 'px) + var(--soft-edge, ' + cfg.softEdge + 'px) + var(--band-width, ' + cfg.bandWidth + 'px) + var(--band-space, ' + cfg.bandSpace + 'px))' +
       ')';
       var bg2 = 'repeating-linear-gradient(' +
-        (cfg.lightAngle + cfg.bandPhase) + 'deg,' +
+        'calc(var(--light-angle, ' + cfg.lightAngle + 'deg) + var(--band-phase, ' + cfg.bandPhase + 'deg)),' +
         'transparent 0,' +
-        'transparent ' + cfg.bandGap2 + 'px,' +
+        'transparent var(--band-gap2, ' + cfg.bandGap2 + 'px),' +
         'var(--highlight-color-soft, rgba(255,255,255,0.15)) ' + cfg.bandGap2 + 'px,' +
-        'var(--highlight-color-weak, rgba(255,255,255,0.35)) ' + (cfg.bandGap2 + cfg.softEdge) + 'px,' +
-        'rgba(255,255,255,0) ' + (cfg.bandGap2 + cfg.softEdge + cfg.bandWidth2) + 'px,' +
-        'transparent ' + (cfg.bandGap2 + cfg.softEdge + cfg.bandWidth2 + cfg.bandSpace2) + 'px' +
+        'var(--highlight-color-weak, rgba(255,255,255,0.35)) calc(var(--band-gap2, ' + cfg.bandGap2 + 'px) + var(--soft-edge, ' + cfg.softEdge + 'px)),' +
+        'rgba(255,255,255,0) calc(var(--band-gap2, ' + cfg.bandGap2 + 'px) + var(--soft-edge, ' + cfg.softEdge + 'px) + var(--band-width2, ' + cfg.bandWidth2 + 'px)),' +
+        'transparent calc(var(--band-gap2, ' + cfg.bandGap2 + 'px) + var(--soft-edge, ' + cfg.softEdge + 'px) + var(--band-width2, ' + cfg.bandWidth2 + 'px) + var(--band-space2, ' + cfg.bandSpace2 + 'px))' +
       ')';
       var bg3 = 'repeating-linear-gradient(' +
-        (cfg.lightAngle + cfg.bandPhase3) + 'deg,' +
+        'calc(var(--light-angle, ' + cfg.lightAngle + 'deg) + var(--band-phase3, ' + cfg.bandPhase3 + 'deg)),' +
         'transparent 0,' +
-        'transparent ' + cfg.bandGap3 + 'px,' +
+        'transparent var(--band-gap3, ' + cfg.bandGap3 + 'px),' +
         'var(--highlight-color-soft, rgba(255,255,255,0.15)) ' + cfg.bandGap3 + 'px,' +
-        'var(--highlight-color-weak2, rgba(255,255,255,0.2)) ' + (cfg.bandGap3 + cfg.softEdge) + 'px,' +
-        'rgba(255,255,255,0) ' + (cfg.bandGap3 + cfg.softEdge + cfg.bandWidth3) + 'px,' +
-        'transparent ' + (cfg.bandGap3 + cfg.softEdge + cfg.bandWidth3 + cfg.bandSpace3) + 'px' +
+        'var(--highlight-color-weak2, rgba(255,255,255,0.2)) calc(var(--band-gap3, ' + cfg.bandGap3 + 'px) + var(--soft-edge, ' + cfg.softEdge + 'px)),' +
+        'rgba(255,255,255,0) calc(var(--band-gap3, ' + cfg.bandGap3 + 'px) + var(--soft-edge, ' + cfg.softEdge + 'px) + var(--band-width3, ' + cfg.bandWidth3 + 'px)),' +
+        'transparent calc(var(--band-gap3, ' + cfg.bandGap3 + 'px) + var(--soft-edge, ' + cfg.softEdge + 'px) + var(--band-width3, ' + cfg.bandWidth3 + 'px) + var(--band-space3, ' + cfg.bandSpace3 + 'px))' +
       ')';
 
       var masked = (cfg.preview !== 'unmasked');
       var beforeDecl = (minified
-        ? 'content:\"\";position:absolute;inset:0;pointer-events:none;background:' + bg1 + ',' + bg2 + ',' + bg3 + ';background-attachment:fixed;mix-blend-mode:' + cfg.blendMode + ';opacity:' + cfg.highlightAlpha + (masked ? ';-webkit-mask:' + cfg.maskVar + ';mask:' + cfg.maskVar + ';mask-mode:luminance' : '') + ';'
+        ? 'content:\"\";position:absolute;inset:0;pointer-events:none;background:' + bg1 + ',' + bg2 + ',' + bg3 + ';background-attachment:fixed;mix-blend-mode:var(--blend-mode,' + cfg.blendMode + ');opacity:var(--highlight-alpha,' + cfg.highlightAlpha + ')' + (masked ? ';-webkit-mask:' + cfg.maskVar + ';mask:' + cfg.maskVar + ';mask-mode:luminance' : '') + ';'
         : '{' + nl +
             ind + 'content: "";' + nl +
             ind + 'position: absolute; inset: 0; pointer-events: none;' + nl +
             ind + 'background: ' + nl + ind + ind + bg1 + ',' + nl + ind + ind + bg2 + ',' + nl + ind + ind + bg3 + ';' + nl +
             ind + 'background-attachment: fixed;' + nl +
-            ind + 'mix-blend-mode: ' + cfg.blendMode + ';' + nl +
-            ind + 'opacity: ' + cfg.highlightAlpha + ';' + nl +
+            ind + 'mix-blend-mode: var(--blend-mode, ' + cfg.blendMode + ');' + nl +
+            ind + 'opacity: var(--highlight-alpha, ' + cfg.highlightAlpha + ');' + nl +
             (masked ? (ind + '-webkit-mask: ' + cfg.maskVar + ';' + nl + ind + 'mask: ' + cfg.maskVar + ';' + nl + ind + 'mask-mode: luminance;' + nl) : '') +
           '}');
 
@@ -101,13 +101,13 @@
 
       // Shadow layer kept but default opacity zero, uses same blend mode
       var afterDecl = (minified
-        ? 'content:\"\";position:absolute;inset:0;pointer-events:none;background:linear-gradient(' + (cfg.lightAngle + 180) + 'deg,rgba(0,0,0,1) 0,rgba(0,0,0,0) 60%);background-attachment:fixed;mix-blend-mode:' + cfg.blendMode + ';opacity:0' + (masked ? ';-webkit-mask:' + cfg.maskVar + ';mask:' + cfg.maskVar + ';mask-mode:luminance' : '') + ';'
+        ? 'content:\"\";position:absolute;inset:0;pointer-events:none;background:linear-gradient(calc(var(--light-angle,' + cfg.lightAngle + 'deg) + 180deg),rgba(0,0,0,1) 0,rgba(0,0,0,0) 60%);background-attachment:fixed;mix-blend-mode:var(--blend-mode,' + cfg.blendMode + ');opacity:0' + (masked ? ';-webkit-mask:' + cfg.maskVar + ';mask:' + cfg.maskVar + ';mask-mode:luminance' : '') + ';'
         : '{' + nl +
             ind + 'content: "";' + nl +
             ind + 'position: absolute; inset: 0; pointer-events: none;' + nl +
-            ind + 'background: linear-gradient(' + (cfg.lightAngle + 180) + 'deg, rgba(0,0,0,1) 0%, rgba(0,0,0,0) 60%);' + nl +
+            ind + 'background: linear-gradient(calc(var(--light-angle, ' + cfg.lightAngle + 'deg) + 180deg), rgba(0,0,0,1) 0%, rgba(0,0,0,0) 60%);' + nl +
             ind + 'background-attachment: fixed;' + nl +
-            ind + 'mix-blend-mode: ' + cfg.blendMode + ';' + nl +
+            ind + 'mix-blend-mode: var(--blend-mode, ' + cfg.blendMode + ');' + nl +
             ind + 'opacity: 0;' + nl +
             (masked ? (ind + '-webkit-mask: ' + cfg.maskVar + ';' + nl + ind + 'mask: ' + cfg.maskVar + ';' + nl + ind + 'mask-mode: luminance;' + nl) : '') +
           '}');
@@ -140,8 +140,22 @@
     name: 'Lighting',
     controls: [
       { type: 'switch', key: 'enabled', label: 'Enable', default: true },
+      { type: 'select', key: 'preset', label: 'Preset', default: 'custom', options: [
+        { label: 'Custom', value: 'custom' },
+        { label: 'Chrome', value: 'chrome' },
+        { label: 'Water', value: 'water' },
+        { label: 'Wet Paint', value: 'wet-paint' },
+        { label: 'Marble Floor', value: 'marble' },
+        { label: 'Brushed Metal', value: 'brushed-metal' },
+        { label: 'Glossy Plastic', value: 'glossy-plastic' },
+        { label: 'Satin Fabric', value: 'satin' },
+        { label: 'Ceramic', value: 'ceramic' },
+        { label: 'Automotive Clearcoat', value: 'clearcoat' },
+        { label: 'Frosted Glass', value: 'frosted-glass' }
+      ]},
       { type: 'slider', key: 'lightAngle', label: 'Angle', min: 0, max: 360, step: 1, default: 173 },
-      { type: 'slider', key: 'highlightAlpha', label: 'Highlight Alpha', min: 0, max: 1, step: 0.01, default: 0.75 },
+      { type: 'slider', key: 'highlightAlpha', label: 'Intensity', min: 0, max: 1, step: 0.01, default: 0.75 },
+      { type: 'color', key: 'color', label: 'Lighting Color', default: '#ffffff' },
       { type: 'select', key: 'blendMode', label: 'Blend Mode', default: 'color-dodge', options: [
         { label: 'normal', value: 'normal' },
         { label: 'screen', value: 'screen' },
@@ -171,7 +185,8 @@
       { type: 'select', key: 'preview', label: 'Preview', default: 'off', options: [
         { label: 'Off (normal)', value: 'off' },
         { label: 'Masked only', value: 'masked' },
-        { label: 'Unmasked only', value: 'unmasked' }
+        { label: 'Unmasked only', value: 'unmasked' },
+        { label: 'Mask image only', value: 'mask-only' }
       ]}
     ],
     build(values, ctx) {
@@ -199,4 +214,3 @@
     }
   };
 })(typeof window !== 'undefined' ? window : this);
-
