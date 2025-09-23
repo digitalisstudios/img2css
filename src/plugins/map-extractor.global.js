@@ -14,6 +14,29 @@
       return payload;
     }
 
+    // Cache to prevent re-calculation - clears when image changes
+    var mapCache = {};
+    var lastImageKey = null;
+    var lastImageSignature = null;
+
+    function generateImageKey(imageData, settings) {
+      // Create a hash-like key from image dimensions and key settings
+      var w = imageData.width;
+      var h = imageData.height;
+      var samplePixels = '';
+      // Sample a few pixels for uniqueness (corners + center)
+      var samples = [
+        imageData.data[0], imageData.data[1], imageData.data[2], // top-left
+        imageData.data[(w-1)*4], imageData.data[(w-1)*4+1], imageData.data[(w-1)*4+2], // top-right
+        imageData.data[((h-1)*w)*4], imageData.data[((h-1)*w)*4+1], imageData.data[((h-1)*w)*4+2], // bottom-left
+        imageData.data[((h-1)*w + (w-1))*4], imageData.data[((h-1)*w + (w-1))*4+1], imageData.data[((h-1)*w + (w-1))*4+2], // bottom-right
+        imageData.data[(Math.floor(h/2)*w + Math.floor(w/2))*4], imageData.data[(Math.floor(h/2)*w + Math.floor(w/2))*4+1], imageData.data[(Math.floor(h/2)*w + Math.floor(w/2))*4+2] // center
+      ];
+      samplePixels = samples.join(',');
+      
+      return w + 'x' + h + '_' + settings.quality + '_' + settings.normalStrength + '_' + settings.roughnessWindow + '_' + samplePixels.substring(0, 50);
+    }
+
     var resolved = emit('resolveOptions', { options: Object.assign({}, options) });
     if (resolved && resolved.options) options = resolved.options;
 
@@ -553,6 +576,36 @@
     }
 
     function maybeCompute(imageData, stage) {
+      // Generate cache key for this image and current settings
+      var imageKey = generateImageKey(imageData, {
+        quality: cfg.quality,
+        normalStrength: cfg.normalStrength,
+        roughnessWindow: cfg.roughnessWindow
+      });
+      
+      // Generate a simple signature for the image data to detect image changes
+      var imageSignature = imageData.width + 'x' + imageData.height + '_' + imageData.data.length;
+      
+      // Clear cache if this is a different image
+      if (lastImageSignature && lastImageSignature !== imageSignature) {
+        mapCache = {};
+        lastImageKey = null;
+        emit('onImageChange', { previousSignature: lastImageSignature, newSignature: imageSignature });
+      }
+      lastImageSignature = imageSignature;
+      
+      // If we have cached results for this exact image/settings combination, use them
+      if (lastImageKey === imageKey && mapCache[imageKey]) {
+        var cached = mapCache[imageKey];
+        // Re-emit cached maps
+        (cfg.types || ['specular']).forEach(function(type) {
+          if (cached[type]) {
+            emit('onMap', { type: type, map: cached[type].map, stage: stage, dataURL: cached[type].dataURL });
+          }
+        });
+        return cached.results || [];
+      }
+      
       var out = [];
       var objectMask = null;
       
@@ -578,6 +631,20 @@
         else if (t === 'depth') out.push(emitMap('depth', extractDepth(imageData, objectMask), stage));
         // object is handled in first pass above
       });
+      
+      // Cache the results for this image/settings combination
+      if (!mapCache[imageKey]) {
+        mapCache[imageKey] = {};
+      }
+      out.forEach(function(result) {
+        mapCache[imageKey][result.type] = {
+          map: result.map,
+          dataURL: result.dataURL
+        };
+      });
+      mapCache[imageKey].results = out;
+      lastImageKey = imageKey;
+      
       return out;
     }
 
@@ -753,9 +820,9 @@
     id: 'mapExtractor',
     name: 'MapExtractor (PBR Maps)',
     controls: [
-      { type: 'switch', key: 'normalOn', label: 'Normal', default: true },
+      { type: 'switch', key: 'normalOn', label: 'Normal', default: false },
       { type: 'switch', key: 'roughnessOn', label: 'Roughness', default: true },
-      { type: 'switch', key: 'subjectnormalOn', label: 'Subject Normal', default: true },
+      { type: 'switch', key: 'subjectnormalOn', label: 'Subject Normal', default: false },
       { type: 'switch', key: 'enabled', label: 'Enable', default: true },
       { type: 'select', key: 'computeAt', label: 'Compute At', default: 'scaled', options: [
         { label: 'Scaled', value: 'scaled' },

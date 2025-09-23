@@ -64,8 +64,8 @@
     name: 'Soft Posterize',
     controls: [
       { type: 'switch', key: 'enabled', label: 'Enable', default: false },
-      { type: 'slider', key: 'steps', label: 'Steps', min: 2, max: 32, step: 1, default: 16 },
-      { type: 'slider', key: 'blurBoost', label: 'Blur Boost', min: 1.0, max: 1.5, step: 0.01, default: 1.05 }
+      { type: 'slider', key: 'steps', label: 'Steps', min: 2, max: 32, step: 1, default: 7 },
+      { type: 'slider', key: 'blurBoost', label: 'Blur Boost', min: 1.0, max: 1.5, step: 0.01, default: 1.3 }
     ],
     build(values, ctx) {
       if (!values.enabled) return null;

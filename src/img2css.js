@@ -1557,7 +1557,7 @@ class img2css {
     aspect-ratio: ${width} / ${height};
     background: ${backgroundDeclaration};
 }`;
-        const post = this._applyHookSync('afterBuildCSS', { css: cssOut, layers: backgroundDeclarations.slice(), selector, dimensions: { width, height }, minified, layersData: backgrounds.slice() });
+        const post = this._applyHookSync('afterBuildCSS', { css: cssOut, layers: backgroundDeclarations.slice(), selector, dimensions: { width, height }, minified, layersData: backgrounds.slice(), imageData: this.imageData });
         return (post && post.css) ? post.css : cssOut;
     }
 
@@ -1623,7 +1623,7 @@ class img2css {
     aspect-ratio: ${width} / ${height};
     background: ${backgroundDeclaration};
 }`;
-        const post = this._applyHookSync('afterBuildCSS', { css: cssOut, layers: backgroundDeclarations.slice(), selector, dimensions: { width, height }, minified, layersData: backgrounds.slice() });
+        const post = this._applyHookSync('afterBuildCSS', { css: cssOut, layers: backgroundDeclarations.slice(), selector, dimensions: { width, height }, minified, layersData: backgrounds.slice(), imageData: this.imageData });
         return (post && post.css) ? post.css : cssOut;
     }
 

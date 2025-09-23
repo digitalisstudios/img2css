@@ -128,5 +128,31 @@
     return out;
   };
 
+  PluginUI.prototype.updateControlValue = function(pluginId, controlKey, value) {
+    // Update both the state and the UI control element
+    if (!this.state[pluginId]) return;
+    
+    this.state[pluginId][controlKey] = value;
+    var elementId = pluginId + '_' + controlKey;
+    var element = document.getElementById(elementId);
+    
+    if (element) {
+      if (element.type === 'checkbox') {
+        element.checked = !!value;
+      } else if (element.type === 'range') {
+        element.value = value;
+        // Also update the value display span
+        var valueSpan = document.getElementById(elementId + '_value');
+        if (valueSpan) valueSpan.textContent = String(value);
+      } else if (element.tagName === 'SELECT') {
+        element.value = value;
+      } else if (element.type === 'color') {
+        element.value = value;
+      } else {
+        element.value = value;
+      }
+    }
+  };
+
   global.PluginUI = PluginUI;
 })(typeof window !== 'undefined' ? window : this);

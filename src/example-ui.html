@@ -819,7 +819,7 @@ input:checked + .slider:before {
   word-wrap: break-word;
   font-family: "JetBrains Mono", "Fira Code", "Courier New", monospace;
   font-size: clamp(11px, 1.5vw, 13px);
-  max-height: clamp(200px, 40vh, 400px);
+  max-height: 100vh;
   overflow-y: auto;
   line-height: 1.4;
   color: #e6edf3;
@@ -1030,6 +1030,11 @@ input:checked + .slider:before {
   }
 }
 
+/* Hide map CSS code blocks but keep functionality for downloads */
+.map-css-section {
+  display: none !important;
+}
+
     </style>
 </head>
 <body>
@@ -1146,44 +1151,54 @@ input:checked + .slider:before {
               </button>
             </div>
 
-            <h3 style="margin-top:16px;">Specularity CSS (via Roughness)</h3>
-            <div class="css-code-container">
-              <div class="css-code" id="specCssCode"></div>
-              <button id="specDownloadBtn" class="copy-button" title="Download Specular CSS">
-                <span class="copy-icon">⤓</span>
-              </button>
+            <div class="map-css-section">
+              <h3 style="margin-top:16px;">Specularity CSS (via Roughness)</h3>
+              <div class="css-code-container">
+                <div class="css-code" id="specCssCode"></div>
+                <button id="specDownloadBtn" class="copy-button" title="Download Specular CSS">
+                  <span class="copy-icon">⤓</span>
+                </button>
+              </div>
             </div>
 
-            <h3 style="margin-top:16px;">Map CSS (Normal)</h3>
-            <div class="css-code-container">
-              <div class="css-code" id="normalCssCode"></div>
-              <button id="normalDownloadBtn" class="copy-button" title="Download Normal CSS">
-                <span class="copy-icon">⤓</span>
-              </button>
+            <div class="map-css-section">
+              <h3 style="margin-top:16px;">Map CSS (Normal)</h3>
+              <div class="css-code-container">
+                <div class="css-code" id="normalCssCode"></div>
+                <button id="normalDownloadBtn" class="copy-button" title="Download Normal CSS">
+                  <span class="copy-icon">⤓</span>
+                </button>
+              </div>
             </div>
 
-            <h3 style="margin-top:16px;">Map CSS (Roughness)</h3>
-            <div class="css-code-container">
-              <div class="css-code" id="roughCssCode"></div>
-              <button id="roughDownloadBtn" class="copy-button" title="Download Roughness CSS">
-                <span class="copy-icon">⤓</span>
-              </button>
+            <div class="map-css-section">
+              <h3 style="margin-top:16px;">Map CSS (Roughness)</h3>
+              <div class="css-code-container">
+                <div class="css-code" id="roughCssCode"></div>
+                <button id="roughDownloadBtn" class="copy-button" title="Download Roughness CSS">
+                  <span class="copy-icon">⤓</span>
+                </button>
+              </div>
             </div>
 
-            <h3 style="margin-top:16px;">Map CSS (Subject Normal)</h3>
-            <div class="css-code-container">
-              <div class="css-code" id="subjectnormalCssCode"></div>
-              <button id="subjectnormalDownloadBtn" class="copy-button" title="Download Subject Normal CSS">
-                <span class="copy-icon">⤓</span>
-              </button>
+            <div class="map-css-section">
+              <h3 style="margin-top:16px;">Map CSS (Subject Normal)</h3>
+              <div class="css-code-container">
+                <div class="css-code" id="subjectnormalCssCode"></div>
+                <button id="subjectnormalDownloadBtn" class="copy-button" title="Download Subject Normal CSS">
+                  <span class="copy-icon">⤓</span>
+                </button>
+              </div>
             </div>
 
-            <h3 style="margin-top:16px;">Reflection CSS (via Subject Normal)</h3>
-            <div class="css-code-container">
-              <div class="css-code" id="reflFromSubjectnormalCssCode"></div>
-              <button id="reflFromSubjectnormalDownloadBtn" class="copy-button" title="Download Reflection (via Subject Normal) CSS">
-                <span class="copy-icon">⤓</span>
-              </button>
+            <div class="map-css-section">
+              <h3 style="margin-top:16px;">Reflection CSS (via Subject Normal)</h3>
+              <div class="css-code-container">
+                <div class="css-code" id="reflFromSubjectnormalCssCode"></div>
+                <button id="reflFromSubjectnormalDownloadBtn" class="copy-button" title="Download Reflection (via Subject Normal) CSS">
+                  <span class="copy-icon">⤓</span>
+                </button>
+              </div>
             </div>
 
             <div style="margin-top:12px; text-align:right;">
@@ -1206,7 +1221,7 @@ input:checked + .slider:before {
         <div class="control-tabs">
           <button class="control-tab active" id="mainControlsTab">
             <span class="control-tab-icon">⚙️</span>
-            <span>Controls</span>
+            <span>Settings</span>
           </button>
           <button class="control-tab" id="pluginsTab">
             <span class="control-tab-icon">🔌</span>
@@ -1218,20 +1233,32 @@ input:checked + .slider:before {
           <div class="options-grid">
             <div class="option-column">
               <div class="option-group">
-                <label for="detailsSlider">
-                  Details: <span id="detailsValue">100</span>%<span id="optimalDetails" class="optimal-hint" style="display: none;"></span>
-                </label>
-                <input type="range" id="detailsSlider" min="1" max="100" value="100">
+                <label for="processingModeSelect">Processing Mode</label>
+                <select id="processingModeSelect">
+                  <option value="auto">Auto (detect orientation)</option>
+                  <option value="rows">Rows (horizontal gradients)</option>
+                  <option value="columns" selected>Columns (vertical gradients)</option>
+                  <option value="hybrid">Hybrid (blend both directions)</option>
+                </select>
                 <div class="help-text">
-                  Higher values preserve more detail
+                  Choose gradient direction manually
                 </div>
               </div>
 
               <div class="option-group">
-                <label for="posterizationStrengthSlider">Posterization: <span id="posterizationStrengthValue">0%</span></label>
-                <input type="range" id="posterizationStrengthSlider" min="0" max="100" value="0" step="5">
+                <label for="maxSizeInput">Max CSS file size</label>
+                <input type="text" id="maxSizeInput" placeholder="e.g., 500KB, 2MB">
+              </div>
+            </div>
+
+            <div class="option-column">
+              <div class="option-group">
+                <label for="detailsSlider">
+                  Details: <span id="detailsValue">70</span>%<span id="optimalDetails" class="optimal-hint" style="display: none;"></span>
+                </label>
+                <input type="range" id="detailsSlider" min="1" max="100" value="70">
                 <div class="help-text">
-                  Limit gradients to colors from original image (0% = off, 100% = full posterization)
+                  Higher values preserve more detail
                 </div>
               </div>
             </div>
@@ -1248,23 +1275,12 @@ input:checked + .slider:before {
               </div>
             </div>
 
-            <div class="option-column">
-              <div class="option-group">
-                <label for="maxSizeInput">Max CSS file size</label>
-                <input type="text" id="maxSizeInput" placeholder="e.g., 500KB, 2MB">
-              </div>
-
-              <div class="option-group">
-                <label for="processingModeSelect">Processing Mode</label>
-                <select id="processingModeSelect">
-                  <option value="auto">Auto (detect orientation)</option>
-                  <option value="rows">Rows (horizontal gradients)</option>
-                  <option value="columns">Columns (vertical gradients)</option>
-                  <option value="hybrid">Hybrid (blend both directions)</option>
-                </select>
-                <div class="help-text">
-                  Choose gradient direction manually
-                </div>
+            <!-- Hidden posterization option -->
+            <div class="option-group" style="display: none;">
+              <label for="posterizationStrengthSlider">Posterization: <span id="posterizationStrengthValue">0%</span></label>
+              <input type="range" id="posterizationStrengthSlider" min="0" max="100" value="0" step="5">
+              <div class="help-text">
+                Limit gradients to colors from original image (0% = off, 100% = full posterization)
               </div>
             </div>
           </div>
@@ -1355,9 +1371,66 @@ input:checked + .slider:before {
                                             const bg = self.extractBackgroundFromCSS(css);
                                             const gp = document.getElementById('gradientPreview');
                                             if (bg && gp) {
+                                                // Emit beforeMaskLoaded hook for lighting plugin
+                                                try {
+                                                    if (self.pluginUI && self.pluginUI.getValues) {
+                                                        const st = self.pluginUI.getValues();
+                                                        if (st && st.lighting) {
+                                                            self.emitLightingHook('beforeMaskLoaded', { 
+                                                                mask: bg, 
+                                                                element: gp, 
+                                                                mapType: 'roughness',
+                                                                lightingState: st.lighting 
+                                                            });
+                                                        }
+                                                    }
+                                                } catch(_) {}
+                                                
                                                 gp.style.setProperty('--spec-mask', bg);
                                                 gp.classList.add('mask-ready');
+                                                
+                                                // Emit onMaskLoaded hook for lighting plugin
+                                                try {
+                                                    if (self.pluginUI && self.pluginUI.getValues) {
+                                                        const st = self.pluginUI.getValues();
+                                                        if (st && st.lighting) {
+                                                            self.emitLightingHook('onMaskLoaded', { 
+                                                                mask: bg, 
+                                                                element: gp, 
+                                                                mapType: 'roughness',
+                                                                lightingState: st.lighting 
+                                                            });
+                                                        }
+                                                    }
+                                                } catch(_) {}
                                             }
+                                            
+                                            // Apply clearcoat lighting preset values now that roughness map is ready
+                                            try {
+                                                if (self.pluginUI && self.pluginUI.getValues) {
+                                                    const st = self.pluginUI.getValues();
+                                                    if (st && st.lighting && (st.lighting.preset === 'clearcoat' || !st.lighting.preset)) {
+                                                        const clearcoatValues = {
+                                                            preset: 'clearcoat',
+                                                            lightAngle: 171,
+                                                            highlightAlpha: 1.0,
+                                                            blendMode: 'screen',
+                                                            color: '#ffffff',
+                                                            bandGap: 110,
+                                                            bandWidth: 50,
+                                                            softEdge: 4,
+                                                            bandPhase: 2,
+                                                            bandGap2: 80,
+                                                            bandWidth2: 10,
+                                                            bandPhase3: 14,
+                                                            bandGap3: 120,
+                                                            bandWidth3: 8
+                                                        };
+                                                        Object.assign(st.lighting, clearcoatValues);
+                                                        self.applyLightingVars(st.lighting);
+                                                    }
+                                                }
+                                            } catch(_) {}
                                         }
                                     } else if (type === 'subjectnormal') {
                                         self.updateSubjectNormalGradientClass(css);
@@ -1401,7 +1474,7 @@ input:checked + .slider:before {
                             }
                         },
                         onChange: (pid, values) => { 
-                            if (pid === 'lighting') { this.applyLightingVars(values); return; }
+                            if (pid === 'lighting') { this.applyLightingVars(values, true); return; }
                             this.updateMapPreviewVisibility(); 
                             this.updateStats(); 
                             this.scheduleGeneration(); 
@@ -1411,7 +1484,40 @@ input:checked + .slider:before {
                     // Set initial preview visibility based on default values
                     setTimeout(() => {
                         this.updateMapPreviewVisibility();
-                        try { if (this.pluginUI && this.pluginUI.getValues) { const st = this.pluginUI.getValues(); if (st && st.lighting) this.applyLightingVars(st.lighting); } } catch(_) {}
+                        try { 
+                            if (this.pluginUI && this.pluginUI.getValues) { 
+                                const st = this.pluginUI.getValues(); 
+                                if (st && st.lighting) {
+                                    // Ensure Clearcoat preset is applied by default
+                                    const clearcoatValues = {
+                                        preset: 'clearcoat',
+                                        lightAngle: 171,
+                                        highlightAlpha: 1.0,
+                                        blendMode: 'screen',
+                                        color: '#ffffff',
+                                        bandGap: 110,
+                                        bandWidth: 50,
+                                        softEdge: 4,
+                                        bandPhase: 2,
+                                        bandGap2: 80,
+                                        bandWidth2: 10,
+                                        bandPhase3: 14,
+                                        bandGap3: 120,
+                                        bandWidth3: 8
+                                    };
+                                    
+                                    if (st.lighting.preset === 'clearcoat') {
+                                        // Ensure all clearcoat values are populated even when preset is already selected
+                                        Object.assign(st.lighting, clearcoatValues);
+                                        this.applyLightingVars(st.lighting);
+                                    } else {
+                                        // Force Clearcoat preset if not already set and populate all values
+                                        Object.assign(st.lighting, clearcoatValues);
+                                        this.applyLightingVars(st.lighting);
+                                    }
+                                }
+                            } 
+                        } catch(_) {}
                     }, 0);
                     
                     // Add collapsible functionality to plugins
@@ -1419,6 +1525,25 @@ input:checked + .slider:before {
                 };
                 if (document.readyState === 'complete') setTimeout(setup, 0);
                 else setTimeout(setup, 0);
+            }
+
+            emitLightingHook(eventName, payload) {
+                // Emit hooks specifically to the lighting plugin
+                try {
+                    // Get the current plugin instances
+                    const instances = this.pluginUI ? this.pluginUI.build() : [];
+                    // Find the lighting plugin instance
+                    const lightingInstance = instances.find(inst => inst && inst.hooks && (inst.hooks.beforeMaskLoaded || inst.hooks.onMaskLoaded));
+                    if (lightingInstance && lightingInstance.hooks && lightingInstance.hooks[eventName]) {
+                        const hookFn = lightingInstance.hooks[eventName];
+                        if (typeof hookFn === 'function') {
+                            return hookFn(payload);
+                        }
+                    }
+                } catch (e) {
+                    console.warn('Error emitting lighting hook:', eventName, e);
+                }
+                return payload;
             }
 
             setupPluginCollapse() {
@@ -2063,15 +2188,44 @@ input:checked + .slider:before {
                 return m ? m[1] : null;
             }
 
-            applyLightingVars(values) {
+            applyLightingVars(values, isUserChange) {
                 try {
                     const gp = document.getElementById('gradientPreview');
                     if (!gp) return;
                     if (values && typeof values === 'object') {
+                        // If user is changing values and we're not on custom preset, switch to custom
+                        if (isUserChange && values.preset && values.preset !== 'custom') {
+                            // Check if any non-preset values have changed from their preset defaults
+                            const clearcoatDefaults = { angle: 171, alpha: 1.0, blend: 'screen', gap: 110, width: 50, soft: 4, phase: 2, gap2: 80, width2: 10, phase3: 14, gap3: 120, width3: 8 };
+                            const currentPreset = clearcoatDefaults; // For now, only handle clearcoat preset
+                            
+                            const hasNonPresetChanges = 
+                                (values.lightAngle != null && values.lightAngle != currentPreset.angle) ||
+                                (values.highlightAlpha != null && values.highlightAlpha != currentPreset.alpha) ||
+                                (values.blendMode && values.blendMode !== currentPreset.blend) ||
+                                (values.bandGap != null && values.bandGap != currentPreset.gap) ||
+                                (values.bandWidth != null && values.bandWidth != currentPreset.width) ||
+                                (values.softEdge != null && values.softEdge != currentPreset.soft) ||
+                                (values.bandPhase != null && values.bandPhase != currentPreset.phase) ||
+                                (values.bandGap2 != null && values.bandGap2 != currentPreset.gap2) ||
+                                (values.bandWidth2 != null && values.bandWidth2 != currentPreset.width2) ||
+                                (values.bandPhase3 != null && values.bandPhase3 != currentPreset.phase3) ||
+                                (values.bandGap3 != null && values.bandGap3 != currentPreset.gap3) ||
+                                (values.bandWidth3 != null && values.bandWidth3 != currentPreset.width3);
+                            
+                            if (hasNonPresetChanges) {
+                                // Switch to custom preset
+                                values.preset = 'custom';
+                                if (this.pluginUI && this.pluginUI.updateControlValue) {
+                                    this.pluginUI.updateControlValue('lighting', 'preset', 'custom');
+                                }
+                            }
+                        }
+                        
                         // Apply presets first (they set CSS vars directly; sliders remain as-is)
                         if (values.preset && values.preset !== 'custom') {
                             const P = {
-                                'chrome':         { angle: 25,  alpha: 0.9,  blend: 'color-dodge', color: '#ffffff', gap: 110, width: 16, soft: 4, phase: 6, gap2: 80, width2: 10, phase3: 14, gap3: 120, width3: 8 },
+                                'chrome':         { angle: 170, alpha: 1.0,  blend: 'color-dodge', color: '#ffffff', gap: 110, width: 16, soft: 4, phase: 6, gap2: 80, width2: 10, phase3: 14, gap3: 120, width3: 8 },
                                 'water':          { angle: 175, alpha: 0.6,  blend: 'screen',      color: '#aee7ff', gap: 160, width: 28, soft: 10, phase: 10, gap2: 120, width2: 16, phase3: 20, gap3: 180, width3: 12 },
                                 'wet-paint':      { angle: 35,  alpha: 0.85, blend: 'overlay',     color: '#fff3e0', gap: 130, width: 20, soft: 6, phase: 8, gap2: 100, width2: 14, phase3: 18, gap3: 160, width3: 10 },
                                 'marble':         { angle: 20,  alpha: 0.7,  blend: 'soft-light',  color: '#ffffff', gap: 180, width: 26, soft: 12, phase: 12, gap2: 150, width2: 18, phase3: 22, gap3: 220, width3: 14 },
@@ -2079,7 +2233,7 @@ input:checked + .slider:before {
                                 'glossy-plastic': { angle: 40,  alpha: 0.75, blend: 'screen',      color: '#ffd7d7', gap: 120, width: 22, soft: 8, phase: 8, gap2: 95,  width2: 12, phase3: 16, gap3: 150, width3: 10 },
                                 'satin':          { angle: 30,  alpha: 0.5,  blend: 'soft-light',  color: '#ffffff', gap: 140, width: 18, soft: 14, phase: 10, gap2: 120, width2: 14, phase3: 20, gap3: 180, width3: 12 },
                                 'ceramic':        { angle: 30,  alpha: 0.8,  blend: 'screen',      color: '#ffffff', gap: 150, width: 20, soft: 8, phase: 10, gap2: 120, width2: 14, phase3: 18, gap3: 180, width3: 12 },
-                                'clearcoat':      { angle: 33,  alpha: 0.9,  blend: 'color-dodge', color: '#ffffff', gap: 100, width: 16, soft: 5, phase: 6, gap2: 85,  width2: 10, phase3: 14, gap3: 140, width3: 8 },
+                                'clearcoat':      { angle: 171, alpha: 1.0,  blend: 'screen',      color: '#ffffff', gap: 110, width: 50, soft: 4, phase: 2, gap2: 80,  width2: 10, phase3: 14, gap3: 120, width3: 8 },
                                 'frosted-glass':  { angle: 170, alpha: 0.4,  blend: 'screen',      color: '#ffffff', gap: 200, width: 30, soft: 16, phase: 12, gap2: 160, width2: 20, phase3: 24, gap3: 220, width3: 14 }
                             };
                             const p = P[String(values.preset)] || null;
@@ -2101,9 +2255,27 @@ input:checked + .slider:before {
                                     try {
                                         const h = String(p.color).replace('#','');
                                         const r = parseInt(h.substring(0,2),16), g = parseInt(h.substring(2,4),16), b = parseInt(h.substring(4,6),16);
+                                        gp.style.setProperty('--highlight-color-soft', `rgba(${r}, ${g}, ${b}, 0.15)`);
                                         gp.style.setProperty('--highlight-color-weak', `rgba(${r}, ${g}, ${b}, 0.35)`);
+                                        gp.style.setProperty('--highlight-color-weak2', `rgba(${r}, ${g}, ${b}, 0.2)`);
                                         gp.style.setProperty('--highlight-color-0', `rgba(${r}, ${g}, ${b}, 0)`);
                                     } catch(_) {}
+                                }
+                                
+                                // Update UI control values to match preset when preset is applied
+                                if (this.pluginUI && this.pluginUI.updateControlValue) {
+                                    this.pluginUI.updateControlValue('lighting', 'lightAngle', p.angle);
+                                    this.pluginUI.updateControlValue('lighting', 'highlightAlpha', p.alpha);
+                                    this.pluginUI.updateControlValue('lighting', 'blendMode', p.blend);
+                                    this.pluginUI.updateControlValue('lighting', 'bandGap', p.gap);
+                                    this.pluginUI.updateControlValue('lighting', 'bandWidth', p.width);
+                                    this.pluginUI.updateControlValue('lighting', 'softEdge', p.soft);
+                                    this.pluginUI.updateControlValue('lighting', 'bandPhase', p.phase);
+                                    this.pluginUI.updateControlValue('lighting', 'bandGap2', p.gap2);
+                                    this.pluginUI.updateControlValue('lighting', 'bandWidth2', p.width2);
+                                    this.pluginUI.updateControlValue('lighting', 'bandPhase3', p.phase3);
+                                    this.pluginUI.updateControlValue('lighting', 'bandGap3', p.gap3);
+                                    this.pluginUI.updateControlValue('lighting', 'bandWidth3', p.width3);
                                 }
                             }
                         }
@@ -2126,7 +2298,9 @@ input:checked + .slider:before {
                             try {
                                 const h = hex.replace('#','');
                                 const r = parseInt(h.substring(0,2),16), g = parseInt(h.substring(2,4),16), b = parseInt(h.substring(4,6),16);
+                                gp.style.setProperty('--highlight-color-soft', `rgba(${r}, ${g}, ${b}, 0.15)`);
                                 gp.style.setProperty('--highlight-color-weak', `rgba(${r}, ${g}, ${b}, 0.35)`);
+                                gp.style.setProperty('--highlight-color-weak2', `rgba(${r}, ${g}, ${b}, 0.2)`);
                                 gp.style.setProperty('--highlight-color-0', `rgba(${r}, ${g}, ${b}, 0)`);
                             } catch(_) {}
                         }
@@ -2536,6 +2710,8 @@ input:checked + .slider:before {
                 
                 return false;
             }
+
+
 
             copyCSS() {
                 const cssCode = document.getElementById('cssCode').textContent;
