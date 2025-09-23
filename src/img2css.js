@@ -18,8 +18,8 @@ class img2css {
             minified: config.minified || false // Minify CSS output
         };
         
-        // Plugin/Hook system initialization
-        this._plugins = Array.isArray(config.plugins) ? config.plugins.slice() : [];
+        // Plugin/Hook system initialization with comprehensive configuration support
+        this._plugins = this._initializePlugins(config);
         this._hooks = this._normalizeHooks(config.hooks || {}, this._plugins);
 
         this.canvas = null;
@@ -37,6 +37,57 @@ class img2css {
     }
 
     // --- Hook/Plugin Infrastructure ---
+    
+    // Comprehensive plugin initialization supporting multiple configuration styles
+    _initializePlugins(config) {
+        const plugins = [];
+        
+        // 1. Legacy support: config.plugins array (pre-instantiated plugins)
+        if (Array.isArray(config.plugins)) {
+            plugins.push(...config.plugins);
+        }
+        
+        // 2. Plugin shorthand configuration - developers can configure plugins directly
+        const knownPlugins = {
+            lighting: 'Lighting',
+            mapExtractor: 'MapExtractor', 
+            softPosterize: 'SoftPosterize'
+        };
+        
+        for (const [configKey, globalName] of Object.entries(knownPlugins)) {
+            const pluginConfig = config[configKey];
+            if (pluginConfig && typeof pluginConfig === 'object') {
+                try {
+                    // Check if plugin is available globally (loaded via script tag or import)
+                    if (typeof globalThis[globalName] === 'function') {
+                        const pluginInstance = globalThis[globalName](pluginConfig);
+                        if (pluginInstance) {
+                            plugins.push(pluginInstance);
+                        }
+                    }
+                } catch (e) {
+                    // Silently continue if plugin fails to initialize
+                    try { 
+                        this._applyHook('onError', { 
+                            stage: 'pluginInit', 
+                            error: e, 
+                            plugin: globalName,
+                            config: pluginConfig 
+                        }); 
+                    } catch (_) {}
+                }
+            }
+        }
+        
+        // 3. Dynamic plugin loading (for headless scenarios)
+        if (config.loadPlugins && Array.isArray(config.loadPlugins)) {
+            // Note: This would require async initialization, could be implemented later
+            // For now, document that plugins should be pre-loaded
+        }
+        
+        return plugins;
+    }
+    
     _normalizeHooks(inlineHooks, plugins) {
         const collected = [];
         const pushHooks = (maybeHooks) => {

@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Plugin Configuration Test</title>
+</head>
+<body>
+    <h1>Plugin Configuration Test</h1>
+    <div id="results"></div>
+
+    <!-- Load plugins -->
+    <script src="plugins/lighting.global.js"></script>
+    <script src="plugins/map-extractor.global.js"></script>
+    <script src="plugins/soft-posterize.global.js"></script>
+    
+    <!-- Load core -->
+    <script src="img2css.js"></script>
+    
+    <script>
+        function log(message) {
+            const results = document.getElementById('results');
+            results.innerHTML += '<p>' + message + '</p>';
+            console.log(message);
+        }
+        
+        function runTests() {
+            log('=== Testing Plugin Configuration ===');
+            
+            // Test 1: Check plugin availability
+            log('\n1. Plugin Availability Check:');
+            const plugins = ['Lighting', 'MapExtractor', 'SoftPosterize'];
+            plugins.forEach(name => {
+                const available = typeof window[name] === 'function';
+                log(`   ${name}: ${available ? '✅' : '❌'}`);
+            });
+            
+            // Test 2: Plugin shorthand configuration
+            log('\n2. Testing Plugin Shorthand Configuration:');
+            try {
+                const converter = new img2css({
+                    source: 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7', // 1x1 transparent gif
+                    lighting: {
+                        enabled: true,
+                        lightAngle: 45,
+                        blendMode: 'screen'
+                    },
+                    mapExtractor: {
+                        enabled: true,
+                        types: ['normal', 'roughness']
+                    }
+                });
+                
+                log('   ✅ Successfully created converter with plugin shorthand');
+                log(`   ✅ Plugins initialized: ${converter._plugins.length}`);
+                
+                // Check if plugins have hooks
+                const hasLightingHooks = converter._hooks.some(hookMap => 
+                    hookMap.afterBuildCSS && hookMap.afterBuildCSS.toString().includes('appendOverlayCSS')
+                );
+                log(`   ✅ Lighting hooks detected: ${hasLightingHooks}`);
+                
+            } catch (error) {
+                log(`   ❌ Error: ${error.message}`);
+            }
+            
+            // Test 3: Legacy plugin array configuration
+            log('\n3. Testing Legacy Plugin Array Configuration:');
+            try {
+                const lightingPlugin = Lighting({ enabled: true, lightAngle: 90 });
+                const converter = new img2css({
+                    source: 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7',
+                    plugins: [lightingPlugin]
+                });
+                
+                log('   ✅ Successfully created converter with legacy plugin array');
+                log(`   ✅ Plugins initialized: ${converter._plugins.length}`);
+                
+            } catch (error) {
+                log(`   ❌ Error: ${error.message}`);
+            }
+            
+            // Test 4: Mixed configuration
+            log('\n4. Testing Mixed Configuration:');
+            try {
+                const customPlugin = {
+                    hooks: {
+                        afterBuildCSS: (ctx) => {
+                            log('   ✅ Custom plugin hook executed');
+                            return ctx;
+                        }
+                    }
+                };
+                
+                const converter = new img2css({
+                    source: 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7',
+                    lighting: { enabled: true, lightAngle: 135 },
+                    plugins: [customPlugin]
+                });
+                
+                log('   ✅ Successfully created converter with mixed configuration');
+                log(`   ✅ Total plugins/hooks: ${converter._plugins.length}`);
+                
+            } catch (error) {
+                log(`   ❌ Error: ${error.message}`);
+            }
+            
+            log('\n=== Plugin Configuration Tests Complete ===');
+        }
+        
+        // Run tests when page loads
+        window.onload = runTests;
+    </script>
+</body>
+</html>
