@@ -157,18 +157,27 @@ input[type="file"] {
     repeating-linear-gradient(
       var(--light-angle, 35deg),
       transparent 0,
-      transparent var(--band-gap, 40px),
-      var(--highlight-color, #ffffff) var(--band-gap, 40px),
-      var(--highlight-color-0, rgba(255,255,255,0)) calc(var(--band-gap, 40px) + var(--band-width, 10px)),
-      transparent calc(var(--band-gap, 40px) + var(--band-width, 10px) + var(--band-space, 40px))
+      transparent var(--band-gap, 120px),
+      var(--highlight-color, #ffffff) var(--band-gap, 120px),
+      var(--highlight-color-0, rgba(255,255,255,0)) calc(var(--band-gap, 120px) + var(--band-width, 24px)),
+      transparent calc(var(--band-gap, 120px) + var(--band-width, 24px) + var(--band-space, 120px))
     ),
     repeating-linear-gradient(
       calc(var(--light-angle, 35deg) + var(--band-phase, 8deg)),
       transparent 0,
-      transparent var(--band-gap2, 30px),
-      var(--highlight-color-weak, rgba(255,255,255,0.35)) var(--band-gap2, 30px),
-      rgba(255,255,255,0) calc(var(--band-gap2, 30px) + var(--band-width2, 6px)),
-      transparent calc(var(--band-gap2, 30px) + var(--band-width2, 6px) + var(--band-space2, 35px))
+      transparent var(--band-gap2, 90px),
+      var(--highlight-color-weak, rgba(255,255,255,0.35)) var(--band-gap2, 90px),
+      rgba(255,255,255,0) calc(var(--band-gap2, 90px) + var(--band-width2, 12px)),
+      transparent calc(var(--band-gap2, 90px) + var(--band-width2, 12px) + var(--band-space2, 90px))
+    ),
+    /* Tertiary very subtle noise bands */
+    repeating-linear-gradient(
+      calc(var(--light-angle, 35deg) + var(--band-phase3, 17deg)),
+      transparent 0,
+      transparent var(--band-gap3, 140px),
+      var(--highlight-color-weak2, rgba(255,255,255,0.2)) var(--band-gap3, 140px),
+      rgba(255,255,255,0) calc(var(--band-gap3, 140px) + var(--band-width3, 10px)),
+      transparent calc(var(--band-gap3, 140px) + var(--band-width3, 10px) + var(--band-space3, 140px))
     );
   /* Make lighting fixed to viewport so scroll changes interaction */
   background-attachment: fixed;
@@ -849,13 +858,18 @@ input:checked + .slider:before {
           </div>
 
           <div class="control-row" style="margin-top:6px;">
-            <label for="bandGapSlider">Band gap: <span id="bandGapValue">40px</span></label>
-            <input type="range" id="bandGapSlider" min="4" max="160" value="40" step="2" style="width:100%;">
+            <label for="bandGapSlider">Band gap: <span id="bandGapValue">120px</span></label>
+            <input type="range" id="bandGapSlider" min="10" max="300" value="120" step="2" style="width:100%;">
           </div>
 
           <div class="control-row" style="margin-top:6px;">
-            <label for="bandWidthSlider">Band width: <span id="bandWidthValue">10px</span></label>
-            <input type="range" id="bandWidthSlider" min="2" max="80" value="10" step="1" style="width:100%;">
+            <label for="bandWidthSlider">Band width: <span id="bandWidthValue">24px</span></label>
+            <input type="range" id="bandWidthSlider" min="4" max="120" value="24" step="1" style="width:100%;">
+          </div>
+
+          <div class="control-row" style="margin-top:6px; display:flex; gap:8px;">
+            <button id="randomizeBandsBtn" type="button" style="flex:1;">Randomize bands</button>
+            <button id="resetBandsBtn" type="button" style="flex:1;">Reset bands</button>
           </div>
 
           <div class="control-row" style="margin-top:6px;">
@@ -1386,7 +1400,7 @@ input:checked + .slider:before {
                 // Band controls
                 if (bandGapSlider && bandGapValue && previewEl) {
                     const updateGap = () => {
-                        const px = parseInt(bandGapSlider.value, 10) || 40;
+                        const px = parseInt(bandGapSlider.value, 10) || 120;
                         bandGapValue.textContent = px + 'px';
                         previewEl.style.setProperty('--band-gap', px + 'px');
                     };
@@ -1395,7 +1409,7 @@ input:checked + .slider:before {
                 }
                 if (bandWidthSlider && bandWidthValue && previewEl) {
                     const updateWidth = () => {
-                        const px = parseInt(bandWidthSlider.value, 10) || 10;
+                        const px = parseInt(bandWidthSlider.value, 10) || 24;
                         bandWidthValue.textContent = px + 'px';
                         previewEl.style.setProperty('--band-width', px + 'px');
                     };
@@ -1423,6 +1437,55 @@ input:checked + .slider:before {
                     blendModeSelect.addEventListener('change', applyBlend);
                     applyBlend();
                 }
+                // Randomize and reset buttons for band parameters
+                function randomIn(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
+                function randomizeBands() {
+                  if (!previewEl) return;
+                  const gap = randomIn(80, 220);
+                  const width = randomIn(12, 42);
+                  const space = randomIn(80, 220);
+                  const gap2 = randomIn(60, 180);
+                  const width2 = randomIn(8, 28);
+                  const space2 = randomIn(60, 180);
+                  const gap3 = randomIn(100, 260);
+                  const width3 = randomIn(6, 20);
+                  const space3 = randomIn(100, 260);
+                  const phase = randomIn(4, 18);
+                  const phase3 = randomIn(12, 28);
+                  previewEl.style.setProperty('--band-gap', gap + 'px');
+                  previewEl.style.setProperty('--band-width', width + 'px');
+                  previewEl.style.setProperty('--band-space', space + 'px');
+                  previewEl.style.setProperty('--band-gap2', gap2 + 'px');
+                  previewEl.style.setProperty('--band-width2', width2 + 'px');
+                  previewEl.style.setProperty('--band-space2', space2 + 'px');
+                  previewEl.style.setProperty('--band-gap3', gap3 + 'px');
+                  previewEl.style.setProperty('--band-width3', width3 + 'px');
+                  previewEl.style.setProperty('--band-space3', space3 + 'px');
+                  previewEl.style.setProperty('--band-phase', phase + 'deg');
+                  previewEl.style.setProperty('--band-phase3', phase3 + 'deg');
+                  if (bandGapSlider && bandGapValue) { bandGapSlider.value = String(gap); bandGapValue.textContent = gap + 'px'; }
+                  if (bandWidthSlider && bandWidthValue) { bandWidthSlider.value = String(width); bandWidthValue.textContent = width + 'px'; }
+                }
+                function resetBands() {
+                  if (!previewEl) return;
+                  previewEl.style.removeProperty('--band-gap');
+                  previewEl.style.removeProperty('--band-width');
+                  previewEl.style.removeProperty('--band-space');
+                  previewEl.style.removeProperty('--band-gap2');
+                  previewEl.style.removeProperty('--band-width2');
+                  previewEl.style.removeProperty('--band-space2');
+                  previewEl.style.removeProperty('--band-gap3');
+                  previewEl.style.removeProperty('--band-width3');
+                  previewEl.style.removeProperty('--band-space3');
+                  previewEl.style.removeProperty('--band-phase');
+                  previewEl.style.removeProperty('--band-phase3');
+                  if (bandGapSlider && bandGapValue) { bandGapSlider.value = '120'; bandGapValue.textContent = '120px'; }
+                  if (bandWidthSlider && bandWidthValue) { bandWidthSlider.value = '24'; bandWidthValue.textContent = '24px'; }
+                }
+                const randomizeBandsBtn = document.getElementById('randomizeBandsBtn');
+                const resetBandsBtn = document.getElementById('resetBandsBtn');
+                if (randomizeBandsBtn) randomizeBandsBtn.addEventListener('click', randomizeBands);
+                if (resetBandsBtn) resetBandsBtn.addEventListener('click', resetBands);
                 const specDl = document.getElementById('specDownloadBtn');
                 if (specDl) specDl.addEventListener('click', () => this.downloadMapCSS('specular'));
                 const normalDl = document.getElementById('normalDownloadBtn');
