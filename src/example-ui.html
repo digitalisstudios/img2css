@@ -159,8 +159,8 @@ input[type="file"] {
   );
   /* Make lighting fixed to viewport so scroll changes interaction */
   background-attachment: fixed;
-  /* Lighten the content beneath */
-  mix-blend-mode: screen;
+  /* Show highlights as opaque white (masked) */
+  mix-blend-mode: normal;
   /* Use generated specularity mask (via Roughness). Accept full shorthand (image pos/size/repeat). */
   -webkit-mask: var(--spec-mask);
   mask: var(--spec-mask);
@@ -174,7 +174,8 @@ input[type="file"] {
     rgba(0,0,0, 0.0) 60%
   );
   background-attachment: fixed;
-  mix-blend-mode: multiply;
+  /* Show shadows as opaque black (masked) */
+  mix-blend-mode: normal;
   -webkit-mask: var(--shadow-mask, var(--spec-mask));
   mask: var(--shadow-mask, var(--spec-mask));
   mask-mode: luminance;
