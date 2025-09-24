@@ -1,6 +1,13 @@
 # AI Assistant files
 CLAUDE.md
+CLAUDE.local.md
 PROJECT_PROGRESS.md
+PROGRESS.md
+
+# Development artifacts and demos
+callback-system-demo.html
+AGENTS.md
+DEMO_GENERATION.md
 
 # OS generated files
 .DS_Store

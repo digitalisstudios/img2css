@@ -15,18 +15,294 @@ class img2css {
                 useOriginalPalette: processing.useOriginalPalette !== undefined ? processing.useOriginalPalette : (config.useOriginalPalette !== undefined ? config.useOriginalPalette : false)
             },
             maxSize: config.maxSize || null, // e.g., '500KB', '2MB', '1.5MB'
-            minified: config.minified || false // Minify CSS output
+            minified: config.minified || false, // Minify CSS output
+            
+            // Stats collection configuration
+            stats: this._normalizeStatsConfig(config.stats)
         };
         
+        // Plugin/Hook system initialization with comprehensive configuration support
+        this._plugins = this._initializePlugins(config);
+        this._hooks = this._normalizeHooks(config.hooks || {}, this._plugins);
+
         this.canvas = null;
         this.ctx = null;
         this.imageData = null;
         this.stats = null; // Stores detailed stats from last toCSS() call
+        this._pluginResults = {}; // Internal storage for plugin-generated content
         
         // If source is provided, load it automatically
         if (this.config.source) {
             this.loadFromSource(this.config.source);
         }
+
+        // Fire initialization hook (best-effort, non-blocking)
+        try { Promise.resolve().then(() => this._applyHook('onInit', { config: this.config, instance: this })); } catch (_) {}
+    }
+
+    // --- Hook/Plugin Infrastructure ---
+    
+    // Comprehensive plugin initialization supporting multiple configuration styles
+    _initializePlugins(config) {
+        const plugins = [];
+        
+        // 1. Legacy support: config.plugins array (pre-instantiated plugins)
+        if (Array.isArray(config.plugins)) {
+            plugins.push(...config.plugins);
+        }
+        
+        // 2. Plugin shorthand configuration - developers can configure plugins directly
+        const knownPlugins = {
+            lighting: 'Lighting',
+            mapExtractor: 'MapExtractor', 
+            softPosterize: 'SoftPosterize'
+        };
+        
+        for (const [configKey, globalName] of Object.entries(knownPlugins)) {
+            const pluginConfig = config[configKey];
+            if (pluginConfig && typeof pluginConfig === 'object') {
+                try {
+                    // Check if plugin is available globally (loaded via script tag or import)
+                    if (typeof globalThis[globalName] === 'function') {
+                        const pluginInstance = globalThis[globalName](pluginConfig);
+                        if (pluginInstance) {
+                            plugins.push(pluginInstance);
+                        }
+                    }
+                } catch (e) {
+                    // Silently continue if plugin fails to initialize
+                    try { 
+                        this._applyHook('onError', { 
+                            stage: 'pluginInit', 
+                            error: e, 
+                            plugin: globalName,
+                            config: pluginConfig 
+                        }); 
+                    } catch (_) {}
+                }
+            }
+        }
+        
+        // 3. Dynamic plugin loading (for headless scenarios)
+        if (config.loadPlugins && Array.isArray(config.loadPlugins)) {
+            // Note: This would require async initialization, could be implemented later
+            // For now, document that plugins should be pre-loaded
+        }
+        
+        return plugins;
+    }
+    
+    // Normalize stats configuration with conservative defaults
+    _normalizeStatsConfig(statsConfig) {
+        // Default: minimal stats collection to prevent memory issues
+        const defaults = {
+            level: 'minimal',           // 'minimal' | 'standard' | 'verbose'
+            collectPluginResults: false,  // Only collect if explicitly requested
+            collectIntermediates: false,  // Skip heavy intermediate data by default
+            plugins: []                  // Specific plugins to collect from (empty = none)
+        };
+        
+        if (!statsConfig) return defaults;
+        
+        // Handle string shorthand: 'minimal', 'standard', 'verbose'
+        if (typeof statsConfig === 'string') {
+            return {
+                ...defaults,
+                level: statsConfig,
+                collectPluginResults: statsConfig !== 'minimal',
+                collectIntermediates: statsConfig === 'verbose'
+            };
+        }
+        
+        // Handle object configuration
+        if (typeof statsConfig === 'object') {
+            return {
+                ...defaults,
+                ...statsConfig,
+                // Auto-enable plugin collection if specific plugins are requested
+                collectPluginResults: statsConfig.collectPluginResults !== false && 
+                    (statsConfig.collectPluginResults || 
+                     (Array.isArray(statsConfig.plugins) && statsConfig.plugins.length > 0))
+            };
+        }
+        
+        return defaults;
+    }
+    
+    // Build comprehensive stats object including plugin results when configured
+    _buildStatsObject(css, config) {
+        const statsConfig = this.config.stats;
+        
+        // Base stats (always included)
+        const stats = {
+            css: css,
+            settings: {
+                details: config.details,
+                compression: config.compression,
+                processingMode: config.processingMode,
+                autoOptimize: this.config.autoOptimize,
+                maxSize: this.config.maxSize,
+                selector: this.config.selector,
+                dimensions: {
+                    width: this.imageData.width,
+                    height: this.imageData.height
+                }
+            }
+        };
+        
+        // Add plugin results if configured
+        if (statsConfig.collectPluginResults && Object.keys(this._pluginResults).length > 0) {
+            stats.plugins = {};
+            
+            // Filter plugin results based on configuration
+            const pluginsToInclude = statsConfig.plugins.length > 0 
+                ? statsConfig.plugins 
+                : Object.keys(this._pluginResults);
+                
+            pluginsToInclude.forEach(pluginName => {
+                if (this._pluginResults[pluginName]) {
+                    stats.plugins[pluginName] = this._pluginResults[pluginName];
+                }
+            });
+        }
+        
+        // Add intermediate data if verbose mode
+        if (statsConfig.collectIntermediates && statsConfig.level === 'verbose') {
+            stats.performance = {
+                timestamp: Date.now(),
+                memoryUsage: this._getMemoryEstimate()
+            };
+        }
+        
+        return stats;
+    }
+    
+    // Helper to estimate memory usage (best effort)
+    _getMemoryEstimate() {
+        try {
+            if (performance && performance.memory) {
+                return {
+                    used: performance.memory.usedJSHeapSize,
+                    total: performance.memory.totalJSHeapSize,
+                    limit: performance.memory.jsHeapSizeLimit
+                };
+            }
+        } catch (_) {}
+        return null;
+    }
+    
+    // Create hooks that capture plugin results for stats collection
+    _createStatsCollectionHooks() {
+        const self = this;
+        
+        return {
+            // Capture map extractor results
+            onMapCSS: function(data) {
+                if (!self._pluginResults.mapExtractor) {
+                    self._pluginResults.mapExtractor = { maps: {} };
+                }
+                if (data.type && data.css) {
+                    self._pluginResults.mapExtractor.maps[data.type] = {
+                        css: data.css,
+                        dimensions: data.dimensions,
+                        timestamp: Date.now()
+                    };
+                }
+                return data;
+            },
+            
+            // Capture lighting plugin modifications
+            afterBuildCSS: function(ctx) {
+                // Detect lighting modifications by checking if CSS was enhanced
+                if (ctx.css && ctx.css.includes('css-lighting')) {
+                    if (!self._pluginResults.lighting) {
+                        self._pluginResults.lighting = {};
+                    }
+                    self._pluginResults.lighting.enhancedCSS = true;
+                    self._pluginResults.lighting.hasLightingEffects = true;
+                    self._pluginResults.lighting.timestamp = Date.now();
+                }
+                return ctx;
+            },
+            
+            // Capture general plugin hook execution for debugging
+            onPluginHookExecution: function(data) {
+                if (self.config.stats.level === 'verbose') {
+                    if (!self._pluginResults.debug) {
+                        self._pluginResults.debug = { hookExecutions: [] };
+                    }
+                    self._pluginResults.debug.hookExecutions.push({
+                        hook: data.hookName,
+                        plugin: data.pluginName,
+                        timestamp: Date.now()
+                    });
+                }
+                return data;
+            }
+        };
+    }
+    
+    _normalizeHooks(inlineHooks, plugins) {
+        const collected = [];
+        const pushHooks = (maybeHooks) => {
+            if (!maybeHooks) return;
+            const map = maybeHooks.hooks && typeof maybeHooks.hooks === 'object' ? maybeHooks.hooks : maybeHooks;
+            if (map && typeof map === 'object') collected.push(map);
+        };
+        if (inlineHooks && typeof inlineHooks === 'object') pushHooks(inlineHooks);
+        if (Array.isArray(plugins)) {
+            for (const plugin of plugins) {
+                try {
+                    if (typeof plugin === 'function') {
+                        let registered = null;
+                        const api = { register(hooks) { registered = hooks; } };
+                        const ret = plugin(api);
+                        pushHooks(registered || ret);
+                    } else if (plugin && typeof plugin === 'object') {
+                        pushHooks(plugin);
+                    }
+                } catch (_) {}
+            }
+        }
+        
+        // Inject stats collection hooks if configured
+        if (this.config.stats.collectPluginResults) {
+            collected.push(this._createStatsCollectionHooks());
+        }
+        
+        return collected;
+    }
+
+    async _applyHook(name, payload) {
+        if (!this._hooks || this._hooks.length === 0) return payload;
+        let current = payload;
+        for (const hookMap of this._hooks) {
+            const fn = hookMap && hookMap[name];
+            if (typeof fn === 'function') {
+                try {
+                    const res = await fn(current, { instance: this });
+                    if (res !== undefined) current = res;
+                } catch (e) {
+                    try { await this._applyHook('onError', { stage: `hook:${name}`, error: e }); } catch (_) {}
+                }
+            }
+        }
+        return current;
+    }
+
+    _applyHookSync(name, payload) {
+        if (!this._hooks || this._hooks.length === 0) return payload;
+        let current = payload;
+        for (const hookMap of this._hooks) {
+            try {
+                const fn = hookMap && hookMap[name];
+                if (typeof fn === 'function') {
+                    const res = fn(current, { instance: this });
+                    if (res !== undefined) current = res;
+                }
+            } catch (_) {}
+        }
+        return current;
     }
 
 
@@ -57,30 +333,27 @@ class img2css {
                 minified: this.config.minified || false,
                 useOriginalPalette: this.config.processing.useOriginalPalette
             };
+
+            // Re-normalize hooks in case UI updated config.plugins/hooks dynamically
+            this._plugins = Array.isArray(this.config.plugins) ? this.config.plugins.slice() : [];
+            this._hooks = this._normalizeHooks(this.config.hooks || {}, this._plugins);
+
+            // Clear previous plugin results for fresh collection
+            this._pluginResults = {};
+            
+            await this._applyHook('beforeProcess', { config, imageData: this.imageData });
             
             // Generate the CSS
             const css = await this.processImageToCSS(this.imageData, config);
             
             // Store detailed results for access via this.stats
-            this.stats = {
-                css: css,
-                settings: {
-                    details: config.details,
-                    compression: config.compression,
-                    processingMode: config.processingMode,
-                    autoOptimize: this.config.autoOptimize,
-                    maxSize: this.config.maxSize,
-                    selector: this.config.selector,
-                    dimensions: {
-                        width: this.imageData.width,
-                        height: this.imageData.height
-                    }
-                }
-            };
+            this.stats = this._buildStatsObject(css, config);
             
+            await this._applyHook('afterProcess', { css, stats: this.stats });
             // Return just the CSS string
             return css;
         } catch (error) {
+            try { await this._applyHook('onError', { stage: 'toCSS', error }); } catch (_) {}
             throw new Error(`Failed to generate CSS: ${error.message}`);
         }
     }
@@ -150,25 +423,38 @@ class img2css {
         // Extract color palette if using original palette mode
         let colorPalette = null;
         if (useOriginalPalette) {
-            colorPalette = this.extractColorPalette(imageData);
+            const supplied = await this._applyHook('supplyPalette', { imageData, config });
+            if (supplied && supplied.palette) {
+                colorPalette = supplied.palette;
+            } else {
+                colorPalette = this.extractColorPalette(imageData);
+            }
         }
         
         // Scale image based on details percentage for performance optimization
-        const scaledImageData = this.scaleImageByDetails(imageData, details);
+        const preScale = await this._applyHook('beforeScale', { imageData, details });
+        const toScale = (preScale && preScale.imageData) ? preScale.imageData : imageData;
+        const scaledImageData = this.scaleImageByDetails(toScale, details);
+        const postScale = await this._applyHook('afterScale', { imageData: scaledImageData, details });
+        const effectiveImageData = (postScale && postScale.imageData) ? postScale.imageData : scaledImageData;
         
         // Determine processing mode
         let useHybrid = false;
         let useRows;
         
-        if (processingMode === 'rows') {
+        let decidedMode = processingMode;
+        const modeHook = await this._applyHook('decideProcessingMode', { imageData: effectiveImageData, config, defaultMode: processingMode });
+        if (modeHook && modeHook.mode) decidedMode = modeHook.mode;
+
+        if (decidedMode === 'rows') {
             useRows = true;
-        } else if (processingMode === 'columns') {
+        } else if (decidedMode === 'columns') {
             useRows = false;
-        } else if (processingMode === 'hybrid') {
+        } else if (decidedMode === 'hybrid') {
             useHybrid = true;
         } else {
             // Auto-detection: use rows for landscape, columns for portrait
-            const isLandscape = scaledImageData.width > scaledImageData.height;
+            const isLandscape = effectiveImageData.width > effectiveImageData.height;
             useRows = isLandscape;
         }
         
@@ -176,11 +462,11 @@ class img2css {
         const configWithPalette = { ...config, colorPalette };
         
         if (useHybrid) {
-            return this.processImageAsHybrid(scaledImageData, configWithPalette);
+            return this.processImageAsHybrid(effectiveImageData, configWithPalette);
         } else if (useRows) {
-            return this.processImageAsRows(scaledImageData, configWithPalette);
+            return this.processImageAsRows(effectiveImageData, configWithPalette);
         } else {
-            return this.processImageAsColumns(scaledImageData, configWithPalette);
+            return this.processImageAsColumns(effectiveImageData, configWithPalette);
         }
     }
 
@@ -376,11 +662,11 @@ class img2css {
         const { width, height, data } = imageData;
         const { details, compression } = config;
         
-        const samplingRate = 100 / details;
+        let samplingRate = 100 / details;
         
         // Apply compression-based row reduction (0-60% reduction)
         const baseRowReduction = (compression / 100) * 0.6; // 0-60% additional reduction
-        const adjustedSamplingRate = samplingRate * (1 + baseRowReduction);
+        let adjustedSamplingRate = samplingRate * (1 + baseRowReduction);
         
         const pixelWidthPercent = 100 / width;
         const pixelHeightPercent = 100 / height;
@@ -398,12 +684,26 @@ class img2css {
         const totalReduction = ((100 - details) / 100) + ((compression / 100) * 0.6); // Combine detail and compression reduction
         const decimationBlurMultiplier = totalReduction > 0.8 ? 1 + (totalReduction - 0.8) * 3 : 1; // Extra blur when >80% reduction
         
-        const blurRadius = Math.max(1, Math.floor(baseBlur * exponentialFactor * compressionBlurMultiplier * decimationBlurMultiplier));
+        let blurRadius = Math.max(1, Math.floor(baseBlur * exponentialFactor * compressionBlurMultiplier * decimationBlurMultiplier));
+
+        // Hook to override row-pass parameters
+        try {
+            const hook = await this._applyHook('beforeRowPass', { width, height, samplingRate, adjustedSamplingRate, compression, blurRadius });
+            if (hook) {
+                if (hook.samplingRate) samplingRate = hook.samplingRate;
+                if (hook.adjustedSamplingRate) adjustedSamplingRate = hook.adjustedSamplingRate;
+                if (hook.blurRadius) blurRadius = hook.blurRadius;
+            }
+        } catch (_) {}
         
         // Process rows with compression-adjusted sampling
         for (let y = 0; y < height; y += adjustedSamplingRate) {
             const actualY = Math.round(y);
             if (actualY >= height) break;
+            try {
+                const should = await this._applyHook('shouldProcessLine', { axis: 'row', index: actualY, stride: adjustedSamplingRate, width, height });
+                if (should && should.skip === true) continue;
+            } catch (_) {}
             
             const rowGradient = this.processRowGradient(
                 actualY, width, height, data, pixelWidthPercent, 
@@ -429,11 +729,11 @@ class img2css {
         const { width, height, data } = imageData;
         const { details, compression } = config;
         
-        const samplingRate = 100 / details;
+        let samplingRate = 100 / details;
         
         // Apply compression-based column reduction (0-60% reduction)
         const baseColumnReduction = (compression / 100) * 0.6; // 0-60% additional reduction
-        const adjustedSamplingRate = samplingRate * (1 + baseColumnReduction);
+        let adjustedSamplingRate = samplingRate * (1 + baseColumnReduction);
         
         const pixelWidthPercent = 100 / width;
         const pixelHeightPercent = 100 / height;
@@ -451,12 +751,26 @@ class img2css {
         const totalReduction = ((100 - details) / 100) + ((compression / 100) * 0.6); // Combine detail and compression reduction
         const decimationBlurMultiplier = totalReduction > 0.8 ? 1 + (totalReduction - 0.8) * 3 : 1; // Extra blur when >80% reduction
         
-        const blurRadius = Math.max(1, Math.floor(baseBlur * exponentialFactor * compressionBlurMultiplier * decimationBlurMultiplier));
+        let blurRadius = Math.max(1, Math.floor(baseBlur * exponentialFactor * compressionBlurMultiplier * decimationBlurMultiplier));
+
+        // Hook to override column-pass parameters
+        try {
+            const hook = await this._applyHook('beforeColumnPass', { width, height, samplingRate, adjustedSamplingRate, compression, blurRadius });
+            if (hook) {
+                if (hook.samplingRate) samplingRate = hook.samplingRate;
+                if (hook.adjustedSamplingRate) adjustedSamplingRate = hook.adjustedSamplingRate;
+                if (hook.blurRadius) blurRadius = hook.blurRadius;
+            }
+        } catch (_) {}
         
         // Process columns with compression-adjusted sampling
         for (let x = 0; x < width; x += adjustedSamplingRate) {
             const actualX = Math.round(x);
             if (actualX >= width) break;
+            try {
+                const should = await this._applyHook('shouldProcessLine', { axis: 'column', index: actualX, stride: adjustedSamplingRate, width, height });
+                if (should && should.skip === true) continue;
+            } catch (_) {}
             
             const columnGradient = this.processColumnGradient(
                 actualX, width, height, data, pixelHeightPercent, 
@@ -493,10 +807,16 @@ class img2css {
         
         // Reverse of auto-detection: use opposite of what auto would choose as primary
         const isLandscape = width > height;
-        const primaryMode = isLandscape ? 'columns' : 'rows';  // Opposite of auto
-        const secondaryMode = isLandscape ? 'rows' : 'columns'; // What auto would choose
+        let primaryMode = isLandscape ? 'columns' : 'rows';  // Opposite of auto
+        let secondaryMode = isLandscape ? 'rows' : 'columns'; // What auto would choose
         
-        console.log(`Hybrid processing: Primary=${primaryMode} (opposite of auto), Secondary=${secondaryMode} (auto choice)`);
+        try {
+            const pref = await this._applyHook('beforeHybridSecondary', { primaryMode, secondaryMode, imageData, config });
+            if (pref && pref.primaryMode) primaryMode = pref.primaryMode;
+            if (pref && pref.secondaryMode) secondaryMode = pref.secondaryMode;
+        } catch (_) {}
+        
+        console.log(`Hybrid processing: Primary=${primaryMode} (possibly overridden), Secondary=${secondaryMode}`);
         
         // Generate primary gradient (main output)
         let primaryResult;
@@ -515,8 +835,11 @@ class img2css {
         }
         
         // Apply secondary corrections to primary result
-        const correctedResult = this.applySecondaryCorrections(primaryResult, secondaryData, primaryMode, imageData, config);
-        
+        let correctedResult = this.applySecondaryCorrections(primaryResult, secondaryData, primaryMode, imageData, config);
+        try {
+            const combined = await this._applyHook('combineHybrid', { primaryCSS: primaryResult, secondaryData, primaryMode, imageData, config, correctedCSS: correctedResult });
+            if (combined && combined.css) correctedResult = combined.css;
+        } catch (_) {}
         return correctedResult;
     }
 
@@ -958,7 +1281,10 @@ class img2css {
             
             // Apply palette normalization if enabled
             if (config.useOriginalPalette && config.colorPalette) {
-                const nearestColor = this.findNearestPaletteColor({ r, g, b, a }, config.colorPalette);
+                let nearestColor = this.findNearestPaletteColor({ r, g, b, a }, config.colorPalette);
+                // Allow plugin synchronous override of nearest palette color
+                const hookRes = this._applyHookSync('nearestPaletteColor', { color: nearestColor, palette: config.colorPalette });
+                if (hookRes && hookRes.color) nearestColor = hookRes.color;
                 const strength = config.posterize !== undefined ? config.posterize : 1.0;
                 
                 // Blend between original and palette color based on strength
@@ -974,14 +1300,29 @@ class img2css {
             });
         }
         
+        // Plugin hook to transform raw stops
+        let rawHook = this._applyHookSync('transformRawStops', { stops: rawColorStops, axis: 'column', index: x, imageData: { width, height }, config });
+        const rawTransformed = (rawHook && rawHook.stops) ? rawHook.stops : rawColorStops;
+        
         // Remove consecutive duplicate colors created by posterization
-        const dedupedStops = this.removePosterizationDuplicates(rawColorStops);
+        const dedupedStops = this.removePosterizationDuplicates(rawTransformed);
         
         // Optimize color stops
-        let optimizedStops = this.optimizeColorStopsStandalone(dedupedStops, compression);
+        let dedupHook = this._applyHookSync('transformDedupedStops', { stops: dedupedStops, axis: 'column', index: x });
+        const dedupTransformed = (dedupHook && dedupHook.stops) ? dedupHook.stops : dedupedStops;
+        let optimizedStops = this.optimizeColorStopsStandalone(dedupTransformed, compression);
+        
+        // Allow plugin to post-process optimized stops
+        let optHook = this._applyHookSync('transformOptimizedStops', { stops: optimizedStops, axis: 'column', index: x });
+        if (optHook && optHook.stops) optimizedStops = optHook.stops;
         
         // Add intermediate stops for dramatic color transitions to prevent gradient artifacts
-        optimizedStops = this.addIntermediateStopsForTransitions(optimizedStops);
+        let interHook = this._applyHookSync('addIntermediateStops', { stops: optimizedStops, axis: 'column', index: x });
+        if (interHook && interHook.stops) {
+            optimizedStops = interHook.stops;
+        } else {
+            optimizedStops = this.addIntermediateStopsForTransitions(optimizedStops);
+        }
         
         // Convert to CSS format
         const cssStops = optimizedStops.map(stop => {
@@ -999,7 +1340,8 @@ class img2css {
             gradient: `linear-gradient(to bottom, ${cssStops.join(', ')})`,
             originalStops: rawColorStops.length,
             optimizedStops: optimizedStops.length,
-            dramaticColorChanges: dramaticColorChanges
+            dramaticColorChanges: dramaticColorChanges,
+            stops: optimizedStops
         };
     }
 
@@ -1083,7 +1425,9 @@ class img2css {
             
             // Apply palette normalization if enabled
             if (config.useOriginalPalette && config.colorPalette) {
-                const nearestColor = this.findNearestPaletteColor({ r, g, b, a }, config.colorPalette);
+                let nearestColor = this.findNearestPaletteColor({ r, g, b, a }, config.colorPalette);
+                const hookRes = this._applyHookSync('nearestPaletteColor', { color: nearestColor, palette: config.colorPalette });
+                if (hookRes && hookRes.color) nearestColor = hookRes.color;
                 const strength = config.posterize !== undefined ? config.posterize : 1.0;
                 
                 // Blend between original and palette color based on strength
@@ -1099,14 +1443,29 @@ class img2css {
             });
         }
         
+        // Plugin hook to transform raw stops
+        let rawHook = this._applyHookSync('transformRawStops', { stops: rawColorStops, axis: 'row', index: y, imageData: { width, height }, config });
+        const rawTransformed = (rawHook && rawHook.stops) ? rawHook.stops : rawColorStops;
+        
         // Remove consecutive duplicate colors created by posterization
-        const dedupedStops = this.removePosterizationDuplicates(rawColorStops);
+        const dedupedStops = this.removePosterizationDuplicates(rawTransformed);
         
         // Optimize color stops
-        let optimizedStops = this.optimizeColorStopsStandalone(dedupedStops, compression);
+        let dedupHook = this._applyHookSync('transformDedupedStops', { stops: dedupedStops, axis: 'row', index: y });
+        const dedupTransformed = (dedupHook && dedupHook.stops) ? dedupHook.stops : dedupedStops;
+        let optimizedStops = this.optimizeColorStopsStandalone(dedupTransformed, compression);
+        
+        // Allow plugin to post-process optimized stops
+        let optHook = this._applyHookSync('transformOptimizedStops', { stops: optimizedStops, axis: 'row', index: y });
+        if (optHook && optHook.stops) optimizedStops = optHook.stops;
         
         // Add intermediate stops for dramatic color transitions to prevent gradient artifacts
-        optimizedStops = this.addIntermediateStopsForTransitions(optimizedStops);
+        let interHook = this._applyHookSync('addIntermediateStops', { stops: optimizedStops, axis: 'row', index: y });
+        if (interHook && interHook.stops) {
+            optimizedStops = interHook.stops;
+        } else {
+            optimizedStops = this.addIntermediateStopsForTransitions(optimizedStops);
+        }
         
         // Convert to CSS format
         const cssStops = optimizedStops.map(stop => {
@@ -1124,7 +1483,8 @@ class img2css {
             gradient: `linear-gradient(to right, ${cssStops.join(', ')})`,
             originalStops: rawColorStops.length,
             optimizedStops: optimizedStops.length,
-            dramaticColorChanges: dramaticColorChanges
+            dramaticColorChanges: dramaticColorChanges,
+            stops: optimizedStops
         };
     }
 
@@ -1351,7 +1711,8 @@ class img2css {
             
             backgrounds.push({
                 gradient: columnData.gradient.gradient,
-                position: positionPercent
+                position: positionPercent,
+                stops: columnData.gradient.stops || null
             });
         }
         
@@ -1361,7 +1722,9 @@ class img2css {
         
         const backgroundDeclarations = backgrounds.map(bg => {
             const sizePercent = (pixelWidthPercent + adaptiveOverlap).toFixed(2);
-            return `${bg.gradient} ${bg.position}% top / ${sizePercent}% 100% no-repeat`;
+            const layer = { gradient: bg.gradient, positionPercent: bg.position, sizePercent, axis: 'column', stops: bg.stops };
+            const res = this._applyHookSync('buildLayer', layer) || layer;
+            return `${res.gradient} ${res.positionPercent}% top / ${res.sizePercent}% 100% no-repeat`;
         });
         
         const separator = minified ? ',' : ',\n    ';
@@ -1377,18 +1740,25 @@ class img2css {
         const compressionReduction = compression > 0 ? 
             ` | Column reduction: ${((compression / 100) * 60).toFixed(1)}%` : '';
         
-        const selector = this.config.selector || '.slick-img-gradient';
-        
-        if (minified) {
-            return `${selector}{width:100%;height:auto;aspect-ratio:${width}/${height};background:${backgroundDeclaration}}`;
+        let selector = this.config.selector || '.slick-img-gradient';
+        const pre = this._applyHookSync('beforeBuildCSS', { layers: backgroundDeclarations.slice(), selector, dimensions: { width, height }, minified, layersData: backgrounds.slice() });
+        if (pre) {
+            if (pre.selector) selector = pre.selector;
+            if (pre.layers && Array.isArray(pre.layers)) {
+                // If plugin provided its own joined layers string, accept as array of strings
+                // but we keep our computed backgroundDeclaration unless replaced
+            }
         }
-        
-        return `${selector} {
+        const cssOut = minified
+            ? `${selector}{width:100%;height:auto;aspect-ratio:${width}/${height};background:${backgroundDeclaration}}`
+            : `${selector} {
     width: 100%;
     height: auto;
     aspect-ratio: ${width} / ${height};
     background: ${backgroundDeclaration};
 }`;
+        const post = this._applyHookSync('afterBuildCSS', { css: cssOut, layers: backgroundDeclarations.slice(), selector, dimensions: { width, height }, minified, layersData: backgrounds.slice(), imageData: this.imageData });
+        return (post && post.css) ? post.css : cssOut;
     }
 
     // Build final CSS string for row-based gradients (landscape images)
@@ -1411,7 +1781,8 @@ class img2css {
             
             backgrounds.push({
                 gradient: rowData.gradient.gradient,
-                position: positionPercent
+                position: positionPercent,
+                stops: rowData.gradient.stops || null
             });
         }
         
@@ -1421,7 +1792,9 @@ class img2css {
         
         const backgroundDeclarations = backgrounds.map(bg => {
             const sizePercent = (pixelHeightPercent + adaptiveOverlap).toFixed(2);
-            return `${bg.gradient} left ${bg.position}% / 100% ${sizePercent}% no-repeat`;
+            const layer = { gradient: bg.gradient, positionPercent: bg.position, sizePercent, axis: 'row', stops: bg.stops };
+            const res = this._applyHookSync('buildLayer', layer) || layer;
+            return `${res.gradient} left ${res.positionPercent}% / 100% ${res.sizePercent}% no-repeat`;
         });
         
         const separator = minified ? ',' : ',\n    ';
@@ -1437,18 +1810,21 @@ class img2css {
         const compressionReduction = compression > 0 ? 
             ` | Row reduction: ${((compression / 100) * 60).toFixed(1)}%` : '';
         
-        const selector = this.config.selector || '.slick-img-gradient';
-        
-        if (minified) {
-            return `${selector}{width:100%;height:auto;aspect-ratio:${width}/${height};background:${backgroundDeclaration}}`;
+        let selector = this.config.selector || '.slick-img-gradient';
+        const pre = this._applyHookSync('beforeBuildCSS', { layers: backgroundDeclarations.slice(), selector, dimensions: { width, height }, minified, layersData: backgrounds.slice() });
+        if (pre) {
+            if (pre.selector) selector = pre.selector;
         }
-        
-        return `${selector} {
+        const cssOut = minified
+            ? `${selector}{width:100%;height:auto;aspect-ratio:${width}/${height};background:${backgroundDeclaration}}`
+            : `${selector} {
     width: 100%;
     height: auto;
     aspect-ratio: ${width} / ${height};
     background: ${backgroundDeclaration};
 }`;
+        const post = this._applyHookSync('afterBuildCSS', { css: cssOut, layers: backgroundDeclarations.slice(), selector, dimensions: { width, height }, minified, layersData: backgrounds.slice(), imageData: this.imageData });
+        return (post && post.css) ? post.css : cssOut;
     }
 
     // Helper function to format file sizes
@@ -1880,8 +2256,11 @@ class img2css {
     // Load from source (can be used without DOM)
     async loadFromSource(source) {
         try {
+            const pre = await this._applyHook('beforeLoad', { source });
+            if (pre && pre.source !== undefined) source = pre.source;
             const imageData = await this.loadImageData(source);
-            this.imageData = imageData;
+            const post = await this._applyHook('afterLoad', { imageData, source });
+            this.imageData = (post && post.imageData) ? post.imageData : imageData;
             
             if (this.config.autoOptimize) {
                 const optimal = await this.findOptimalSettingsForImage();
@@ -1889,9 +2268,10 @@ class img2css {
                 this.config.processing.compression = optimal.compression;
             }
             
-            return imageData;
+            return this.imageData;
         } catch (error) {
             console.error('Failed to load image from source:', error);
+            try { await this._applyHook('onError', { stage: 'loadFromSource', error, source }); } catch (_) {}
             throw error;
         }
     }
