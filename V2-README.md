@@ -4,6 +4,43 @@ A powerful JavaScript library for converting images into pure CSS gradients with
 
 ## 🌟 [**Try The Live Demo**](https://codepen.io/digitalisstudios/full/OPMPPaZ)
 
+---
+
+## 📚 Table of Contents
+
+### Getting Started
+- [✨ What's New in v2](#-whats-new-in-v2)
+- [🎯 Why Convert Images to CSS?](#-why-convert-images-to-css)
+- [📦 Installation](#-installation)
+- [🚀 Quick Start](#-quick-start)
+
+### Core Features
+- [🔌 Plugin System](#-plugin-system)
+  - [🌟 Lighting Plugin](#-lighting-plugin)
+  - [🗺️ Map Extractor Plugin](#️-map-extractor-plugin)
+  - [⚙️ Plugin Configuration Methods](#️-plugin-configuration-methods)
+- [📊 Enhanced Stats System](#-enhanced-stats-system)
+- [⚡ Headless Operation](#-headless-operation)
+- [🔧 Processing Configuration](#-processing-configuration)
+
+### Developer Reference
+- [📖 API Reference](#-api-reference)
+  - [Constructor Options](#constructor-options)
+  - [Methods](#methods)
+  - [Plugin Results Structure](#plugin-results-structure)
+- [🌐 Browser Support](#-browser-support)
+- [📝 Examples](#-examples)
+- [⚡ Performance Tips](#-performance-tips)
+- [🔄 Migration from v1](#-migration-from-v1)
+
+### Advanced Topics
+- [🔮 Future Roadmap](#-future-roadmap)
+- [📄 License](#-license)
+- [🤝 Contributing](#-contributing)
+- [🆘 Support](#-support)
+
+---
+
 ## ✨ What's New in v2
 
 ### 🔌 **Plugin Architecture**
@@ -24,7 +61,7 @@ A powerful JavaScript library for converting images into pure CSS gradients with
 
 ---
 
-## **Why Convert Images to CSS?**
+## 🎯 Why Convert Images to CSS?
 
 Beyond just a cool effect, img2css v2 offers powerful advantages:
 
@@ -46,7 +83,7 @@ Perfect for protecting copyrighted images while maintaining visual appeal:
 
 ---
 
-## Installation
+## 📦 Installation
 
 ### Browser (CDN)
 ```html
@@ -74,7 +111,7 @@ const { MapExtractor } = require('./plugins/map-extractor.global.js');
 
 ---
 
-## Quick Start
+## 🚀 Quick Start
 
 ### Basic Usage
 ```javascript
@@ -146,11 +183,11 @@ console.log('Roughness map CSS:', mapExtractor.maps.roughness.css);
 
 ---
 
-## Plugin System
+## 🔌 Plugin System
 
 ### Available Plugins
 
-#### 🌟 **Lighting Plugin**
+### 🌟 Lighting Plugin
 Advanced lighting effects for realistic surface appearance:
 
 ```javascript
@@ -185,7 +222,7 @@ const converter = new img2css({
 - `ceramic`: Glossy ceramic finish
 - `satin`: Soft fabric texture
 
-#### 🗺️ **Map Extractor Plugin**  
+### 🗺️ Map Extractor Plugin  
 Generate material maps for advanced graphics:
 
 ```javascript
@@ -218,7 +255,7 @@ const converter = new img2css({
 - `albedo`: Base color/diffuse map
 - `depth`: Depth/displacement map
 
-### Plugin Configuration Methods
+### ⚙️ Plugin Configuration Methods
 
 #### Method 1: Shorthand (Recommended)
 ```javascript
@@ -275,7 +312,7 @@ const converter = new img2css({
 
 ---
 
-## Enhanced Stats System
+## 📊 Enhanced Stats System
 
 ### Memory-Safe Collection
 ```javascript
@@ -342,7 +379,7 @@ const converter = new img2css({
 
 ---
 
-## Headless Operation
+## ⚡ Headless Operation
 
 img2css v2 works perfectly in headless environments:
 
@@ -413,7 +450,7 @@ for (const imagePath of images) {
 
 ---
 
-## Processing Configuration
+## 🔧 Processing Configuration
 
 ### Basic Processing Options
 ```javascript
@@ -461,7 +498,7 @@ const converter = new img2css({
 
 ---
 
-## API Reference
+## 📖 API Reference
 
 ### Constructor Options
 ```javascript
@@ -555,7 +592,7 @@ console.log(converter.stats.performance);   // Performance metrics
 
 ---
 
-## Browser Support
+## 🌐 Browser Support
 
 ### Full Support (UI + Headless)
 - Chrome 60+
@@ -570,7 +607,7 @@ console.log(converter.stats.performance);   // Performance metrics
 
 ---
 
-## Examples
+## 📝 Examples
 
 ### Real-World Use Cases
 
@@ -677,7 +714,7 @@ app.post('/api/convert', async (req, res) => {
 
 ---
 
-## Performance Tips
+## ⚡ Performance Tips
 
 ### Memory Management
 ```javascript
@@ -742,7 +779,7 @@ const converter = new img2css({
 
 ---
 
-## Migration from v1
+## 🔄 Migration from v1
 
 ### Breaking Changes
 - Plugin configuration now uses shorthand syntax
@@ -799,7 +836,7 @@ console.log(converter.stats.plugins);
 
 ---
 
-## Future Roadmap
+## 🔮 Future Roadmap
 
 ### CSS Blend Mode "Shader" Effects
 Planned for v2.1: Advanced CSS blend mode combinations for shader-like effects:
@@ -817,15 +854,15 @@ Planned for v2.1: Advanced CSS blend mode combinations for shader-like effects:
 
 ---
 
-## License
+## 📄 License
 
 MIT License - see LICENSE file for details.
 
-## Contributing
+## 🤝 Contributing
 
 We welcome contributions! Please see CONTRIBUTING.md for guidelines.
 
-## Support
+## 🆘 Support
 
 - 📖 [Documentation](https://github.com/digitalisstudios/img2css/wiki)
 - 🐛 [Issues](https://github.com/digitalisstudios/img2css/issues)  
