@@ -359,6 +359,137 @@ The img2css hooks system provides powerful extensibility for customizing process
 - **Hybrid Processing**: Called during hybrid mode processing
 - **Error Handling**: Called when errors occur
 
+### 🔄 Hook Execution Lifecycle
+
+This diagram shows the complete execution flow and when each hook is called during the image-to-CSS conversion process:
+
+```
+🚀 CONVERTER INITIALIZATION
+│
+├─ onInit ────────────────────── Converter initialized with config
+│
+│
+📥 IMAGE LOADING (toCSS() called)
+│
+├─ beforeLoad ───────────────── About to load image from source
+│   │
+│   └─ [Image loading process]
+│   │
+├─ afterLoad ────────────────── Image loaded into ImageData
+│
+│
+⚙️ PROCESSING PIPELINE
+│
+├─ beforeProcess ────────────── Starting main processing
+│   │
+│   ├─ supplyPalette ─────────── (Optional) Custom color palette
+│   │   │
+│   │   └─ [Palette extraction if needed]
+│   │
+│   ├─ beforeScale ───────────── About to scale image
+│   │   │
+│   │   └─ [Image scaling based on details]
+│   │   │
+│   ├─ afterScale ────────────── Image scaled for processing
+│   │
+│   ├─ decideProcessingMode ──── Override processing mode (auto/rows/columns/hybrid)
+│   │
+│   └─ [Processing mode determined]
+│
+│
+🎯 GRADIENT GENERATION (Mode: ROWS)
+│
+├─ beforeRowPass ────────────── Configure row processing parameters
+│   │
+│   └─ For each row (y-axis):
+│       │
+│       ├─ shouldProcessLine ─── Control which rows to process
+│       │   │
+│       │   └─ [Extract colors from row]
+│       │   │
+│       │   ├─ transformRawStops ──────────── Transform raw color data
+│       │   │
+│       │   ├─ nearestPaletteColor ─────────── (If using palette) Select colors
+│       │   │
+│       │   ├─ transformDedupedStops ───────── Transform after deduplication
+│       │   │
+│       │   ├─ transformOptimizedStops ──────── Transform after optimization
+│       │   │
+│       │   └─ addIntermediateStops ─────────── Add smooth transition stops
+│
+│
+🎯 GRADIENT GENERATION (Mode: COLUMNS)
+│
+├─ beforeColumnPass ─────────── Configure column processing parameters
+│   │
+│   └─ For each column (x-axis):
+│       │
+│       ├─ shouldProcessLine ─── Control which columns to process
+│       │   │
+│       │   └─ [Extract colors from column]
+│       │   │
+│       │   ├─ transformRawStops ──────────── Transform raw color data
+│       │   │
+│       │   ├─ nearestPaletteColor ─────────── (If using palette) Select colors
+│       │   │
+│       │   ├─ transformDedupedStops ───────── Transform after deduplication
+│       │   │
+│       │   ├─ transformOptimizedStops ──────── Transform after optimization
+│       │   │
+│       │   └─ addIntermediateStops ─────────── Add smooth transition stops
+│
+│
+🔀 HYBRID PROCESSING (Mode: HYBRID only)
+│
+├─ [Primary mode processing] ─── (Rows or Columns, see above)
+│   │
+├─ beforeHybridSecondary ────── Configure secondary processing mode
+│   │
+├─ [Secondary mode processing] ── (Opposite of primary mode)
+│   │
+└─ combineHybrid ────────────── Combine primary and secondary results
+│
+│
+🎨 CSS GENERATION
+│
+├─ buildLayer ───────────────── Transform individual gradient layers
+│   │                           (Called for each gradient layer)
+│   │
+├─ beforeBuildCSS ───────────── About to assemble final CSS
+│   │
+│   └─ [CSS assembly process]
+│   │
+├─ afterBuildCSS ────────────── CSS generated, ready for post-processing
+│   │
+└─ afterProcess ─────────────── Processing complete, final result ready
+│
+│
+✅ RESULT RETURNED
+│
+└─ CSS string returned to caller
+
+
+❌ ERROR HANDLING (Can occur at any stage)
+│
+└─ onError ──────────────────── Called whenever an error occurs
+    │                           Context includes: { stage, error, ...data }
+    │
+    └─ Examples of error stages:
+        ├─ 'pluginInit' ─────── Plugin initialization failed
+        ├─ 'loadFromSource' ──── Image loading failed
+        ├─ 'toCSS' ──────────── CSS generation failed
+        └─ 'hook:hookName' ───── Hook execution failed
+
+
+🔧 HOOK EXECUTION NOTES:
+│
+├─ Plugin hooks execute before direct hooks within the same stage
+├─ Hooks can modify context and return modified data
+├─ Error hooks are non-blocking and don't stop processing
+├─ Some hooks are conditional (e.g., hybrid hooks only in hybrid mode)
+└─ Gradient transformation hooks are called for each row/column
+```
+
 ### 🔧 Hook Configuration
 
 Hooks can be configured in multiple ways:
