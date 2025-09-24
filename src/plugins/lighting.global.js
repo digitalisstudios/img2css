@@ -261,7 +261,7 @@
     name: 'Lighting',
     dependencies: ['mapExtractor'], // Requires mapExtractor plugin for specular maps
     controls: [
-      { type: 'switch', key: 'enabled', label: 'Enable', default: true },
+      { type: 'switch', key: 'enabled', label: 'Enable', default: false },
       { type: 'select', key: 'preset', label: 'Preset', default: 'clearcoat', options: [
         { label: 'Custom', value: 'custom' },
         { label: 'Chrome', value: 'chrome' },

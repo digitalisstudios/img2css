@@ -16,7 +16,10 @@
     var pluginFiles = options.pluginFiles || [
       'soft-posterize.global.js',
       'map-extractor.global.js', 
-      'lighting.global.js'
+      'lighting.global.js',
+      'edge-enhancement.global.js',
+      'contrast-boost.global.js',
+      'color-temperature.global.js'
     ];
     
     var loadedCount = 0;
@@ -34,7 +37,12 @@
           // Convert kebab-case to PascalCase (e.g., 'soft-posterize' -> 'SoftPosterize')
           pluginName = pluginName.charAt(0).toUpperCase() + pluginName.slice(1);
           
+          console.log('Looking for plugin:', pluginName, 'from file:', filename);
+          console.log('Plugin exists:', !!global[pluginName]);
+          console.log('Plugin has UI:', !!(global[pluginName] && global[pluginName].ui));
+          
           if (global[pluginName] && global[pluginName].ui) {
+            console.log('Adding plugin to discovered list:', pluginName);
             discoveredPlugins.push({ factory: global[pluginName], ui: global[pluginName].ui });
           }
         });
@@ -42,12 +50,18 @@
       }
     }
     
+    console.log('Loading plugins:', pluginFiles);
+    
     pluginFiles.forEach(function(filename) {
+      console.log('Attempting to load plugin:', basePath + filename);
       var script = document.createElement('script');
       script.src = basePath + filename;
-      script.onload = onPluginLoaded;
-      script.onerror = function() {
-        console.warn('Failed to load plugin:', filename);
+      script.onload = function() {
+        console.log('Successfully loaded plugin:', filename);
+        onPluginLoaded();
+      };
+      script.onerror = function(error) {
+        console.error('Failed to load plugin:', filename, error);
         onPluginLoaded(); // Continue even if one fails
       };
       document.head.appendChild(script);
