@@ -65,17 +65,26 @@ A powerful JavaScript library for converting images into pure CSS gradients with
 ## ✨ What's New in v2
 
 ### 🔌 **Plugin Architecture**
+
+The revolutionary plugin system transforms img2css from a simple converter into a comprehensive image processing platform. This architecture enables specialized effects, material extraction, and custom workflows while maintaining clean, efficient code organization.
+
 - **Lighting System**: Advanced lighting effects with clearcoat, chrome, water presets
 - **Map Extraction**: Generate normal, roughness, and material maps from images  
 - **Extensible Design**: Clean plugin API for custom processing effects
 
 ### 🛠️ **Enhanced Developer Experience**
+
+Streamlined APIs and intelligent defaults make img2css v2 more intuitive and powerful than ever. These developer-focused improvements reduce configuration complexity while expanding functionality and debugging capabilities.
+
 - **Plugin Configuration Shorthand**: Configure plugins directly in constructor
 - **Memory-Safe Stats**: Configurable collection of plugin results and processing data
 - **Headless Operation**: Full functionality in Node.js, Web Workers, Service Workers
 - **Auto-Loading**: Automatic plugin discovery and loading (UI environments)
 
 ### ⚡ **Performance Improvements**
+
+Significant performance optimizations deliver faster processing, lower memory usage, and better scalability. These improvements make img2css v2 production-ready for high-traffic applications and large-scale batch processing.
+
 - **Intelligent Caching**: Plugin results cached to prevent re-computation
 - **Selective Updates**: UI changes don't trigger unnecessary re-renders
 - **Memory Management**: Conservative defaults prevent memory leaks in production
@@ -87,6 +96,9 @@ A powerful JavaScript library for converting images into pure CSS gradients with
 Beyond just a cool effect, img2css v2 offers powerful advantages:
 
 ### 🎨 **Creative Control & Advanced Effects**
+
+Unlock professional-grade visual effects that transform simple images into sophisticated design elements. These creative tools enable artistic expression, brand differentiation, and advanced user interface design beyond traditional image usage.
+
 - **Sophisticated Lighting**: Realistic surface lighting with clearcoat, chrome, water effects
 - **Material Properties**: Extract and apply normal maps, roughness, and surface details
 - **CSS Animations**: Unlimited filter effects, blend modes, and transitions
@@ -107,6 +119,9 @@ Perfect for protecting copyrighted images while maintaining visual appeal:
 ## 📦 Installation
 
 ### Browser (CDN)
+
+The fastest way to get started with img2css is through CDN delivery, perfect for quick prototyping or simple implementations. This method loads the core library and plugins directly in your HTML, with no build process required.
+
 ```html
 <!-- Core library -->
 <script src="https://cdn.jsdelivr.net/gh/digitalisstudios/img2css@v2/src/img2css.js"></script>
@@ -117,6 +132,9 @@ Perfect for protecting copyrighted images while maintaining visual appeal:
 ```
 
 ### ES Modules
+
+For modern development workflows, ES Modules provide clean imports with tree-shaking support and better bundling optimization. This approach works seamlessly with Vite, Webpack, and other modern build tools.
+
 ```javascript
 import img2css from './img2css.js';
 import './plugins/lighting.global.js';
@@ -124,6 +142,9 @@ import './plugins/map-extractor.global.js';
 ```
 
 ### Node.js (Headless)
+
+Server-side processing enables batch operations, API endpoints, and build-time optimization without browser dependencies. Perfect for automated workflows and high-performance server applications.
+
 ```javascript
 const img2css = require('./img2css.js');
 const { Lighting } = require('./plugins/lighting.global.js');
@@ -135,6 +156,9 @@ const { MapExtractor } = require('./plugins/map-extractor.global.js');
 ## 🚀 Quick Start
 
 ### Basic Usage
+
+The simplest way to convert any image into a CSS gradient involves just a few lines of code. This example demonstrates the core functionality with essential configuration options for immediate results.
+
 ```javascript
 // Simple gradient conversion
 const converter = new img2css({
@@ -152,6 +176,9 @@ console.log(css); // Ready-to-use CSS
 ```
 
 ### With Lighting Effects (New in v2)
+
+Enhance your gradients with realistic lighting simulation that adds depth, dimensionality, and visual appeal. The lighting system automatically analyzes your image to create natural-looking highlights and shadows.
+
 ```javascript
 // Add realistic lighting effects
 const converter = new img2css({
@@ -178,6 +205,9 @@ const css = await converter.toCSS();
 ```
 
 ### With Map Extraction (New in v2)
+
+Transform images into material maps for advanced rendering workflows. This powerful feature extracts normal maps, roughness data, and other material properties directly from photographs, perfect for game development, 3D visualization, and modern web graphics.
+
 ```javascript
 // Generate material maps from images
 const converter = new img2css({
@@ -207,6 +237,8 @@ console.log('Roughness map CSS:', mapExtractor.maps.roughness.css);
 ## 🔌 Plugin System
 
 ### Available Plugins
+
+img2css v2 features a powerful plugin architecture that extends core functionality with specialized processing capabilities. Each plugin is designed for specific use cases, from realistic lighting effects to material extraction, enabling professional-grade results for diverse creative workflows.
 
 ### 🌟 Lighting Plugin
 Advanced lighting effects for realistic surface appearance:
@@ -244,6 +276,8 @@ const converter = new img2css({
 - `satin`: Soft fabric texture
 
 #### Lighting Plugin Configuration Reference
+
+Fine-tune every aspect of the lighting simulation with comprehensive configuration options. These parameters control light positioning, intensity, banding effects, and surface properties to achieve the exact visual result you need.
 
 The Lighting plugin accepts extensive configuration options for fine-tuned control:
 
@@ -335,6 +369,8 @@ Each preset provides optimized values for specific surface types:
 
 #### Using Custom Presets
 
+When built-in presets don't meet your specific needs, create custom lighting configurations tailored to your exact requirements. Custom presets allow you to define unique surface behaviors, specialized lighting angles, and brand-specific visual effects.
+
 ```javascript
 // Create custom preset
 const myCustomPreset = {
@@ -384,6 +420,8 @@ const converter = new img2css({
 ```
 
 #### Map Extractor Configuration Reference
+
+Unlock the full potential of material map generation with advanced configuration options that control every aspect of the extraction process. From edge detection sensitivity to output formats, these settings enable precise customization for professional graphics workflows.
 
 The Map Extractor plugin provides comprehensive material map generation:
 
@@ -462,6 +500,8 @@ const converter = new img2css({
 
 #### Map Types Explained
 
+Understanding different map types empowers you to choose the right extraction method for your specific workflow. Each map type serves distinct purposes in modern graphics pipelines, from PBR rendering to game development and architectural visualization.
+
 **Normal Map** (`normal`):
 - **Purpose**: Surface detail representation for lighting calculations
 - **Use Case**: PBR rendering, bump mapping effects
@@ -524,6 +564,8 @@ mapExtractor: {
 
 #### Accessing Generated Maps
 
+Once maps are generated, accessing them programmatically enables integration with rendering engines, texture pipelines, and custom workflows. The plugin provides multiple access methods and formats to suit different development needs.
+
 ```javascript
 const converter = new img2css({
     source: 'texture.jpg',
@@ -553,6 +595,8 @@ Object.keys(mapExtractor.maps).forEach(mapType => {
 ```
 
 #### Advanced Map Processing Workflows
+
+Combine multiple extraction techniques and processing methods to create sophisticated material workflows. These advanced patterns demonstrate professional-grade implementations for game development, architectural rendering, and high-end visualization projects.
 
 **PBR Material Generation**:
 ```javascript
@@ -620,6 +664,8 @@ const converter = new img2css({
 
 #### Soft Posterize Configuration Reference
 
+Master the art of color quantization with precise control over posterization effects. These configuration options balance artistic stylization with visual quality, enabling everything from subtle color reduction to bold graphic treatments.
+
 The Soft Posterize plugin provides artistic color reduction with enhanced blur:
 
 ```javascript
@@ -649,6 +695,8 @@ const converter = new img2css({
 
 #### Posterization Effects
 
+Transform photographic images into artistic illustrations through controlled color reduction. Posterization creates distinctive visual styles perfect for branding, artistic expression, and simplified graphic treatments that maintain visual impact while reducing complexity.
+
 The Soft Posterize plugin quantizes colors to create artistic effects:
 
 **Low Steps (2-8)**: High contrast, graphic poster effects
@@ -677,6 +725,8 @@ softPosterize: {
 
 #### Color Quantization Process
 
+Understanding the technical process behind color quantization helps optimize results for different image types. This systematic approach ensures consistent quality while maintaining artistic control over the final output.
+
 The plugin applies quantization to RGB channels:
 
 1. **Color Analysis**: Examines all colors in gradient stops
@@ -692,6 +742,8 @@ const quantizedValue = Math.round(originalValue / stepSize) * stepSize;
 ```
 
 #### Artistic Applications
+
+Posterization opens creative possibilities across multiple design disciplines. From web interfaces to print media, these artistic applications demonstrate how controlled color reduction enhances visual communication and brand expression.
 
 **Pop Art Style**:
 ```javascript
@@ -731,11 +783,15 @@ const converter = new img2css({
 
 #### Performance Considerations
 
+Optimize posterization performance for production environments with strategic configuration choices. Understanding the computational trade-offs enables efficient processing while maintaining visual quality standards.
+
 - **Lower steps** = faster processing, more dramatic effects
 - **Higher steps** = slower processing, subtler effects
 - **Blur boost** affects rendering performance but improves visual quality
 
 #### Combining with Other Plugins
+
+Unlock advanced creative possibilities by combining posterization with other img2css plugins. These strategic combinations create unique visual effects that surpass what individual plugins achieve alone.
 
 **Posterize + Lighting**:
 ```javascript
@@ -787,6 +843,8 @@ const converter = new img2css({
 
 ### Plugin Loading Order
 
+Critical execution sequence that determines final output quality and plugin interaction results. Understanding loading order prevents conflicts and ensures each plugin has access to the data it needs from previous operations.
+
 When using multiple plugins, they execute in this order:
 
 1. **Map Extractor** - Generates maps during processing
@@ -794,6 +852,8 @@ When using multiple plugins, they execute in this order:
 3. **Lighting** - Applies lighting effects to final CSS
 
 ### Memory Usage by Plugin
+
+Memory consumption characteristics of each plugin help optimize performance for different deployment scenarios. This information guides plugin selection and configuration for memory-constrained environments or high-throughput applications.
 
 | Plugin | Memory Impact | Caching | Notes |
 |--------|---------------|---------|-------|
@@ -804,6 +864,9 @@ When using multiple plugins, they execute in this order:
 ### ⚙️ Plugin Configuration Methods
 
 #### Method 1: Shorthand (Recommended)
+
+The most convenient approach for most use cases, shorthand configuration integrates directly with the img2css constructor. This method provides immediate plugin activation with clean, readable syntax.
+
 ```javascript
 const converter = new img2css({
     source: 'image.jpg',
@@ -815,6 +878,9 @@ const converter = new img2css({
 ```
 
 #### Method 2: Manual Plugin Instances
+
+For complex workflows requiring plugin reuse across multiple converters, manual instantiation provides maximum control and efficiency. This approach enables advanced plugin management and sharing.
+
 ```javascript
 // Pre-instantiate plugins
 const lightingPlugin = Lighting({ 
@@ -830,6 +896,9 @@ const converter = new img2css({
 ```
 
 #### Method 3: Mixed Configuration  
+
+For sophisticated applications requiring both built-in and custom plugins, mixed configuration combines all approaches seamlessly. This flexible method enables gradual migration and complex workflow implementations.
+
 ```javascript
 const customPlugin = {
     hooks: {
@@ -1099,7 +1168,11 @@ const converter = new img2css({
 
 ### 🎯 Available Hooks
 
+Comprehensive catalog of all available hooks organized by processing stage and functionality. Each hook provides specific control points in the conversion pipeline, enabling precise customization and advanced workflow integration.
+
 #### Initialization Hooks
+
+Foundation hooks that execute during converter setup and configuration. These hooks provide early access to modify initial settings, validate inputs, and establish custom processing parameters before image loading begins.
 ```javascript
 hooks: {
     // Called after converter initialization
@@ -1114,6 +1187,9 @@ hooks: {
 ```
 
 #### Loading Hooks
+
+Critical hooks that control image loading and data preparation phases. These hooks enable source modification, format validation, loading optimization, and custom data preprocessing before conversion begins.
+
 ```javascript
 hooks: {
     // Called before image loading
@@ -1143,6 +1219,9 @@ hooks: {
 ```
 
 #### Processing Hooks
+
+Core processing hooks that govern the main image-to-CSS conversion pipeline. These hooks provide control over processing modes, quality settings, optimization decisions, and custom processing algorithms at the heart of the conversion process.
+
 ```javascript
 hooks: {
     // Called before main processing starts
@@ -1207,6 +1286,9 @@ hooks: {
 ```
 
 #### Processing Pass Hooks
+
+Low-level hooks that control individual processing passes for rows and columns. These hooks enable fine-grained control over sampling rates, compression settings, blur parameters, and selective line processing for advanced optimization strategies.
+
 ```javascript
 hooks: {
     // Row processing parameter override
@@ -1248,6 +1330,9 @@ hooks: {
 ```
 
 #### Gradient Transformation Hooks
+
+Specialized hooks for modifying gradient data during generation. These hooks allow custom color transformations, gradient stop manipulation, and advanced visual effects that operate on the CSS gradient structure itself.
+
 ```javascript
 hooks: {
     // Transform raw color stops before deduplication
@@ -1310,6 +1395,9 @@ hooks: {
 ```
 
 #### CSS Generation Hooks
+
+Final-stage hooks that control CSS output formatting, optimization, and post-processing. These hooks enable custom CSS modifications, minification control, selector customization, and output format adaptation.
+
 ```javascript
 hooks: {
     // Transform individual gradient layers
@@ -1363,6 +1451,9 @@ hooks: {
 ```
 
 #### Hybrid Processing Hooks
+
+Specialized hooks that execute only during hybrid processing mode. These hooks provide control over the complex hybrid algorithm that combines row and column processing for optimal gradient quality.
+
 ```javascript
 hooks: {
     // Configure secondary processing mode
@@ -1389,6 +1480,9 @@ hooks: {
 ```
 
 #### Error Handling Hooks
+
+Robust error management hooks that provide graceful failure handling and recovery mechanisms. These hooks enable custom error logging, user notifications, fallback strategies, and debugging assistance throughout the conversion process.
+
 ```javascript
 hooks: {
     // Global error handler
@@ -1574,6 +1668,9 @@ function CSPCompliance() {
 ### ⚡ Hooks Best Practices
 
 #### Performance Considerations
+
+Optimize hook performance to maintain fast processing speeds and responsive user interfaces. These guidelines ensure hooks enhance functionality without creating bottlenecks or degrading overall conversion performance.
+
 ```javascript
 // ✅ Good: Lightweight hook that returns quickly
 hooks: {
@@ -1607,6 +1704,9 @@ hooks: {
 ```
 
 #### Error Handling
+
+Implement robust error handling in hooks to maintain system stability and provide graceful degradation. Proper error management ensures processing continues even when individual hooks encounter problems.
+
 ```javascript
 // ✅ Good: Robust error handling
 hooks: {
@@ -1633,6 +1733,9 @@ hooks: {
 ```
 
 #### Hook Ordering
+
+Understand hook execution sequence to ensure predictable behavior when multiple hooks modify the same data. Proper ordering knowledge prevents conflicts and enables reliable hook chain composition.
+
 ```javascript
 // Hooks execute in this order within each category:
 // 1. Plugin hooks (in plugin registration order)
@@ -1657,6 +1760,9 @@ const converter = new img2css({
 ```
 
 #### Memory Management
+
+Manage memory effectively in hooks to prevent leaks and optimize performance in long-running applications. These practices ensure hooks maintain efficiency even with frequent processing cycles.
+
 ```javascript
 // ✅ Good: Clean up resources
 hooks: {
@@ -1681,6 +1787,9 @@ hooks: {
 ```
 
 #### Testing Hooks
+
+Design hooks for testability and maintainability with clear separation of concerns and predictable behavior. These patterns enable comprehensive testing, debugging, and validation of custom hook functionality.
+
 ```javascript
 // ✅ Good: Testable hook functions
 function createColorEnhancer(options = {}) {
@@ -2498,6 +2607,8 @@ test('plugin integrates with img2css', async () => {
 
 #### Documentation Standards
 
+Comprehensive documentation standards ensure plugin quality, maintainability, and user adoption. These guidelines establish consistent documentation patterns that help developers understand, implement, and extend plugin functionality effectively.
+
 ```javascript
 /**
  * Color Enhancement Plugin for img2css
@@ -2530,7 +2641,12 @@ function ColorEnhancer(options = {}) {
 
 ## 📊 Enhanced Stats System
 
+Advanced statistics collection system that balances detailed insights with memory efficiency. This system provides configurable telemetry, plugin performance monitoring, and processing analytics while maintaining optimal resource usage in production environments.
+
 ### Memory-Safe Collection
+
+Smart memory management prevents stats collection from impacting performance or causing memory leaks. The default minimal collection provides essential information while conserving resources for high-throughput applications.
+
 ```javascript
 // Default: minimal memory usage
 const converter = new img2css({
@@ -2544,6 +2660,9 @@ console.log(converter.stats.settings); // Basic info only
 ```
 
 ### Plugin Results Collection
+
+Selective plugin result storage enables detailed analysis of plugin performance and output quality. This targeted collection approach provides deep insights while maintaining control over memory usage patterns.
+
 ```javascript
 // Collect plugin results
 const converter = new img2css({
@@ -2564,6 +2683,9 @@ console.log('Roughness map:', plugins.mapExtractor.maps.roughness.css);
 ```
 
 ### Selective Collection (Production)
+
+Production-optimized stats collection that focuses on essential metrics while minimizing overhead. This selective approach enables monitoring and debugging capabilities without compromising performance in high-traffic environments.
+
 ```javascript
 // Only collect from specific plugins
 const converter = new img2css({
@@ -2579,6 +2701,9 @@ const converter = new img2css({
 ```
 
 ### Stats Configuration Options
+
+Flexible configuration system that adapts stats collection to your specific needs and deployment requirements. These options provide granular control over what data is collected, stored, and made available for analysis.
+
 ```javascript
 // Full configuration
 const converter = new img2css({
@@ -2600,6 +2725,9 @@ const converter = new img2css({
 img2css v2 works perfectly in headless environments:
 
 ### Node.js Server
+
+Full-featured server-side processing enables API endpoints, batch processing, and automated workflows. Node.js implementation provides identical functionality to browser environments without DOM dependencies or security restrictions.
+
 ```javascript
 const img2css = require('./img2css.js');
 const { Lighting } = require('./plugins/lighting.global.js');
@@ -2620,6 +2748,9 @@ const css = await converter.toCSS();
 ```
 
 ### Web Worker
+
+Offload processing to background threads for responsive user interfaces and improved performance. Web Worker implementation maintains full img2css functionality while preventing main thread blocking during intensive operations.
+
 ```javascript
 // Inside worker script
 importScripts('img2css.js');
@@ -2640,6 +2771,9 @@ self.onmessage = async function(e) {
 ```
 
 ### Batch Processing
+
+Efficient processing of multiple images with memory-safe patterns and performance optimization. This implementation handles large image sets while maintaining system stability and preventing resource exhaustion.
+
 ```javascript
 // Memory-safe batch processing
 const images = ['img1.jpg', 'img2.jpg', 'img3.jpg'];
@@ -2717,6 +2851,9 @@ const converter = new img2css({
 ## 📖 API Reference
 
 ### Constructor Options
+
+Configure every aspect of the image-to-CSS conversion process with comprehensive constructor options. These settings control output format, processing quality, plugin behavior, and performance characteristics to match your specific requirements.
+
 ```javascript
 new img2css({
     // Required
@@ -2752,7 +2889,12 @@ new img2css({
 
 ### Methods
 
+The img2css API provides essential methods for image processing, configuration management, and result access. Each method is designed for specific workflow needs, from simple conversion to advanced batch processing.
+
 #### `toCSS()`
+
+The primary method that orchestrates the complete image-to-CSS conversion pipeline. This asynchronous method handles image loading, processing, plugin execution, and CSS generation with full error handling and optimization.
+
 Generates CSS gradient from the image.
 
 ```javascript
@@ -2761,6 +2903,9 @@ const css = await converter.toCSS();
 ```
 
 #### `loadFromSource(source)`
+
+Versatile image loading method that accepts multiple input formats including URLs, File objects, ImageData, and data URLs. This method handles format detection, CORS configuration, and cross-browser compatibility automatically.
+
 Load image data from various sources.
 
 ```javascript
@@ -2775,6 +2920,9 @@ await converter.loadFromSource(canvasImageData);
 ```
 
 #### `loadImageData(source)`
+
+Low-level canvas integration method for direct ImageData access. Perfect for advanced workflows requiring pixel manipulation, custom processing pipelines, or integration with existing canvas-based applications.
+
 Low-level method to load image data into canvas.
 
 ```javascript
@@ -2783,6 +2931,9 @@ const imageData = await converter.loadImageData(source);
 ```
 
 #### `processImageToCSS(imageData, config)`
+
+Direct processing method that bypasses image loading for maximum performance and control. Ideal for batch processing, server-side workflows, and applications with pre-processed ImageData sources.
+
 Process ImageData directly with custom configuration.
 
 ```javascript
@@ -2794,6 +2945,9 @@ const css = await converter.processImageToCSS(imageData, {
 ```
 
 #### `scaleImageByDetails(imageData, details)`
+
+Intelligent scaling algorithm that optimizes image resolution based on desired detail levels. This method balances processing performance with visual quality, automatically determining optimal dimensions for gradient generation.
+
 Scale image based on detail level for optimal processing.
 
 ```javascript
@@ -2801,6 +2955,9 @@ const scaledImageData = converter.scaleImageByDetails(imageData, 90);
 ```
 
 #### `extractColorPalette(imageData, maxColors)`
+
+Advanced color analysis tool that identifies dominant colors and creates optimized palettes for posterization effects. This method uses sophisticated clustering algorithms to preserve visual integrity while reducing color complexity.
+
 Extract color palette from image for posterization effects.
 
 ```javascript
@@ -2809,6 +2966,9 @@ const palette = converter.extractColorPalette(imageData, 256);
 ```
 
 #### `calculateImageComplexity(data, width, height)`
+
+Sophisticated image analysis that quantifies visual complexity through edge detection, color variance, and pattern recognition. This computational method enables automatic optimization and processing mode selection based on image characteristics.
+
 Analyze image complexity for automatic optimization.
 
 ```javascript
@@ -2817,6 +2977,9 @@ console.log(complexity.isComplex, complexity.score);
 ```
 
 #### `findOptimalSettingsForImage(preserveParameter)`
+
+Intelligent optimization system that automatically determines the best processing configuration for any image. This method balances quality, performance, and file size while optionally preserving specific parameters based on your priorities.
+
 Automatically find optimal processing settings.
 
 ```javascript
@@ -2828,6 +2991,9 @@ const optimalConfig = await converter.findOptimalSettingsForImage();
 ```
 
 #### `stats` Property
+
+Comprehensive processing telemetry and performance metrics collection system. The stats property provides detailed insights into processing time, memory usage, plugin performance, and optimization results for monitoring and debugging.
+
 Access detailed processing information after calling `toCSS()`:
 
 ```javascript
@@ -2878,12 +3044,18 @@ console.log(converter.stats.performance);   // Performance metrics
 ## 🌐 Browser Support
 
 ### Full Support (UI + Headless)
+
+Complete img2css functionality including interactive UI components, file uploads, and all processing modes. These browsers support the full Canvas API, modern JavaScript features, and CSS blend modes required for advanced effects.
+
 - Chrome 60+
 - Firefox 55+  
 - Safari 11+
 - Edge 79+
 
 ### Headless Support
+
+Server-side processing without browser UI dependencies. Ideal for automated workflows, API endpoints, and build processes where only the core conversion functionality is needed.
+
 - Node.js 12+ (with `canvas` package for image processing)
 - Web Workers (all modern browsers)
 - Service Workers (limited canvas support)
@@ -2892,9 +3064,16 @@ console.log(converter.stats.performance);   // Performance metrics
 
 ## 📝 Examples
 
+Practical implementations demonstrating img2css integration in real-world applications. These examples showcase production-ready patterns, performance optimizations, and advanced workflows across different frameworks and use cases.
+
 ### Real-World Use Cases
 
+Explore how img2css solves common development challenges across various industries and applications. Each use case includes complete implementation code with performance considerations and customization options.
+
 #### Photo Gallery with Lighting
+
+Create stunning photo galleries with realistic lighting effects that enhance visual depth and professional appearance. This implementation demonstrates batch processing, consistent styling, and performance optimization for gallery applications.
+
 ```javascript
 // Professional photo gallery with realistic lighting
 const photos = ['photo1.jpg', 'photo2.jpg', 'photo3.jpg'];
@@ -2924,6 +3103,9 @@ for (const [index, photo] of photos.entries()) {
 ```
 
 #### Material Design System
+
+Build comprehensive material libraries by extracting multiple map types from a single source image. This workflow creates consistent design systems with normal maps, roughness maps, and albedo maps for advanced UI frameworks and design tools.
+
 ```javascript
 // Generate material maps for design system
 const converter = new img2css({
@@ -2957,6 +3139,9 @@ document.head.appendChild(createStyleElement(albedoCSS));
 ```
 
 #### Server-Side API
+
+Implement powerful server-side image processing APIs that handle file uploads, batch processing, and automated optimization. This example demonstrates production-ready error handling, caching, and performance monitoring for enterprise applications.
+
 ```javascript
 // Express.js API endpoint
 app.post('/api/convert', async (req, res) => {
@@ -3000,6 +3185,9 @@ app.post('/api/convert', async (req, res) => {
 ## ⚡ Performance Tips
 
 ### Memory Management
+
+Optimize memory usage for production applications with strategic configuration choices. These patterns prevent memory leaks, reduce garbage collection pressure, and enable efficient processing of large image sets.
+
 ```javascript
 // ✅ Good: Conservative defaults for production
 const converter = new img2css({
@@ -3023,6 +3211,9 @@ const converter = new img2css({
 ```
 
 ### Batch Processing
+
+Implement efficient batch processing workflows that handle multiple images while maintaining optimal performance characteristics. These strategies balance concurrent processing with memory constraints for scalable applications.
+
 ```javascript
 // ✅ Good: Clear references in loops
 for (const image of images) {
@@ -3042,6 +3233,9 @@ for (const chunk of chunks) {
 ```
 
 ### Plugin Usage
+
+Strategic plugin selection and configuration minimizes processing overhead while maximizing functionality. Understanding plugin performance characteristics enables efficient combinations for specific use cases.
+
 ```javascript
 // ✅ Good: Enable only needed plugins
 const converter = new img2css({
@@ -3065,13 +3259,22 @@ const converter = new img2css({
 ## 🔄 Migration from v1
 
 ### Breaking Changes
+
+Critical changes that require code updates when migrating from v1 to v2. These modifications improve performance, simplify configuration, and enable the new plugin architecture while maintaining core functionality.
+
 - Plugin configuration now uses shorthand syntax
 - Stats collection is minimal by default (was always collected)
 - Some advanced features moved to plugins
 
 ### Migration Examples
 
+Step-by-step code transformations demonstrating how to update existing v1 implementations for v2 compatibility. Each example shows before and after code with explanations of the changes and benefits.
+
 #### v1 → v2 Basic Usage
+
+Basic usage patterns remain largely unchanged, with only minor syntax updates required. The core conversion workflow maintains backward compatibility for simple use cases.
+
+
 ```javascript
 // v1
 const converter = new img2css('/path/to/image.jpg');
@@ -3083,6 +3286,9 @@ const css = await converter.toCSS();
 ```
 
 #### v1 → v2 Advanced Features  
+
+Advanced features have been restructured into the new plugin system, providing better organization, performance, and extensibility. This migration shows how to update complex configurations.
+
 ```javascript
 // v1 (lighting was built-in)
 const converter = new img2css({
@@ -3103,6 +3309,9 @@ const converter = new img2css({
 ```
 
 #### v1 → v2 Stats Access
+
+Stats collection has been optimized for performance with explicit opt-in behavior. This change reduces memory usage and processing overhead while providing more detailed information when needed.
+
 ```javascript
 // v1 (all stats always collected)
 const css = await converter.toCSS();
