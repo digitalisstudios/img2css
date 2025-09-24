@@ -227,15 +227,129 @@ const converter = new img2css({
 ```
 
 **Lighting Presets:**
-- `clearcoat`: Automotive clearcoat finish
+- `clearcoat`: Automotive clearcoat finish (default)
 - `chrome`: Polished metal surface  
 - `water`: Liquid surface effects
 - `marble`: Natural stone appearance
 - `ceramic`: Glossy ceramic finish
 - `satin`: Soft fabric texture
 
+#### Lighting Plugin Configuration Reference
+
+The Lighting plugin accepts extensive configuration options for fine-tuned control:
+
+```javascript
+const converter = new img2css({
+    source: 'image.jpg',
+    lighting: {
+        // Core Settings
+        enabled: true,                    // Enable/disable plugin
+        preset: 'clearcoat',             // Preset: 'clearcoat' | 'chrome' | 'water' | 'marble' | 'ceramic' | 'satin'
+        
+        // Light Properties
+        lightAngle: 171,                 // Light angle in degrees (0-360)
+        blendMode: 'screen',             // CSS blend mode: 'screen' | 'overlay' | 'soft-light' | 'hard-light'
+        highlightAlpha: 1.0,             // Highlight intensity (0.0-1.0)
+        color: '#ffffff',                // Light color (hex)
+        
+        // Primary Lighting Band
+        bandGap: 110,                    // Gap between light bands
+        bandWidth: 50,                   // Width of primary light band
+        bandSpace: 120,                  // Spacing of primary band
+        softEdge: 4,                     // Edge softness (blur)
+        bandPhase: 2,                    // Phase offset for band positioning
+        
+        // Secondary Lighting Band
+        bandGap2: 80,                    // Secondary band gap
+        bandWidth2: 10,                  // Secondary band width
+        bandSpace2: 90,                  // Secondary band spacing
+        
+        // Tertiary Lighting Band
+        bandGap3: 120,                   // Tertiary band gap
+        bandWidth3: 8,                   // Tertiary band width
+        bandSpace3: 140,                 // Tertiary band spacing
+        bandPhase3: 14,                  // Tertiary phase offset
+        
+        // Advanced Options
+        maskVar: 'var(--lighting-mask)', // CSS variable for masking
+        reflection: false,               // Use reflection mode (subject normal map)
+        preview: 'off',                  // Preview mode: 'off' | 'masked' | 'unmasked'
+        
+        // Plugin Hooks
+        pluginHooks: {
+            beforeMaskLoaded: (data) => console.log('Loading mask'),
+            onMaskLoaded: (data) => console.log('Mask loaded')
+        }
+    }
+});
+```
+
+#### Lighting Plugin Presets
+
+Each preset provides optimized values for specific surface types:
+
+**Clearcoat Preset** (Automotive finish):
+```javascript
+{
+    lightAngle: 171,
+    highlightAlpha: 1.0,
+    blendMode: 'screen',
+    bandGap: 110, bandWidth: 50, bandSpace: 120,
+    bandGap2: 80, bandWidth2: 10, bandSpace2: 90,
+    bandGap3: 120, bandWidth3: 8, bandSpace3: 140
+}
+```
+
+**Chrome Preset** (Polished metal):
+```javascript
+{
+    lightAngle: 145,
+    highlightAlpha: 0.95,
+    blendMode: 'overlay',
+    bandGap: 95, bandWidth: 35, bandSpace: 100,
+    bandGap2: 65, bandWidth2: 8, bandSpace2: 75,
+    bandGap3: 105, bandWidth3: 6, bandSpace3: 120
+}
+```
+
+**Water Preset** (Liquid surface):
+```javascript
+{
+    lightAngle: 160,
+    highlightAlpha: 0.8,
+    blendMode: 'soft-light',
+    bandGap: 130, bandWidth: 60, bandSpace: 140,
+    bandGap2: 90, bandWidth2: 12, bandSpace2: 105,
+    bandGap3: 140, bandWidth3: 10, bandSpace3: 160
+}
+```
+
+#### Using Custom Presets
+
+```javascript
+// Create custom preset
+const myCustomPreset = {
+    lightAngle: 180,
+    highlightAlpha: 0.7,
+    blendMode: 'overlay',
+    color: '#f0f0f0',
+    bandGap: 100,
+    bandWidth: 40,
+    // ... other parameters
+};
+
+// Apply custom preset
+const converter = new img2css({
+    source: 'image.jpg',
+    lighting: {
+        ...myCustomPreset,
+        enabled: true
+    }
+});
+```
+
 ### 🗺️ Map Extractor Plugin  
-Generate material maps for advanced graphics:
+Generate material maps for advanced graphics and PBR workflows:
 
 ```javascript
 const converter = new img2css({
@@ -260,12 +374,423 @@ const converter = new img2css({
 });
 ```
 
-**Map Types:**
-- `normal`: Surface normal map for lighting calculations
-- `roughness`: Surface roughness/specular map
-- `subjectnormal`: Subject-specific normal map
-- `albedo`: Base color/diffuse map
-- `depth`: Depth/displacement map
+#### Map Extractor Configuration Reference
+
+The Map Extractor plugin provides comprehensive material map generation:
+
+```javascript
+const converter = new img2css({
+    source: 'texture.jpg',
+    mapExtractor: {
+        // Core Settings
+        enabled: true,                                    // Enable/disable plugin
+        
+        // Map Generation
+        types: [                                         // Array of map types to generate
+            'normal', 'roughness', 'albedo', 
+            'subjectnormal', 'depth', 'irradiance', 'object'
+        ],
+        
+        // Processing Control
+        computeAt: 'original',                           // When to compute: 'original' | 'scaled'
+        dataUrl: true,                                   // Generate data URLs
+        emitCSS: true,                                   // Emit CSS for each map
+        
+        // Quality & Performance
+        quality: 1.0,                                    // Processing quality (0.1-1.0)
+        threshold: 0.2,                                  // Edge detection threshold (0.0-1.0)
+        strength: 1.0,                                   // Overall effect strength
+        gamma: 1.0,                                      // Gamma correction
+        whitenessBlend: 0.5,                            // Whiteness blending factor
+        
+        // Normal Map Settings
+        normalStrength: 1.0,                            // Normal map intensity
+        
+        // Roughness Map Settings  
+        roughnessWindow: 3,                             // Sampling window size
+        
+        // Albedo Map Settings
+        albedoDeshade: 0.7,                             // Shadow removal strength
+        
+        // Depth Map Settings
+        depthRadius: 3,                                 // Depth calculation radius
+        depthStrength: 1.0,                             // Depth effect strength
+        depthGamma: 1.2,                                // Depth gamma correction
+        depthInvert: false,                             // Invert depth values
+        depthLuminanceWeight: 0.3,                      // Luminance contribution
+        depthContrastWeight: 0.4,                       // Contrast contribution
+        depthEdgeWeight: 0.2,                           // Edge contribution
+        depthSaturationWeight: 0.1,                     // Saturation contribution
+        
+        // Irradiance Map Settings
+        irradianceRadius: 8,                            // Irradiance sampling radius
+        
+        // Object Isolation Settings
+        objectRadius: 2,                                // Object detection radius
+        objectThreshold: 0.3,                           // Object boundary threshold
+        objectStrength: 1.0,                            // Object mask strength
+        objectGamma: 1.0,                               // Object gamma correction
+        
+        // Output Configuration
+        selectors: {                                     // CSS selectors for each map type
+            normal: '.normal-map',
+            roughness: '.roughness-map',
+            albedo: '.albedo-map',
+            subjectnormal: '.subject-normal-map',
+            depth: '.depth-map',
+            irradiance: '.irradiance-map',
+            object: '.object-mask'
+        },
+        
+        // Plugin Hooks
+        pluginHooks: {
+            mapGenerated: (data) => console.log(`Generated ${data.type} map`),
+            allMapsComplete: (data) => console.log('All maps generated')
+        }
+    }
+});
+```
+
+#### Map Types Explained
+
+**Normal Map** (`normal`):
+- **Purpose**: Surface detail representation for lighting calculations
+- **Use Case**: PBR rendering, bump mapping effects
+- **Output**: RGB values representing surface normals
+```javascript
+mapExtractor: {
+    types: ['normal'],
+    normalStrength: 1.5  // Increase for more pronounced effects
+}
+```
+
+**Roughness Map** (`roughness`):
+- **Purpose**: Surface roughness/smoothness for specular reflection
+- **Use Case**: Material definition, reflection control
+- **Output**: Grayscale values (white = rough, black = smooth)
+```javascript
+mapExtractor: {
+    types: ['roughness'],
+    roughnessWindow: 5  // Larger window for smoother transitions
+}
+```
+
+**Albedo Map** (`albedo`):
+- **Purpose**: Pure surface color without lighting information
+- **Use Case**: Base material color, texture mapping
+- **Output**: RGB color values with shadows removed
+```javascript
+mapExtractor: {
+    types: ['albedo'],
+    albedoDeshade: 0.8  // Higher value removes more shadows
+}
+```
+
+**Subject Normal Map** (`subjectnormal`):
+- **Purpose**: Object-specific normal information
+- **Use Case**: Character/object lighting, detail enhancement
+- **Output**: RGB normals focused on subject geometry
+
+**Depth Map** (`depth`):
+- **Purpose**: Surface depth/displacement information
+- **Use Case**: Parallax mapping, 3D effects
+- **Output**: Grayscale depth values
+```javascript
+mapExtractor: {
+    types: ['depth'],
+    depthStrength: 1.5,
+    depthInvert: false  // Set true for inverted depth
+}
+```
+
+**Irradiance Map** (`irradiance`):
+- **Purpose**: Ambient lighting information
+- **Use Case**: Global illumination, ambient occlusion
+- **Output**: RGB lighting values
+
+**Object Map** (`object`):
+- **Purpose**: Object isolation and masking
+- **Use Case**: Background removal, object selection
+- **Output**: Binary mask (white = object, black = background)
+
+#### Accessing Generated Maps
+
+```javascript
+const converter = new img2css({
+    source: 'texture.jpg',
+    mapExtractor: {
+        types: ['normal', 'roughness', 'albedo'],
+        emitCSS: true
+    },
+    stats: 'standard'  // Required to collect plugin results
+});
+
+const css = await converter.toCSS();
+
+// Access generated maps
+const { mapExtractor } = converter.stats.plugins;
+
+// Individual map access
+const normalMap = mapExtractor.maps.normal;
+console.log('Normal map CSS:', normalMap.css);
+console.log('Normal map dimensions:', normalMap.dimensions);
+console.log('Normal map data URL:', normalMap.dataUrl);
+
+// All maps
+Object.keys(mapExtractor.maps).forEach(mapType => {
+    const map = mapExtractor.maps[mapType];
+    console.log(`${mapType}:`, map.css.length, 'characters');
+});
+```
+
+#### Advanced Map Processing Workflows
+
+**PBR Material Generation**:
+```javascript
+const converter = new img2css({
+    source: 'material-photo.jpg',
+    mapExtractor: {
+        types: ['albedo', 'normal', 'roughness'],
+        normalStrength: 1.2,
+        roughnessWindow: 4,
+        albedoDeshade: 0.75,
+        selectors: {
+            albedo: '.pbr-albedo',
+            normal: '.pbr-normal', 
+            roughness: '.pbr-roughness'
+        }
+    },
+    stats: 'standard'
+});
+```
+
+**Depth-Enhanced Effects**:
+```javascript
+const converter = new img2css({
+    source: 'landscape.jpg',
+    mapExtractor: {
+        types: ['depth', 'normal'],
+        depthStrength: 2.0,
+        depthLuminanceWeight: 0.4,
+        depthContrastWeight: 0.6,
+        normalStrength: 0.8
+    }
+});
+```
+
+**Object Isolation Pipeline**:
+```javascript
+const converter = new img2css({
+    source: 'portrait.jpg',
+    mapExtractor: {
+        types: ['object', 'subjectnormal', 'albedo'],
+        objectThreshold: 0.25,
+        objectStrength: 1.1,
+        selectors: {
+            object: '.subject-mask',
+            subjectnormal: '.subject-normals',
+            albedo: '.subject-color'
+        }
+    }
+});
+```
+
+### 🎨 Soft Posterize Plugin
+Create artistic posterized gradients with customizable color quantization:
+
+```javascript
+const converter = new img2css({
+    source: 'image.jpg',
+    softPosterize: {
+        enabled: true,
+        steps: 16,      // Number of color steps (2-256)
+        blurBoost: 1.0  // Blur enhancement factor
+    }
+});
+```
+
+#### Soft Posterize Configuration Reference
+
+The Soft Posterize plugin provides artistic color reduction with enhanced blur:
+
+```javascript
+const converter = new img2css({
+    source: 'image.jpg',
+    softPosterize: {
+        // Core Settings
+        enabled: true,                    // Enable/disable plugin
+        steps: 16,                        // Number of posterization steps (2-256)
+        blurBoost: 1.0,                   // Blur enhancement multiplier (0.1-5.0)
+        
+        // Plugin Hooks
+        pluginHooks: {
+            beforePass: (data) => {
+                console.log(`Processing ${data.axis} pass with blur: ${data.blurRadius}`);
+            },
+            beforeTransformStops: (data) => {
+                console.log(`Transforming ${data.stops.length} color stops`);
+            },
+            afterTransform: (data) => {
+                console.log(`Posterized to ${data.uniqueColors} unique colors`);
+            }
+        }
+    }
+});
+```
+
+#### Posterization Effects
+
+The Soft Posterize plugin quantizes colors to create artistic effects:
+
+**Low Steps (2-8)**: High contrast, graphic poster effects
+```javascript
+softPosterize: {
+    steps: 4,      // Very few colors
+    blurBoost: 1.5 // Extra blur for smoothness
+}
+```
+
+**Medium Steps (8-32)**: Balanced artistic effect
+```javascript
+softPosterize: {
+    steps: 16,     // Default - good balance
+    blurBoost: 1.0 // Standard blur
+}
+```
+
+**High Steps (32-128)**: Subtle color reduction
+```javascript
+softPosterize: {
+    steps: 64,     // Many colors, subtle effect
+    blurBoost: 0.8 // Reduced blur
+}
+```
+
+#### Color Quantization Process
+
+The plugin applies quantization to RGB channels:
+
+1. **Color Analysis**: Examines all colors in gradient stops
+2. **Quantization**: Reduces color depth to specified steps
+3. **Blur Enhancement**: Applies additional blur for smoothness
+4. **Stop Optimization**: Removes duplicate quantized colors
+
+**Mathematical Process**:
+```javascript
+// Quantization formula used internally
+const stepSize = 255 / (steps - 1);
+const quantizedValue = Math.round(originalValue / stepSize) * stepSize;
+```
+
+#### Artistic Applications
+
+**Pop Art Style**:
+```javascript
+const converter = new img2css({
+    source: 'portrait.jpg',
+    softPosterize: {
+        steps: 6,
+        blurBoost: 2.0
+    },
+    processing: {
+        compression: 5  // Lower compression preserves effect
+    }
+});
+```
+
+**Vintage Poster Effect**:
+```javascript
+const converter = new img2css({
+    source: 'landscape.jpg',
+    softPosterize: {
+        steps: 12,
+        blurBoost: 1.3
+    }
+});
+```
+
+**Subtle Color Reduction**:
+```javascript
+const converter = new img2css({
+    source: 'photo.jpg',
+    softPosterize: {
+        steps: 48,
+        blurBoost: 0.9
+    }
+});
+```
+
+#### Performance Considerations
+
+- **Lower steps** = faster processing, more dramatic effects
+- **Higher steps** = slower processing, subtler effects
+- **Blur boost** affects rendering performance but improves visual quality
+
+#### Combining with Other Plugins
+
+**Posterize + Lighting**:
+```javascript
+const converter = new img2css({
+    source: 'image.jpg',
+    softPosterize: {
+        steps: 20,
+        blurBoost: 1.2
+    },
+    lighting: {
+        enabled: true,
+        preset: 'clearcoat',
+        highlightAlpha: 0.8
+    }
+});
+```
+
+**Posterize + Map Extraction**:
+```javascript
+const converter = new img2css({
+    source: 'texture.jpg',
+    softPosterize: {
+        steps: 32
+    },
+    mapExtractor: {
+        types: ['albedo', 'normal'],
+        normalStrength: 1.1
+    }
+});
+```
+
+## 📋 Plugin Reference
+
+### Available Plugins Summary
+
+| Plugin | Purpose | Key Features | Best For |
+|--------|---------|--------------|----------|
+| **Lighting** | Surface lighting effects | Multiple presets, 3-band lighting, blend modes | Realistic materials, product renders |
+| **Map Extractor** | Material map generation | 7 map types, PBR workflow support | 3D graphics, material authoring |
+| **Soft Posterize** | Artistic color reduction | Customizable steps, blur enhancement | Artistic effects, vintage styles |
+
+### Plugin Compatibility Matrix
+
+| Plugin A | Plugin B | Compatibility | Notes |
+|----------|----------|---------------|-------|
+| Lighting | Map Extractor | ✅ Excellent | Lighting can use extracted normal maps |
+| Lighting | Soft Posterize | ✅ Good | Apply posterize before lighting for best results |
+| Map Extractor | Soft Posterize | ⚠️ Partial | Posterization may affect map quality |
+
+### Plugin Loading Order
+
+When using multiple plugins, they execute in this order:
+
+1. **Map Extractor** - Generates maps during processing
+2. **Soft Posterize** - Modifies color stops during gradient generation
+3. **Lighting** - Applies lighting effects to final CSS
+
+### Memory Usage by Plugin
+
+| Plugin | Memory Impact | Caching | Notes |
+|--------|---------------|---------|-------|
+| **Lighting** | Low | CSS cache | Efficient caching prevents re-computation |
+| **Map Extractor** | High | Map cache | Caches generated maps, can be memory intensive |
+| **Soft Posterize** | Low | None | Processes in-place, minimal memory overhead |
 
 ### ⚙️ Plugin Configuration Methods
 
