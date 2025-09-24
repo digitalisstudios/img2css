@@ -1290,11 +1290,9 @@ input:checked + .slider:before {
                 window.PluginUI.autoInit(
                     pluginMount,
                     function(id, values) {
-                        console.log('[Plugin]', id, 'changed:', values);
-                        
                         // Handle lighting changes - only update CSS variables, don't regenerate
                         if (id === 'lighting') {
-                            self.applyLightingVars(values);
+                            self.applyLightingVars(values, true); // true = isUserChange
                             return; // Don't schedule full regeneration for lighting changes
                         }
                         
@@ -1389,7 +1387,7 @@ input:checked + .slider:before {
                                                             bandWidth3: 8
                                                         };
                                                         Object.assign(st.lighting, clearcoatValues);
-                                                        self.applyLightingVars(st.lighting);
+                                                        self.applyLightingVars(st.lighting, false); // false = not user change, automatic preset application
                                                     }
                                                 }
                                             } catch(_) {}
@@ -2138,8 +2136,19 @@ input:checked + .slider:before {
                         // If user is changing values and we're not on custom preset, switch to custom
                         if (isUserChange && values.preset && values.preset !== 'custom') {
                             // Check if any non-preset values have changed from their preset defaults
-                            const clearcoatDefaults = { angle: 171, alpha: 1.0, blend: 'screen', gap: 110, width: 50, soft: 4, phase: 2, gap2: 80, width2: 10, phase3: 14, gap3: 120, width3: 8 };
-                            const currentPreset = clearcoatDefaults; // For now, only handle clearcoat preset
+                            const presetDefaults = {
+                                'chrome':         { angle: 170, alpha: 1.0,  blend: 'color-dodge', gap: 110, width: 16, soft: 4, phase: 6, gap2: 80, width2: 10, phase3: 14, gap3: 120, width3: 8 },
+                                'water':          { angle: 175, alpha: 0.6,  blend: 'screen',      gap: 160, width: 28, soft: 10, phase: 10, gap2: 120, width2: 16, phase3: 20, gap3: 180, width3: 12 },
+                                'wet-paint':      { angle: 35,  alpha: 0.85, blend: 'overlay',     gap: 130, width: 20, soft: 6, phase: 8, gap2: 100, width2: 14, phase3: 18, gap3: 160, width3: 10 },
+                                'marble':         { angle: 20,  alpha: 0.7,  blend: 'soft-light',  gap: 180, width: 26, soft: 12, phase: 12, gap2: 150, width2: 18, phase3: 22, gap3: 220, width3: 14 },
+                                'brushed-metal':  { angle: 15,  alpha: 0.8,  blend: 'color-dodge', gap: 70,  width: 10, soft: 3, phase: 4, gap2: 60,  width2: 8,  phase3: 9,  gap3: 90,  width3: 6 },
+                                'glossy-plastic': { angle: 40,  alpha: 0.75, blend: 'screen',      gap: 120, width: 22, soft: 8, phase: 8, gap2: 95,  width2: 12, phase3: 16, gap3: 150, width3: 10 },
+                                'satin':          { angle: 30,  alpha: 0.5,  blend: 'soft-light',  gap: 140, width: 18, soft: 14, phase: 10, gap2: 120, width2: 14, phase3: 20, gap3: 180, width3: 12 },
+                                'ceramic':        { angle: 30,  alpha: 0.8,  blend: 'screen',      gap: 150, width: 20, soft: 8, phase: 10, gap2: 120, width2: 14, phase3: 18, gap3: 180, width3: 12 },
+                                'clearcoat':      { angle: 171, alpha: 1.0,  blend: 'screen',      gap: 110, width: 50, soft: 4, phase: 2, gap2: 80,  width2: 10, phase3: 14, gap3: 120, width3: 8 },
+                                'frosted-glass':  { angle: 170, alpha: 0.4,  blend: 'screen',      gap: 200, width: 30, soft: 16, phase: 12, gap2: 160, width2: 20, phase3: 24, gap3: 220, width3: 14 }
+                            };
+                            const currentPreset = presetDefaults[values.preset] || presetDefaults['clearcoat'];
                             
                             const hasNonPresetChanges = 
                                 (values.lightAngle != null && values.lightAngle != currentPreset.angle) ||
