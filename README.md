@@ -3121,6 +3121,8 @@ console.log(converter.stats.plugins);
 
 ## 🛠️ Troubleshooting
 
+When working with img2css in production environments, you may encounter various challenges ranging from browser security restrictions to performance bottlenecks. This comprehensive troubleshooting guide addresses the most common issues developers face, providing practical solutions and preventive measures. Whether you're dealing with CORS errors, memory limitations, or plugin conflicts, these solutions will help you quickly resolve problems and optimize your implementation.
+
 ### Common Error Messages and Solutions
 
 #### "Canvas tainted by cross-origin data"
@@ -3213,6 +3215,8 @@ const converter = new img2css({
 
 ### Performance Issues and Fixes
 
+Performance problems can significantly impact user experience, especially when processing images in real-time or handling large batches. These optimization strategies address common performance bottlenecks and provide actionable solutions for improving processing speed and reducing resource consumption.
+
 #### Slow Processing Times
 **Symptoms**: Processing takes more than 10-15 seconds
 **Causes**: Large images, complex details, inefficient settings
@@ -3275,6 +3279,8 @@ async function processLargeImage(imageSrc) {
 ```
 
 ### Browser-Specific Problems
+
+Different browsers implement canvas APIs and security policies differently, leading to compatibility challenges that require browser-specific solutions. Understanding these differences helps ensure consistent behavior across all target platforms.
 
 #### Safari Canvas Issues
 **Problem**: Safari has stricter canvas memory limits
@@ -3343,6 +3349,8 @@ const mobileConfig = {
 ```
 
 ### Plugin Conflicts and Resolutions
+
+When using multiple plugins together, conflicts can arise from overlapping functionality or incompatible settings. These resolution strategies help you identify and resolve plugin conflicts while maintaining desired functionality.
 
 #### Multiple Blur Plugins
 **Problem**: Blur Boost and Soft Posterize both add blur
@@ -3429,6 +3437,8 @@ const converter = new img2css({
 ---
 
 ## ❓ FAQ
+
+This FAQ section addresses the most frequently asked questions from the img2css community. Based on real user experiences and common implementation challenges, these questions and answers provide quick solutions to typical concerns. From optimization strategies to framework integration, these insights will help you make informed decisions about your img2css implementation and avoid common pitfalls.
 
 ### "Why is my CSS so large?"
 
@@ -3632,6 +3642,8 @@ const performanceConfig = {
 
 ## ⚡ Performance Guide
 
+Performance is crucial when implementing img2css in production applications. This guide provides advanced optimization techniques, benchmarking strategies, and memory management practices to ensure your gradient processing runs efficiently at scale. Whether you're processing single images or handling batch operations, these performance insights will help you achieve optimal results while maintaining system responsiveness.
+
 ### Image Size Optimization Strategies
 
 #### Automatic Upscaling Thresholds
@@ -3694,6 +3706,8 @@ img.onload = async () => {
 ```
 
 ### Processing Mode Selection Guide
+
+Choosing the right processing mode significantly impacts both quality and performance. This guide helps you understand the trade-offs between different modes and provides tools for making data-driven decisions based on your specific requirements.
 
 #### Performance Benchmarking
 Test different modes to find optimal performance:
@@ -3768,6 +3782,8 @@ function analyzeImage(imageElement) {
 ```
 
 ### Memory Management Best Practices
+
+Efficient memory management prevents browser crashes and ensures smooth operation, especially when processing large images or handling multiple concurrent operations. These practices help you build memory-efficient applications that scale reliably.
 
 #### Batch Processing for Multiple Images
 ```javascript
@@ -4005,6 +4021,8 @@ async function processWithCache(imageSrc, config) {
 ---
 
 ## 🏗️ Framework Integration Examples
+
+Modern web applications rely on frameworks and build tools to manage complexity and enhance developer experience. This section provides comprehensive integration examples for popular frameworks, showing how to seamlessly incorporate img2css into your existing development workflow. Each integration includes production-ready code, best practices, and framework-specific optimizations to ensure smooth operation in real-world applications.
 
 ### React/Next.js Integration
 
@@ -4679,6 +4697,8 @@ export function createHydrationSafeGradient(imagePath, config) {
 
 ## 🎯 Error Handling Guide
 
+Robust error handling is essential for production applications that process user-generated content and operate in unpredictable network conditions. This guide demonstrates professional error handling patterns, graceful degradation strategies, and user-friendly feedback systems. From basic try-catch implementations to sophisticated retry mechanisms with exponential backoff, these patterns will help you build resilient applications that handle edge cases gracefully.
+
 ### Try-Catch Patterns
 
 #### Basic Error Handling
@@ -4833,6 +4853,8 @@ if (result.success) {
 ```
 
 ### Graceful Degradation
+
+When img2css processing fails or isn't supported, your application should continue to function with acceptable alternatives. These progressive enhancement patterns ensure users always see something meaningful, even when optimal processing isn't possible.
 
 #### Progressive Enhancement Pattern
 ```javascript
@@ -5489,6 +5511,8 @@ if (result.success) {
 
 ## 🖼️ Visual Gallery
 
+Seeing img2css in action helps developers understand the transformation capabilities and quality trade-offs involved in converting images to CSS gradients. This visual gallery showcases real-world examples with actual performance metrics, demonstrating the dramatic file size reductions and visual fidelity achievable across different image types. Each example includes processing statistics, configuration details, and implementation suggestions to guide your optimization decisions.
+
 ### Before/After Examples
 
 #### Photographic Image Processing
@@ -5575,6 +5599,8 @@ const converter = new img2css({
 **Result**: Clean horizontal bands representing different floor levels, window patterns, and material transitions.
 
 ### Plugin Effect Demonstrations
+
+Understanding how different plugins affect the final output helps you make informed decisions about which combinations to use. These side-by-side comparisons show the visual and performance impact of various plugin configurations.
 
 #### Soft Posterize Plugin Comparison
 ```javascript
@@ -5673,6 +5699,8 @@ const hybridResult = new img2css({
 ```
 
 ### Real-World Use Case Showcases
+
+These practical examples demonstrate how img2css solves real business problems across different industries and use cases. Each showcase includes performance metrics, implementation details, and lessons learned from production deployments.
 
 #### E-commerce Hero Sections
 **Challenge**: High-quality product images for hero banners that load fast
@@ -5798,6 +5826,8 @@ const emailBg = await converter.toCSS();
 ---
 
 ## 📚 Cookbook & Recipes
+
+Real-world applications require more than basic usage examples—they need proven patterns and reusable solutions. This cookbook provides battle-tested recipes for common implementation scenarios, from dynamic hero background generation to enterprise-scale batch processing. Each recipe includes complete, production-ready code with error handling, performance optimization, and extensibility built-in. Use these patterns as starting points for your own implementations or adapt them to meet specific requirements.
 
 ### Common Implementation Patterns
 
@@ -6747,7 +6777,11 @@ async function processVariedImages() {
 
 ## 🔧 Build Tool Integration
 
+Integrating img2css into your build process enables automated gradient generation, reducing bundle sizes and improving load times. This section provides complete plugins and configurations for popular build tools, allowing you to process images at build time rather than runtime. Each integration supports development workflows with file watching, production optimizations, and asset generation, making img2css a seamless part of your development process.
+
 ### Webpack Integration
+
+Webpack's powerful plugin system enables sophisticated build-time image processing, allowing you to generate gradients during compilation rather than at runtime. This integration provides file watching, asset management, and development server support.
 
 #### Webpack Plugin for Build-Time Processing
 ```javascript
@@ -6979,6 +7013,8 @@ module.exports = {
 ```
 
 ### Vite Integration
+
+Vite's modern development experience and fast hot module replacement make it ideal for img2css development workflows. This plugin provides instant feedback during development and optimized builds for production.
 
 #### Vite Plugin for img2css Processing
 ```javascript
@@ -7479,6 +7515,8 @@ export class Img2cssBuildOptimizer {
 
 ## 🧪 Testing Guide
 
+Quality assurance is critical when deploying img2css in production environments where performance, reliability, and consistency are paramount. This comprehensive testing guide covers unit testing strategies, visual regression testing, performance benchmarking, and plugin validation. Whether you're testing individual components or entire processing pipelines, these testing frameworks and patterns ensure your img2css implementations work correctly across different environments and edge cases.
+
 ### Unit Testing img2css Implementations
 
 #### Jest Testing Setup
@@ -7794,6 +7832,8 @@ describe('Visual Regression Testing', () => {
 
 ### Performance Testing
 
+Performance testing ensures your img2css implementations meet speed and memory requirements across different scenarios. These benchmark suites help identify bottlenecks and validate optimizations under realistic conditions.
+
 #### Performance Benchmark Suite
 ```javascript
 // __tests__/performance.test.js
@@ -7999,6 +8039,8 @@ describe('Comprehensive Performance Benchmark', () => {
 
 ### Plugin Testing Strategies
 
+Plugin testing requires specialized approaches to validate functionality, compatibility, and performance characteristics. This framework provides systematic testing patterns for individual plugins and complex plugin combinations.
+
 #### Plugin Test Framework
 ```javascript
 // __tests__/plugin-testing.js
@@ -8201,6 +8243,8 @@ describe('Plugin Testing Framework', () => {
 ```
 
 ### Mocking and Fixtures
+
+Reliable testing requires consistent test data and mock implementations that simulate real-world conditions. This fixture management system generates reproducible test images and provides mock implementations for various testing scenarios.
 
 #### Test Fixture Management
 ```javascript
