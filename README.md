@@ -24,6 +24,13 @@ A powerful JavaScript library for converting images into pure CSS gradients with
   - [🎯 Available Hooks](#-available-hooks)
   - [🚀 Advanced Hook Examples](#-advanced-hook-examples)
   - [⚡ Hooks Best Practices](#-hooks-best-practices)
+- [🔌 Plugin Development](#-plugin-development)
+  - [🏗️ Plugin Architecture](#️-plugin-architecture)
+  - [🚀 Getting Started](#-getting-started-1)
+  - [🔧 Plugin Structure](#-plugin-structure)
+  - [🎯 Plugin Examples](#-plugin-examples)
+  - [📦 Publishing Plugins](#-publishing-plugins)
+  - [⚡ Plugin Best Practices](#-plugin-best-practices)
 - [📊 Enhanced Stats System](#-enhanced-stats-system)
 - [⚡ Headless Operation](#-headless-operation)
 - [🔧 Processing Configuration](#-processing-configuration)
@@ -1156,6 +1163,833 @@ function createColorEnhancer(options = {}) {
 // Easy to unit test
 const enhancer = createColorEnhancer({ saturationBoost: 1.2 });
 const result = enhancer.transformRawStops({ stops: testStops });
+```
+
+---
+
+## 🔌 Plugin Development
+
+img2css v2's plugin system allows developers to extend functionality through hooks, custom processing, and stats collection. This section provides everything you need to create powerful, reusable plugins.
+
+### 🏗️ Plugin Architecture
+
+#### Plugin Types
+
+img2css supports three types of plugins:
+
+1. **Hook-Based Plugins** - Extend processing through hooks
+2. **Functional Plugins** - Standalone processing functions  
+3. **Hybrid Plugins** - Combine hooks with custom functionality
+
+#### Plugin Registration
+
+Plugins can be registered in multiple ways:
+
+```javascript
+// 1. Global registration (browser/Node.js)
+globalThis.MyPlugin = function(options) { /* plugin code */ };
+
+// 2. Direct plugin instances
+const converter = new img2css({
+    plugins: [MyPlugin(options)]
+});
+
+// 3. Shorthand configuration (auto-loaded)
+const converter = new img2css({
+    myPlugin: { enabled: true, option: 'value' }
+});
+```
+
+#### Plugin Loading Priority
+
+1. **Global plugins** (loaded via script tags or imports)
+2. **Direct plugin instances** (passed to `plugins` array)
+3. **Shorthand configurations** (auto-instantiated)
+
+### 🚀 Getting Started
+
+#### Basic Plugin Template
+
+```javascript
+function MyPlugin(options = {}) {
+    // Plugin configuration
+    const config = {
+        enabled: options.enabled !== false,
+        setting: options.setting || 'default',
+        ...options
+    };
+    
+    // Plugin-local hooks for extensibility
+    const localHooks = options.pluginHooks || {};
+    
+    function emitLocalHook(eventName, data) {
+        const fn = localHooks[eventName];
+        if (typeof fn === 'function') {
+            try { 
+                return fn(data); 
+            } catch (e) { 
+                console.warn(`Plugin hook error (${eventName}):`, e); 
+            }
+        }
+    }
+    
+    // Return plugin object
+    return {
+        // Plugin metadata
+        name: 'MyPlugin',
+        version: '1.0.0',
+        
+        // Hook implementations
+        hooks: {
+            beforeProcess: (ctx) => {
+                if (!config.enabled) return ctx;
+                
+                // Plugin processing
+                console.log('MyPlugin: Processing started');
+                
+                // Emit local hook
+                emitLocalHook('beforeProcess', ctx);
+                
+                return ctx;
+            },
+            
+            afterBuildCSS: (ctx) => {
+                if (!config.enabled) return ctx;
+                
+                // Modify CSS
+                ctx.css = processCSS(ctx.css, config);
+                
+                // Emit local hook
+                emitLocalHook('afterProcess', { 
+                    css: ctx.css, 
+                    config 
+                });
+                
+                return ctx;
+            }
+        },
+        
+        // Optional: Direct API methods
+        processCSS: (css) => processCSS(css, config),
+        getConfig: () => config
+    };
+    
+    // Helper functions
+    function processCSS(css, config) {
+        // Plugin-specific CSS processing
+        return css;
+    }
+}
+
+// Global registration
+if (typeof globalThis !== 'undefined') {
+    globalThis.MyPlugin = MyPlugin;
+}
+
+// Node.js export
+if (typeof module !== 'undefined') {
+    module.exports = { MyPlugin };
+}
+```
+
+#### Plugin Registration Pattern
+
+```javascript
+// plugin-name.global.js
+(function(global) {
+    'use strict';
+    
+    function PluginName(options = {}) {
+        // Plugin implementation
+        return {
+            hooks: {
+                // Hook implementations
+            }
+        };
+    }
+    
+    // Global registration
+    if (typeof global.PluginName === 'undefined') {
+        global.PluginName = PluginName;
+    }
+    
+    // Node.js support
+    if (typeof module !== 'undefined' && module.exports) {
+        module.exports = { PluginName };
+    }
+    
+})(typeof globalThis !== 'undefined' ? globalThis : this);
+```
+
+### 🔧 Plugin Structure
+
+#### Complete Plugin Example
+
+```javascript
+function ColorEnhancer(options = {}) {
+    // Configuration with defaults
+    const config = {
+        enabled: options.enabled !== false,
+        saturationBoost: options.saturationBoost || 1.1,
+        brightnessBoost: options.brightnessBoost || 1.05,
+        contrastBoost: options.contrastBoost || 1.02,
+        applyToStops: options.applyToStops !== false,
+        applyToCSS: options.applyToCSS !== false
+    };
+    
+    // Plugin-local hooks
+    const localHooks = options.pluginHooks || {};
+    function emitLocalHook(name, data) {
+        const fn = localHooks[name];
+        if (typeof fn === 'function') {
+            try { return fn(data); } catch (e) { console.warn('Hook error:', e); }
+        }
+    }
+    
+    // Internal state
+    let processedStops = 0;
+    let enhancedColors = 0;
+    
+    return {
+        // Plugin metadata
+        name: 'ColorEnhancer',
+        version: '1.0.0',
+        description: 'Enhances colors through saturation, brightness, and contrast adjustments',
+        
+        // Hook implementations
+        hooks: {
+            transformRawStops: (ctx) => {
+                if (!config.enabled || !config.applyToStops) return ctx;
+                
+                const enhanced = ctx.stops.map(stop => {
+                    const original = { r: stop.r, g: stop.g, b: stop.b };
+                    const enhanced = enhanceColor(stop, config);
+                    
+                    processedStops++;
+                    if (colorChanged(original, enhanced)) {
+                        enhancedColors++;
+                    }
+                    
+                    return enhanced;
+                });
+                
+                // Emit local hook
+                emitLocalHook('stopsEnhanced', {
+                    original: ctx.stops,
+                    enhanced: enhanced,
+                    stats: { processedStops, enhancedColors }
+                });
+                
+                return { stops: enhanced };
+            },
+            
+            afterBuildCSS: (ctx) => {
+                if (!config.enabled || !config.applyToCSS) return ctx;
+                
+                // Apply CSS-level enhancements
+                let css = ctx.css;
+                
+                // Add CSS filters for additional enhancement
+                const filterRule = buildFilterRule(config);
+                if (filterRule) {
+                    css = css.replace(
+                        /(\{[^}]*)(background[^;]*;)/g,
+                        `$1$2\n  filter: ${filterRule};`
+                    );
+                }
+                
+                // Emit completion hook
+                emitLocalHook('cssEnhanced', {
+                    originalCSS: ctx.css,
+                    enhancedCSS: css,
+                    filterRule: filterRule
+                });
+                
+                return { ...ctx, css };
+            }
+        },
+        
+        // Public API
+        enhanceColor: (color) => enhanceColor(color, config),
+        getStats: () => ({ processedStops, enhancedColors }),
+        getConfig: () => ({ ...config }),
+        reset: () => { processedStops = 0; enhancedColors = 0; }
+    };
+    
+    // Helper functions
+    function enhanceColor(color, config) {
+        let { r, g, b, a = 255 } = color;
+        
+        // Convert to HSL for better color manipulation
+        const [h, s, l] = rgbToHsl(r, g, b);
+        
+        // Apply enhancements
+        const newS = Math.min(1, s * config.saturationBoost);
+        const newL = Math.min(1, l * config.brightnessBoost);
+        
+        // Convert back to RGB
+        const [newR, newG, newB] = hslToRgb(h, newS, newL);
+        
+        // Apply contrast boost
+        const contrast = config.contrastBoost;
+        const factor = (259 * (contrast * 255 + 255)) / (255 * (259 - contrast * 255));
+        
+        return {
+            r: Math.round(Math.min(255, Math.max(0, factor * (newR - 128) + 128))),
+            g: Math.round(Math.min(255, Math.max(0, factor * (newG - 128) + 128))),
+            b: Math.round(Math.min(255, Math.max(0, factor * (newB - 128) + 128))),
+            a: a,
+            position: color.position
+        };
+    }
+    
+    function buildFilterRule(config) {
+        const filters = [];
+        
+        if (config.saturationBoost !== 1) {
+            filters.push(`saturate(${config.saturationBoost})`);
+        }
+        if (config.brightnessBoost !== 1) {
+            filters.push(`brightness(${config.brightnessBoost})`);
+        }
+        if (config.contrastBoost !== 1) {
+            filters.push(`contrast(${config.contrastBoost})`);
+        }
+        
+        return filters.length > 0 ? filters.join(' ') : null;
+    }
+    
+    function colorChanged(original, enhanced) {
+        return original.r !== enhanced.r || 
+               original.g !== enhanced.g || 
+               original.b !== enhanced.b;
+    }
+    
+    // Color space conversion utilities
+    function rgbToHsl(r, g, b) {
+        r /= 255; g /= 255; b /= 255;
+        const max = Math.max(r, g, b);
+        const min = Math.min(r, g, b);
+        let h, s, l = (max + min) / 2;
+        
+        if (max === min) {
+            h = s = 0;
+        } else {
+            const d = max - min;
+            s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+            switch (max) {
+                case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+                case g: h = (b - r) / d + 2; break;
+                case b: h = (r - g) / d + 4; break;
+            }
+            h /= 6;
+        }
+        
+        return [h, s, l];
+    }
+    
+    function hslToRgb(h, s, l) {
+        let r, g, b;
+        
+        if (s === 0) {
+            r = g = b = l;
+        } else {
+            const hue2rgb = (p, q, t) => {
+                if (t < 0) t += 1;
+                if (t > 1) t -= 1;
+                if (t < 1/6) return p + (q - p) * 6 * t;
+                if (t < 1/2) return q;
+                if (t < 2/3) return p + (q - p) * (2/3 - t) * 6;
+                return p;
+            };
+            
+            const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+            const p = 2 * l - q;
+            r = hue2rgb(p, q, h + 1/3);
+            g = hue2rgb(p, q, h);
+            b = hue2rgb(p, q, h - 1/3);
+        }
+        
+        return [Math.round(r * 255), Math.round(g * 255), Math.round(b * 255)];
+    }
+}
+
+// Registration
+if (typeof globalThis !== 'undefined') {
+    globalThis.ColorEnhancer = ColorEnhancer;
+}
+```
+
+### 🎯 Plugin Examples
+
+#### Stats Collection Plugin
+
+```javascript
+function StatsCollector(options = {}) {
+    const stats = {
+        startTime: null,
+        endTime: null,
+        phases: {},
+        hooks: {},
+        errors: []
+    };
+    
+    return {
+        name: 'StatsCollector',
+        version: '1.0.0',
+        
+        hooks: {
+            beforeProcess: (ctx) => {
+                stats.startTime = performance.now();
+                stats.phases.processing = { start: stats.startTime };
+                return ctx;
+            },
+            
+            afterProcess: (ctx) => {
+                stats.endTime = performance.now();
+                stats.phases.processing.end = stats.endTime;
+                stats.phases.processing.duration = stats.endTime - stats.startTime;
+                return ctx;
+            },
+            
+            onError: (ctx) => {
+                stats.errors.push({
+                    stage: ctx.stage,
+                    error: ctx.error.message,
+                    timestamp: performance.now()
+                });
+                return ctx;
+            }
+        },
+        
+        getStats: () => ({ ...stats }),
+        getReport: () => generateReport(stats)
+    };
+    
+    function generateReport(stats) {
+        return {
+            totalTime: stats.endTime - stats.startTime,
+            phases: Object.keys(stats.phases).map(name => ({
+                name,
+                duration: stats.phases[name].duration || 0
+            })),
+            errorCount: stats.errors.length,
+            errors: stats.errors
+        };
+    }
+}
+```
+
+#### CSS Framework Adapter Plugin
+
+```javascript
+function TailwindAdapter(options = {}) {
+    const config = {
+        prefix: options.prefix || 'img2css-',
+        generateUtilities: options.generateUtilities !== false,
+        addToSafelist: options.addToSafelist !== false,
+        outputPath: options.outputPath
+    };
+    
+    const generatedClasses = new Set();
+    
+    return {
+        name: 'TailwindAdapter',
+        version: '1.0.0',
+        
+        hooks: {
+            afterBuildCSS: (ctx) => {
+                const originalSelector = ctx.selector;
+                const utilityClass = `${config.prefix}${generateClassHash(ctx.css)}`;
+                
+                // Replace selector with utility class
+                const utilityCSS = ctx.css.replace(
+                    new RegExp(escapeRegex(originalSelector), 'g'),
+                    `.${utilityClass}`
+                );
+                
+                // Wrap in Tailwind layer
+                const wrappedCSS = `@layer utilities {\n${utilityCSS}\n}`;
+                
+                generatedClasses.add(utilityClass);
+                
+                // Generate safelist entry
+                if (config.addToSafelist) {
+                    addToSafelist(utilityClass);
+                }
+                
+                return { ...ctx, css: wrappedCSS, utilityClass };
+            }
+        },
+        
+        getGeneratedClasses: () => Array.from(generatedClasses),
+        exportConfig: () => ({
+            safelist: Array.from(generatedClasses)
+        })
+    };
+    
+    function generateClassHash(css) {
+        // Simple hash function for class names
+        let hash = 0;
+        for (let i = 0; i < css.length; i++) {
+            const char = css.charCodeAt(i);
+            hash = ((hash << 5) - hash) + char;
+            hash = hash & hash; // Convert to 32-bit integer
+        }
+        return Math.abs(hash).toString(36);
+    }
+    
+    function escapeRegex(string) {
+        return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    }
+    
+    function addToSafelist(className) {
+        // Implementation would depend on how you want to integrate with Tailwind
+        console.log(`Add to Tailwind safelist: ${className}`);
+    }
+}
+```
+
+#### Performance Optimizer Plugin
+
+```javascript
+function PerformanceOptimizer(options = {}) {
+    const config = {
+        enabled: options.enabled !== false,
+        maxProcessingTime: options.maxProcessingTime || 5000, // 5 seconds
+        adaptiveCompression: options.adaptiveCompression !== false,
+        skipLargeImages: options.skipLargeImages !== false,
+        maxImageSize: options.maxImageSize || 2000000 // 2MP
+    };
+    
+    let processingStartTime = null;
+    
+    return {
+        name: 'PerformanceOptimizer',
+        version: '1.0.0',
+        
+        hooks: {
+            beforeProcess: (ctx) => {
+                if (!config.enabled) return ctx;
+                
+                processingStartTime = performance.now();
+                
+                // Check image size
+                const pixels = ctx.imageData.width * ctx.imageData.height;
+                if (config.skipLargeImages && pixels > config.maxImageSize) {
+                    throw new Error(`Image too large: ${pixels} pixels (max: ${config.maxImageSize})`);
+                }
+                
+                // Adaptive compression based on image size
+                if (config.adaptiveCompression) {
+                    if (pixels > 500000) {
+                        ctx.config.processing.compression = Math.max(
+                            ctx.config.processing.compression, 
+                            25
+                        );
+                    }
+                }
+                
+                return ctx;
+            },
+            
+            shouldProcessLine: (ctx) => {
+                // Skip processing if taking too long
+                if (processingStartTime && 
+                    performance.now() - processingStartTime > config.maxProcessingTime) {
+                    return { process: ctx.index % 3 === 0 }; // Process every 3rd line
+                }
+                
+                return { process: true };
+            },
+            
+            beforeBuildCSS: (ctx) => {
+                const elapsed = performance.now() - processingStartTime;
+                console.log(`Processing took ${elapsed.toFixed(2)}ms`);
+                return ctx;
+            }
+        }
+    };
+}
+```
+
+### 📦 Publishing Plugins
+
+#### Plugin Package Structure
+
+```
+my-img2css-plugin/
+├── package.json
+├── README.md
+├── CHANGELOG.md
+├── src/
+│   ├── index.js          # Main plugin file
+│   ├── plugin.global.js  # Browser global version
+│   └── utils/
+│       └── helpers.js
+├── examples/
+│   ├── basic.html
+│   └── advanced.js
+├── tests/
+│   └── plugin.test.js
+└── docs/
+    └── api.md
+```
+
+#### Package.json Example
+
+```json
+{
+  "name": "img2css-color-enhancer",
+  "version": "1.0.0",
+  "description": "Color enhancement plugin for img2css",
+  "main": "src/index.js",
+  "browser": "src/plugin.global.js",
+  "keywords": ["img2css", "plugin", "color", "enhancement"],
+  "author": "Your Name",
+  "license": "MIT",
+  "peerDependencies": {
+    "img2css": "^2.0.0"
+  },
+  "files": [
+    "src/",
+    "examples/",
+    "README.md",
+    "CHANGELOG.md"
+  ]
+}
+```
+
+#### Plugin Documentation Template
+
+```markdown
+# img2css Color Enhancer Plugin
+
+Enhances colors in img2css gradients through saturation, brightness, and contrast adjustments.
+
+## Installation
+
+### Browser
+```html
+<script src="https://cdn.jsdelivr.net/npm/img2css-color-enhancer/src/plugin.global.js"></script>
+```
+
+### Node.js
+```bash
+npm install img2css-color-enhancer
+```
+
+## Usage
+
+### Basic Usage
+```javascript
+const converter = new img2css({
+    source: 'image.jpg',
+    colorEnhancer: {
+        enabled: true,
+        saturationBoost: 1.2,
+        brightnessBoost: 1.1
+    }
+});
+```
+
+### Advanced Usage
+```javascript
+const ColorEnhancer = require('img2css-color-enhancer');
+
+const converter = new img2css({
+    source: 'image.jpg',
+    plugins: [
+        ColorEnhancer({
+            saturationBoost: 1.3,
+            pluginHooks: {
+                stopsEnhanced: (data) => {
+                    console.log('Enhanced', data.enhanced.length, 'color stops');
+                }
+            }
+        })
+    ]
+});
+```
+
+## API
+
+### Configuration Options
+- `enabled` (boolean) - Enable/disable plugin
+- `saturationBoost` (number) - Saturation multiplier (default: 1.1)
+- `brightnessBoost` (number) - Brightness multiplier (default: 1.05)
+
+### Plugin Hooks
+- `stopsEnhanced` - Called when color stops are enhanced
+- `cssEnhanced` - Called when CSS filters are applied
+```
+
+### ⚡ Plugin Best Practices
+
+#### Performance Guidelines
+
+```javascript
+// ✅ Good: Lightweight operations in frequently called hooks
+hooks: {
+    transformRawStops: (ctx) => {
+        // Fast color transformations
+        return { stops: ctx.stops.map(fastTransform) };
+    }
+}
+
+// ❌ Avoid: Heavy operations in per-stop hooks
+hooks: {
+    transformRawStops: (ctx) => {
+        // Don't do expensive operations here
+        return { stops: ctx.stops.map(expensiveTransform) };
+    }
+}
+
+// ✅ Good: Batch operations and cache results
+const transformCache = new Map();
+hooks: {
+    transformRawStops: (ctx) => {
+        const cacheKey = generateCacheKey(ctx);
+        if (transformCache.has(cacheKey)) {
+            return { stops: transformCache.get(cacheKey) };
+        }
+        
+        const result = batchTransform(ctx.stops);
+        transformCache.set(cacheKey, result);
+        return { stops: result };
+    }
+}
+```
+
+#### Error Handling
+
+```javascript
+// ✅ Good: Graceful error handling
+hooks: {
+    afterBuildCSS: (ctx) => {
+        try {
+            const enhanced = enhanceCSS(ctx.css);
+            return { ...ctx, css: enhanced };
+        } catch (error) {
+            console.warn('CSS enhancement failed:', error);
+            return ctx; // Return original context
+        }
+    }
+}
+
+// ✅ Good: Validate configuration
+function MyPlugin(options = {}) {
+    // Validate options
+    if (options.threshold && (options.threshold < 0 || options.threshold > 255)) {
+        throw new Error('threshold must be between 0 and 255');
+    }
+    
+    const config = {
+        enabled: options.enabled !== false,
+        threshold: Math.max(0, Math.min(255, options.threshold || 127))
+    };
+    
+    return { /* plugin implementation */ };
+}
+```
+
+#### Memory Management
+
+```javascript
+// ✅ Good: Clean up resources
+function MyPlugin(options = {}) {
+    const cache = new Map();
+    
+    return {
+        hooks: {
+            afterProcess: (ctx) => {
+                // Clear cache after processing
+                cache.clear();
+                return ctx;
+            }
+        },
+        
+        // Provide cleanup method
+        destroy: () => {
+            cache.clear();
+        }
+    };
+}
+
+// ✅ Good: Use WeakMap for automatic cleanup
+const processedImages = new WeakMap();
+
+hooks: {
+    afterLoad: (ctx) => {
+        processedImages.set(ctx.imageData, { processed: true });
+        return ctx;
+    }
+}
+```
+
+#### Testing Plugins
+
+```javascript
+// ✅ Good: Unit testable plugin functions
+function createColorTransformer(config) {
+    return {
+        transformColor: (color) => {
+            // Pure function, easy to test
+            return enhanceColor(color, config);
+        }
+    };
+}
+
+// Test example
+describe('ColorTransformer', () => {
+    test('enhances saturation', () => {
+        const transformer = createColorTransformer({ saturation: 1.5 });
+        const result = transformer.transformColor({ r: 100, g: 150, b: 200 });
+        
+        expect(result.saturation).toBeGreaterThan(1.4);
+    });
+});
+
+// ✅ Good: Integration testing
+test('plugin integrates with img2css', async () => {
+    const converter = new img2css({
+        source: testImage,
+        plugins: [MyPlugin({ testMode: true })]
+    });
+    
+    const css = await converter.toCSS();
+    expect(css).toContain('enhanced');
+});
+```
+
+#### Documentation Standards
+
+```javascript
+/**
+ * Color Enhancement Plugin for img2css
+ * 
+ * Enhances gradient colors through various adjustment techniques.
+ * 
+ * @param {Object} options - Plugin configuration
+ * @param {boolean} [options.enabled=true] - Enable/disable plugin
+ * @param {number} [options.saturationBoost=1.1] - Saturation multiplier
+ * @param {number} [options.brightnessBoost=1.05] - Brightness multiplier
+ * @param {Object} [options.pluginHooks={}] - Plugin-specific hooks
+ * 
+ * @returns {Object} Plugin instance
+ * 
+ * @example
+ * const converter = new img2css({
+ *     source: 'image.jpg',
+ *     colorEnhancer: {
+ *         saturationBoost: 1.3,
+ *         brightnessBoost: 1.2
+ *     }
+ * });
+ */
+function ColorEnhancer(options = {}) {
+    // Implementation
+}
 ```
 
 ---
