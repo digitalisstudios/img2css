@@ -321,6 +321,44 @@ const converter = new img2css({
 
 The img2css hooks system provides powerful extensibility for customizing processing at every stage. Hooks are the foundation of the plugin architecture and allow for complete control over the image-to-CSS conversion process.
 
+### 📋 Quick Reference: All Available Hooks
+
+| Hook Name | Category | Context Parameters | Return Value | Description |
+|-----------|----------|-------------------|--------------|-------------|
+| `onInit` | Initialization | `{ config, instance }` | - | Called after converter initialization |
+| `beforeLoad` | Loading | `{ source }` | Modified context | Called before image loading |
+| `afterLoad` | Loading | `{ imageData, source }` | Modified context | Called after image loading |
+| `beforeProcess` | Processing | `{ config, imageData }` | Modified context | Called before main processing starts |
+| `afterProcess` | Processing | `{ css, stats }` | Modified context | Called after processing completes |
+| `beforeScale` | Processing | `{ imageData, details }` | Modified context | Called before image scaling |
+| `afterScale` | Processing | `{ imageData, details }` | Modified context | Called after image scaling |
+| `decideProcessingMode` | Processing | `{ imageData, config, defaultMode }` | `{ mode }` | Override processing mode selection |
+| `supplyPalette` | Processing | `{ imageData, config }` | `{ palette }` | Provide custom color palette |
+| `beforeRowPass` | Processing Pass | `{ width, height, samplingRate, adjustedSamplingRate, compression, blurRadius }` | Modified context | Configure row processing parameters |
+| `beforeColumnPass` | Processing Pass | `{ width, height, samplingRate, adjustedSamplingRate, compression, blurRadius }` | Modified context | Configure column processing parameters |
+| `shouldProcessLine` | Processing Pass | `{ axis, index, stride, width, height }` | `{ process: boolean }` | Control which lines to process |
+| `transformRawStops` | Gradient Transform | `{ stops, axis, index, imageData, config }` | `{ stops }` | Transform raw color stops |
+| `transformDedupedStops` | Gradient Transform | `{ stops, axis, index }` | `{ stops }` | Transform deduplicated stops |
+| `transformOptimizedStops` | Gradient Transform | `{ stops, axis, index }` | `{ stops }` | Transform optimized stops |
+| `addIntermediateStops` | Gradient Transform | `{ stops, axis, index }` | `{ stops }` | Add intermediate stops for transitions |
+| `nearestPaletteColor` | Gradient Transform | `{ color, palette }` | `{ color }` | Override palette color selection |
+| `buildLayer` | CSS Generation | `layer object` | Modified layer | Transform individual gradient layers |
+| `beforeBuildCSS` | CSS Generation | `{ layers, selector, dimensions, minified, layersData }` | Modified context | Called before CSS assembly |
+| `afterBuildCSS` | CSS Generation | `{ css, layers, selector, dimensions, minified, layersData, imageData }` | Modified context | Called after CSS generation |
+| `beforeHybridSecondary` | Hybrid Processing | `{ primaryMode, secondaryMode, imageData, config }` | `{ secondaryMode }` | Configure secondary processing mode |
+| `combineHybrid` | Hybrid Processing | `{ primaryCSS, secondaryData, primaryMode, imageData, config, correctedCSS }` | `{ css }` | Combine hybrid results |
+| `onError` | Error Handling | `{ stage, error, ...context }` | Modified context | Global error handler |
+
+**Legend:**
+- **Initialization**: Called during converter setup
+- **Loading**: Called during image loading process
+- **Processing**: Called during main image processing
+- **Processing Pass**: Called during row/column gradient generation
+- **Gradient Transform**: Called to modify gradient color stops
+- **CSS Generation**: Called during CSS assembly and output
+- **Hybrid Processing**: Called during hybrid mode processing
+- **Error Handling**: Called when errors occur
+
 ### 🔧 Hook Configuration
 
 Hooks can be configured in multiple ways:
