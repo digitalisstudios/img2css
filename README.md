@@ -19,6 +19,11 @@ A powerful JavaScript library for converting images into pure CSS gradients with
   - [🌟 Lighting Plugin](#-lighting-plugin)
   - [🗺️ Map Extractor Plugin](#️-map-extractor-plugin)
   - [⚙️ Plugin Configuration Methods](#️-plugin-configuration-methods)
+- [🪝 Hooks System](#-hooks-system)
+  - [🔧 Hook Configuration](#-hook-configuration)
+  - [🎯 Available Hooks](#-available-hooks)
+  - [🚀 Advanced Hook Examples](#-advanced-hook-examples)
+  - [⚡ Hooks Best Practices](#-hooks-best-practices)
 - [📊 Enhanced Stats System](#-enhanced-stats-system)
 - [⚡ Headless Operation](#-headless-operation)
 - [🔧 Processing Configuration](#-processing-configuration)
@@ -312,6 +317,680 @@ const converter = new img2css({
 
 ---
 
+## 🪝 Hooks System
+
+The img2css hooks system provides powerful extensibility for customizing processing at every stage. Hooks are the foundation of the plugin architecture and allow for complete control over the image-to-CSS conversion process.
+
+### 🔧 Hook Configuration
+
+Hooks can be configured in multiple ways:
+
+#### Direct Hook Configuration
+```javascript
+const converter = new img2css({
+    source: 'image.jpg',
+    
+    // Direct hook configuration
+    hooks: {
+        onInit: (ctx) => console.log('Converter initialized'),
+        beforeProcess: (ctx) => console.log('Starting processing'),
+        afterBuildCSS: (ctx) => {
+            // Modify final CSS
+            ctx.css = ctx.css.replace(/rgba/g, 'rgb');
+            return ctx;
+        }
+    }
+});
+```
+
+#### Plugin-Based Hooks
+```javascript
+// Plugins automatically register their hooks
+const converter = new img2css({
+    source: 'image.jpg',
+    lighting: { 
+        enabled: true,
+        preset: 'clearcoat'
+    } // Lighting plugin registers afterBuildCSS hook
+});
+```
+
+#### Mixed Configuration
+```javascript
+const customPlugin = {
+    hooks: {
+        afterBuildCSS: (ctx) => {
+            console.log('Plugin processing complete');
+            return ctx;
+        }
+    }
+};
+
+const converter = new img2css({
+    source: 'image.jpg',
+    
+    // Plugin shorthand
+    lighting: { enabled: true },
+    
+    // Manual plugins  
+    plugins: [customPlugin],
+    
+    // Direct hooks (executed after plugin hooks)
+    hooks: {
+        onError: (ctx) => console.error('Error:', ctx.error),
+        afterBuildCSS: (ctx) => {
+            // This runs after plugin hooks
+            ctx.css += '\n/* Post-processed */';
+            return ctx;
+        }
+    }
+});
+```
+
+### 🎯 Available Hooks
+
+#### Initialization Hooks
+```javascript
+hooks: {
+    // Called after converter initialization
+    onInit: (ctx) => {
+        // ctx: { config, instance }
+        console.log('Converter ready with config:', ctx.config);
+        
+        // Access converter instance
+        console.log('Canvas dimensions:', ctx.instance.canvas?.width, ctx.instance.canvas?.height);
+    }
+}
+```
+
+#### Loading Hooks
+```javascript
+hooks: {
+    // Called before image loading
+    beforeLoad: (ctx) => {
+        // ctx: { source }
+        console.log('Loading image from:', ctx.source);
+        
+        // Can modify source
+        if (ctx.source.includes('placeholder')) {
+            ctx.source = '/images/default.jpg';
+        }
+        return ctx;
+    },
+    
+    // Called after image loading
+    afterLoad: (ctx) => {
+        // ctx: { imageData, source }
+        console.log('Loaded image:', ctx.imageData.width, 'x', ctx.imageData.height);
+        
+        // Can modify imageData
+        if (ctx.imageData.width > 1000) {
+            console.log('Large image detected, consider scaling');
+        }
+        return ctx;
+    }
+}
+```
+
+#### Processing Hooks
+```javascript
+hooks: {
+    // Called before main processing starts
+    beforeProcess: (ctx) => {
+        // ctx: { config, imageData }
+        console.log('Starting processing with config:', ctx.config);
+        
+        // Can modify processing config
+        if (ctx.imageData.width * ctx.imageData.height > 500000) {
+            ctx.config.processing.compression = Math.max(ctx.config.processing.compression, 20);
+        }
+        return ctx;
+    },
+    
+    // Called after processing completes
+    afterProcess: (ctx) => {
+        // ctx: { css, stats }
+        console.log('Processing complete, CSS size:', ctx.css.length);
+        return ctx;
+    },
+    
+    // Image scaling hooks
+    beforeScale: (ctx) => {
+        // ctx: { imageData, details }
+        console.log('Scaling image for details level:', ctx.details);
+        return ctx;
+    },
+    
+    afterScale: (ctx) => {
+        // ctx: { imageData, details }
+        const pixels = ctx.imageData.width * ctx.imageData.height;
+        console.log('Scaled to', pixels, 'pixels');
+        return ctx;
+    },
+    
+    // Processing mode decision override
+    decideProcessingMode: (ctx) => {
+        // ctx: { imageData, config, defaultMode }
+        const { width, height } = ctx.imageData;
+        const aspectRatio = width / height;
+        
+        // Custom logic for processing mode
+        if (aspectRatio > 2.5) {
+            return { mode: 'rows' }; // Wide images work better as rows
+        } else if (aspectRatio < 0.4) {
+            return { mode: 'columns' }; // Tall images work better as columns
+        }
+        
+        return { mode: ctx.defaultMode }; // Use default
+    },
+    
+    // Custom palette generation
+    supplyPalette: (ctx) => {
+        // ctx: { imageData, config }
+        if (ctx.config.useCustomPalette) {
+            const palette = generateCustomPalette(ctx.imageData);
+            return { palette: palette };
+        }
+        return null; // Use default palette extraction
+    }
+}
+```
+
+#### Processing Pass Hooks
+```javascript
+hooks: {
+    // Row processing parameter override
+    beforeRowPass: (ctx) => {
+        // ctx: { width, height, samplingRate, adjustedSamplingRate, compression, blurRadius }
+        
+        // Adjust sampling for performance
+        if (ctx.height > 1000) {
+            ctx.adjustedSamplingRate = Math.max(ctx.adjustedSamplingRate, 3);
+        }
+        
+        return ctx;
+    },
+    
+    // Control which lines to process
+    shouldProcessLine: (ctx) => {
+        // ctx: { axis: 'row'|'column', index, stride, width, height }
+        
+        // Skip every other line for performance in large images
+        if (ctx.width * ctx.height > 1000000) {
+            return { process: ctx.index % 2 === 0 };
+        }
+        
+        return { process: true };
+    },
+    
+    // Column processing parameter override
+    beforeColumnPass: (ctx) => {
+        // ctx: { width, height, samplingRate, adjustedSamplingRate, compression, blurRadius }
+        
+        // Increase blur for wide images
+        if (ctx.width > ctx.height * 2) {
+            ctx.blurRadius = Math.min(ctx.blurRadius + 1, 5);
+        }
+        
+        return ctx;
+    }
+}
+```
+
+#### Gradient Transformation Hooks
+```javascript
+hooks: {
+    // Transform raw color stops before deduplication
+    transformRawStops: (ctx) => {
+        // ctx: { stops, axis: 'row'|'column', index, imageData, config }
+        
+        // Add artistic color shifting
+        const shiftedStops = ctx.stops.map(stop => ({
+            ...stop,
+            r: Math.min(255, stop.r + 10), // Warm up colors slightly
+            g: Math.min(255, stop.g + 5),
+            b: Math.max(0, stop.b - 5)
+        }));
+        
+        return { stops: shiftedStops };
+    },
+    
+    // Transform deduplicated stops
+    transformDedupedStops: (ctx) => {
+        // ctx: { stops, axis: 'row'|'column', index }
+        
+        // Ensure minimum contrast between adjacent stops
+        const contrastStops = ensureMinimumContrast(ctx.stops, 15);
+        return { stops: contrastStops };
+    },
+    
+    // Transform optimized stops
+    transformOptimizedStops: (ctx) => {
+        // ctx: { stops, axis: 'row'|'column', index }
+        
+        // Round color values for smaller CSS
+        const roundedStops = ctx.stops.map(stop => ({
+            ...stop,
+            r: Math.round(stop.r / 5) * 5, // Round to nearest 5
+            g: Math.round(stop.g / 5) * 5,
+            b: Math.round(stop.b / 5) * 5
+        }));
+        
+        return { stops: roundedStops };
+    },
+    
+    // Add intermediate stops for smooth transitions
+    addIntermediateStops: (ctx) => {
+        // ctx: { stops, axis: 'row'|'column', index }
+        
+        // Add extra stops for dramatic color changes
+        const enhancedStops = addSmoothingStops(ctx.stops, 40);
+        return { stops: enhancedStops };
+    },
+    
+    // Override palette color selection
+    nearestPaletteColor: (ctx) => {
+        // ctx: { color, palette }
+        
+        // Custom color matching logic
+        const customColor = findBestPaletteMatch(ctx.color, ctx.palette);
+        return { color: customColor };
+    }
+}
+```
+
+#### CSS Generation Hooks
+```javascript
+hooks: {
+    // Transform individual gradient layers
+    buildLayer: (ctx) => {
+        // ctx: layer object with gradient data
+        
+        // Add CSS custom properties
+        const enhanced = {
+            ...ctx,
+            gradient: ctx.gradient + ' /* Generated gradient */'
+        };
+        
+        return enhanced;
+    },
+    
+    // Called before CSS assembly
+    beforeBuildCSS: (ctx) => {
+        // ctx: { layers, selector, dimensions: {width, height}, minified, layersData }
+        console.log(`Building CSS with ${ctx.layers.length} layers for ${ctx.selector}`);
+        
+        // Can modify layers before final assembly
+        if (ctx.dimensions.width > 1000) {
+            // Add performance optimization comment
+            ctx.layers.unshift('/* Large image - optimized for performance */');
+        }
+        
+        return ctx;
+    },
+    
+    // Called after CSS generation - perfect for post-processing
+    afterBuildCSS: (ctx) => {
+        // ctx: { css, layers, selector, dimensions, minified, layersData, imageData }
+        
+        let modifiedCSS = ctx.css;
+        
+        // Add vendor prefixes
+        modifiedCSS = modifiedCSS.replace(/linear-gradient/g, 
+            '-webkit-linear-gradient, -moz-linear-gradient, linear-gradient');
+        
+        // Add responsive breakpoints
+        if (ctx.dimensions.width > 800) {
+            modifiedCSS += `\n@media (max-width: 768px) {\n  ${ctx.selector} {\n    background-size: cover;\n  }\n}`;
+        }
+        
+        // Add performance hints
+        modifiedCSS += `\n${ctx.selector} {\n  will-change: background;\n  backface-visibility: hidden;\n}`;
+        
+        return { ...ctx, css: modifiedCSS };
+    }
+}
+```
+
+#### Hybrid Processing Hooks
+```javascript
+hooks: {
+    // Configure secondary processing mode
+    beforeHybridSecondary: (ctx) => {
+        // ctx: { primaryMode, secondaryMode, imageData, config }
+        
+        // Override secondary mode based on primary results
+        if (ctx.primaryMode === 'rows' && ctx.imageData.width > ctx.imageData.height * 3) {
+            return { secondaryMode: 'columns' };
+        }
+        
+        return { secondaryMode: ctx.secondaryMode };
+    },
+    
+    // Combine hybrid results with custom logic
+    combineHybrid: (ctx) => {
+        // ctx: { primaryCSS, secondaryData, primaryMode, imageData, config, correctedCSS }
+        
+        // Custom hybrid combination algorithm
+        const customCSS = blendHybridResults(ctx.primaryCSS, ctx.secondaryData);
+        return { css: customCSS };
+    }
+}
+```
+
+#### Error Handling Hooks
+```javascript
+hooks: {
+    // Global error handler
+    onError: (ctx) => {
+        // ctx: { stage, error, [additional context] }
+        console.error(`Error in ${ctx.stage}:`, ctx.error.message);
+        
+        // Custom error handling based on stage
+        switch (ctx.stage) {
+            case 'pluginInit':
+                console.log('Plugin failed to initialize, continuing without it');
+                break;
+            case 'loadFromSource':
+                console.log('Image loading failed, trying fallback source');
+                // Could trigger alternative loading logic
+                break;
+            case 'toCSS':
+                console.log('CSS generation failed, attempting recovery');
+                // Could implement fallback CSS generation
+                break;
+            default:
+                // Log to monitoring service
+                logErrorToService(ctx);
+        }
+        
+        return ctx;
+    }
+}
+```
+
+### 🚀 Advanced Hook Examples
+
+#### Performance Monitoring Plugin
+```javascript
+function PerformanceMonitor() {
+    const timings = {};
+    
+    return {
+        hooks: {
+            beforeProcess: (ctx) => {
+                timings.processStart = performance.now();
+                return ctx;
+            },
+            
+            afterProcess: (ctx) => {
+                timings.processEnd = performance.now();
+                timings.processDuration = timings.processEnd - timings.processStart;
+                
+                console.log(`Processing took ${timings.processDuration.toFixed(2)}ms`);
+                console.log(`Generated ${ctx.css.length} characters of CSS`);
+                console.log(`Performance: ${(ctx.css.length / timings.processDuration).toFixed(2)} chars/ms`);
+                
+                return ctx;
+            },
+            
+            beforeBuildCSS: (ctx) => {
+                timings.cssStart = performance.now();
+                return ctx;
+            },
+            
+            afterBuildCSS: (ctx) => {
+                timings.cssEnd = performance.now();
+                timings.cssDuration = timings.cssEnd - timings.cssStart;
+                
+                console.log(`CSS generation took ${timings.cssDuration.toFixed(2)}ms`);
+                
+                return ctx;
+            }
+        }
+    };
+}
+
+// Usage
+const converter = new img2css({
+    source: 'image.jpg',
+    plugins: [PerformanceMonitor()]
+});
+```
+
+#### Adaptive Quality Plugin
+```javascript
+function AdaptiveQuality() {
+    return {
+        hooks: {
+            decideProcessingMode: (ctx) => {
+                const pixels = ctx.imageData.width * ctx.imageData.height;
+                
+                // Adaptive mode selection based on image size
+                if (pixels > 1000000) {
+                    return { mode: 'rows' }; // Faster for large images
+                } else if (pixels < 10000) {
+                    return { mode: 'hybrid' }; // Best quality for small images
+                }
+                
+                return { mode: ctx.defaultMode };
+            },
+            
+            beforeProcess: (ctx) => {
+                const pixels = ctx.imageData.width * ctx.imageData.height;
+                
+                // Adaptive compression based on image complexity
+                if (pixels > 500000) {
+                    ctx.config.processing.compression = Math.max(20, ctx.config.processing.compression);
+                } else if (pixels < 50000) {
+                    ctx.config.processing.compression = Math.min(5, ctx.config.processing.compression);
+                }
+                
+                return ctx;
+            }
+        }
+    };
+}
+```
+
+#### CSS Framework Integration Plugin
+```javascript
+function TailwindIntegration(options = {}) {
+    const prefix = options.prefix || 'tw-';
+    
+    return {
+        hooks: {
+            afterBuildCSS: (ctx) => {
+                let css = ctx.css;
+                
+                // Convert to Tailwind-compatible utility classes
+                const utilityClass = `${prefix}gradient-${generateHashFromCSS(css)}`;
+                
+                // Wrap in Tailwind layer
+                css = `@layer utilities {
+    .${utilityClass} {
+        ${css.replace(ctx.selector, '').trim()}
+    }
+}`;
+                
+                // Add to Tailwind config (conceptual)
+                if (options.addToConfig) {
+                    addToTailwindConfig(utilityClass, css);
+                }
+                
+                return { ...ctx, css };
+            }
+        }
+    };
+}
+
+// Usage
+const converter = new img2css({
+    source: 'image.jpg',
+    plugins: [
+        TailwindIntegration({ 
+            prefix: 'img2css-',
+            addToConfig: true 
+        })
+    ]
+});
+```
+
+#### Content Security Policy Plugin
+```javascript
+function CSPCompliance() {
+    return {
+        hooks: {
+            afterBuildCSS: (ctx) => {
+                let css = ctx.css;
+                
+                // Remove any potential security issues
+                css = css.replace(/javascript:/gi, '');
+                css = css.replace(/data:/gi, '');
+                css = css.replace(/expression\(/gi, '');
+                
+                // Add CSP-compliant nonce if available
+                if (window.CSP_NONCE) {
+                    css = `/* nonce-${window.CSP_NONCE} */\n${css}`;
+                }
+                
+                return { ...ctx, css };
+            }
+        }
+    };
+}
+```
+
+### ⚡ Hooks Best Practices
+
+#### Performance Considerations
+```javascript
+// ✅ Good: Lightweight hook that returns quickly
+hooks: {
+    beforeProcess: (ctx) => {
+        console.log('Processing started');
+        return ctx;
+    }
+}
+
+// ❌ Avoid: Heavy computation in hooks
+hooks: {
+    beforeProcess: (ctx) => {
+        // Don't do expensive operations in hooks
+        for (let i = 0; i < 1000000; i++) {
+            Math.random();
+        }
+        return ctx;
+    }
+}
+
+// ✅ Good: Async operations handled properly
+hooks: {
+    afterBuildCSS: async (ctx) => {
+        if (shouldLogToAPI) {
+            // Use non-blocking async call
+            logToAPI(ctx.css).catch(console.warn);
+        }
+        return ctx;
+    }
+}
+```
+
+#### Error Handling
+```javascript
+// ✅ Good: Robust error handling
+hooks: {
+    transformRawStops: (ctx) => {
+        try {
+            const processed = processStops(ctx.stops);
+            return { stops: processed };
+        } catch (error) {
+            console.warn('Stop transformation failed:', error);
+            return { stops: ctx.stops }; // Return original on error
+        }
+    }
+}
+
+// ✅ Good: Safe property access
+hooks: {
+    afterBuildCSS: (ctx) => {
+        if (ctx && ctx.css && typeof ctx.css === 'string') {
+            ctx.css = ctx.css.trim();
+        }
+        return ctx;
+    }
+}
+```
+
+#### Hook Ordering
+```javascript
+// Hooks execute in this order within each category:
+// 1. Plugin hooks (in plugin registration order)
+// 2. Direct hooks (from constructor config)
+
+const converter = new img2css({
+    source: 'image.jpg',
+    
+    // Plugin hooks execute first
+    lighting: { enabled: true }, // Lighting's afterBuildCSS runs first
+    
+    plugins: [customPlugin], // Custom plugin's hooks run second
+    
+    // Direct hooks execute last
+    hooks: {
+        afterBuildCSS: (ctx) => {
+            // This runs after all plugin hooks
+            return ctx;
+        }
+    }
+});
+```
+
+#### Memory Management
+```javascript
+// ✅ Good: Clean up resources
+hooks: {
+    afterProcess: (ctx) => {
+        // Clear large temporary data
+        if (ctx.tempImageData) {
+            ctx.tempImageData = null;
+        }
+        return ctx;
+    }
+}
+
+// ✅ Good: Avoid storing references to large objects
+const processedImages = new WeakMap(); // Use WeakMap for automatic cleanup
+
+hooks: {
+    afterLoad: (ctx) => {
+        processedImages.set(ctx.imageData, { processed: true });
+        return ctx;
+    }
+}
+```
+
+#### Testing Hooks
+```javascript
+// ✅ Good: Testable hook functions
+function createColorEnhancer(options = {}) {
+    const saturationBoost = options.saturationBoost || 1.1;
+    
+    return {
+        transformRawStops: (ctx) => {
+            const enhanced = ctx.stops.map(stop => enhanceColor(stop, saturationBoost));
+            return { stops: enhanced };
+        }
+    };
+}
+
+// Easy to unit test
+const enhancer = createColorEnhancer({ saturationBoost: 1.2 });
+const result = enhancer.transformRawStops({ stops: testStops });
+```
+
+---
+
 ## 📊 Enhanced Stats System
 
 ### Memory-Safe Collection
@@ -542,6 +1221,73 @@ Generates CSS gradient from the image.
 ```javascript
 const css = await converter.toCSS();
 // Returns: String (CSS class definition)
+```
+
+#### `loadFromSource(source)`
+Load image data from various sources.
+
+```javascript
+// Load from URL
+await converter.loadFromSource('/path/to/image.jpg');
+
+// Load from File object
+await converter.loadFromSource(fileInput.files[0]);
+
+// Load from ImageData
+await converter.loadFromSource(canvasImageData);
+```
+
+#### `loadImageData(source)`
+Low-level method to load image data into canvas.
+
+```javascript
+const imageData = await converter.loadImageData(source);
+// Returns: ImageData object
+```
+
+#### `processImageToCSS(imageData, config)`
+Process ImageData directly with custom configuration.
+
+```javascript
+const css = await converter.processImageToCSS(imageData, {
+    details: 85,
+    compression: 12,
+    mode: 'auto'
+});
+```
+
+#### `scaleImageByDetails(imageData, details)`
+Scale image based on detail level for optimal processing.
+
+```javascript
+const scaledImageData = converter.scaleImageByDetails(imageData, 90);
+```
+
+#### `extractColorPalette(imageData, maxColors)`
+Extract color palette from image for posterization effects.
+
+```javascript
+const palette = converter.extractColorPalette(imageData, 256);
+// Returns: Array of {r, g, b, a} color objects
+```
+
+#### `calculateImageComplexity(data, width, height)`
+Analyze image complexity for automatic optimization.
+
+```javascript
+const complexity = converter.calculateImageComplexity(data, width, height);
+console.log(complexity.isComplex, complexity.score);
+```
+
+#### `findOptimalSettingsForImage(preserveParameter)`
+Automatically find optimal processing settings.
+
+```javascript
+// Find optimal settings while preserving detail level
+const optimalConfig = await converter.findOptimalSettingsForImage('details');
+
+// Find overall optimal settings
+const optimalConfig = await converter.findOptimalSettingsForImage();
 ```
 
 #### `stats` Property
